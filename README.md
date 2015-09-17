@@ -10,4 +10,29 @@ You need Git installed globally:
 $ git clone https://github.com/kaduev13/web-game
 ```
 
+### Compilation
+
+You need g++ compiler.
+
+If you are using OS X/Ubuntu, just use "make". You should run `./configure` only one time (it'll create some additional folders and configs).
+
+To compile and run program, use
+
+```sh
+$ make
+$ ./bin/runner
+```
+
+To compile and run tests, use
+
+```sh
+$ make tester
+$ ./bin/tester
+```
+
+To run tests, use
+
+```sh
+$ make test
+```
 

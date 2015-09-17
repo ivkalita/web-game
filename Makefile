@@ -5,7 +5,7 @@ TARGET := bin/runner
 
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-OBJECTS := $(patsubst %.$(SRCEXT), %.o, $(SOURCES))
+OBJECTS := $(patsubst $(SRCDIR)%.o, $(BUILDDIR)%.o, $(patsubst %.$(SRCEXT), %.o, $(SOURCES)))
 CFLAGS := -g # -Wall
 LIB := 
 INC := -I include
@@ -25,3 +25,6 @@ clean:
 # Tests
 tester:
 	$(CC) $(CFLAGS) tests/tester.cpp $(INC) $(LIB) -o bin/tester
+
+test:
+	@echo "No tests found"

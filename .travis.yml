@@ -2,6 +2,5 @@ language: cpp
 compiler:
   - clang
   - gcc
-sudo: true
 before_install:
   - ./scripts/install-googletest.sh

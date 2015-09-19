@@ -7,8 +7,8 @@ SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)%.o, $(BUILDDIR)%.o, $(patsubst %.$(SRCEXT), %.o, $(SOURCES)))
 CFLAGS := -g # -Wall
-LIB := 
-INC := -I include
+LIB := -L./lib/poco/lib -lPocoNet -lPocoUtil -lPocoFoundation
+INC := -I./lib/poco/include
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."

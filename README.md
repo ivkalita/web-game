@@ -10,6 +10,8 @@ You need Git installed globally:
 $ git clone https://github.com/kaduev13/web-game
 ```
 
+For tests you need google test framework dynamic libraries installed globally. For linux/Mac OS X you can install them by using `scripts/install-googletest.sh`. 
+
 ### Compilation
 
 You need g++ compiler.

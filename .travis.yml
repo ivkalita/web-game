@@ -2,6 +2,10 @@ language: cpp
 compiler:
   - clang
   - gcc
-sudo: required
 before_install:
-  - ./scripts/install-googletest.sh
+  - wget http://googletest.googlecode.com/files/gtest-1.7.0.zip
+  - unzip gtest-1.7.0.zip
+  - cd gtest-1.7.0 && ./configure && make
+  - sudo cp -a lib/.libs/* /usr/lib/
+  - cd ..
+  - rm -rf gtest-1.7.0*

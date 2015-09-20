@@ -2,3 +2,5 @@ bin/*
 build/*
 .idea/*
 CMakeLists.txt
+logs/*
+lib/*

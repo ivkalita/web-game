@@ -7,17 +7,13 @@ TARGET := bin/runner
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)%.o, $(BUILDDIR)%.o, $(patsubst %.$(SRCEXT), %.o, $(SOURCES)))
-<<<<<<< HEAD
-CFLAGS := -g # -Wall
-LIB := -L./lib/poco/lib -lPocoNet -lPocoUtil -lPocoFoundation
-INC := -I./lib/poco/include
-=======
+
 CFLAGS := -Wall # -Wall
-LIB :=
+LIB := -L./lib/poco/lib -lPocoNet -lPocoUtil -lPocoFoundation -lPocoXML -lPocoJSON
 GTEST_LIBS := -L lib/gtest -l gtest_main -l gtest
-INC := -I include
+INC := -I./lib/poco/include
 TESTS = $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
->>>>>>> 4763196553520cf1197a393d948f2d7d578eb529
+
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."

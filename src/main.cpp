@@ -1,8 +1,3 @@
-#include <iostream>
+#include "WebSocketServer.hpp"
 
-using namespace std;
-
-int main() {
-	cout << "Hello world" << endl;
-	return 0;
-}
+POCO_SERVER_MAIN(WebSocketServer);

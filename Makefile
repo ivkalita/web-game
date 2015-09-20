@@ -2,6 +2,7 @@ CC := g++
 SRCDIR := src
 TESTDIR := tests
 BUILDDIR := build
+LOGDIR := logs
 TARGET := bin/runner
 
 SRCEXT := cpp
@@ -9,8 +10,8 @@ SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)%.o, $(BUILDDIR)%.o, $(patsubst %.$(SRCEXT), %.o, $(SOURCES)))
 
 CFLAGS := -Wall # -Wall
-LIB := -lPocoNet -lPocoUtil -lPocoFoundation -lPocoXML -lPocoJSON
-GTEST_LIBS := -l gtest_main -l gtest
+LIB := -L/usr/local/lib -lPocoUtil -lPocoNet -lPocoXML -lPocoJSON -lPocoFoundation
+GTEST_LIBS := /usr/lib/libgtest.a /usr/lib/libgtest_main.a -lpthread
 INC := -I include
 TESTS = $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
 
@@ -42,3 +43,7 @@ deploy:
 	sh scripts/install-googletest.sh
 	@echo " Installing Poco libraries... "
 	sh scripts/install-poco.sh
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+	@mkdir -p $(LOGDIR)
+	./bin/runner > $(LOGDIR)/main.log &
+

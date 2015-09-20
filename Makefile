@@ -9,8 +9,8 @@ SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)%.o, $(BUILDDIR)%.o, $(patsubst %.$(SRCEXT), %.o, $(SOURCES)))
 
 CFLAGS := -Wall # -Wall
-LIB := -L./lib/poco -lPocoNet -lPocoUtil -lPocoFoundation -lPocoXML -lPocoJSON
-GTEST_LIBS := -L lib/gtest -l gtest_main -l gtest
+LIB := -lPocoNet -lPocoUtil -lPocoFoundation -lPocoXML -lPocoJSON
+GTEST_LIBS := -l gtest_main -l gtest
 INC := -I include
 TESTS = $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
 
@@ -36,3 +36,9 @@ compile_tests:
 test: compile_tests
 	@echo " Running tests..."
 	bin/tester
+
+deploy:
+	@echo " Installing googletest libraries... "
+	sh scripts/install-googletest.sh
+	@echo " Installing Poco libraries... "
+	sh scripts/install-poco.sh

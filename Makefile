@@ -17,6 +17,7 @@ TESTS = $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
 
 
 $(TARGET): $(OBJECTS)
+	@mkdir -p bin
 	@echo " Linking..."
 	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
 
@@ -30,6 +31,7 @@ clean:
 
 # Tests
 compile_tests:
+	@mkdir -p bin
 	@echo " Collecting and compile tests...";
 	$(CC) $(CFLAGS) $(TESTS) $(INC) $(LIB) $(GTEST_LIBS) -o bin/tester
 
@@ -38,12 +40,14 @@ test: compile_tests
 	@echo " Running tests..."
 	bin/tester
 
+start: bin/runner
+	@mkdir -p $(LOGDIR)
+	./bin/runner > $(LOGDIR)/main.log &
+
 deploy:
 	@echo " Installing googletest libraries... "
 	sh scripts/install-googletest.sh
 	@echo " Installing Poco libraries... "
 	sh scripts/install-poco.sh
 	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-	@mkdir -p $(LOGDIR)
-	./bin/runner > $(LOGDIR)/main.log &
 

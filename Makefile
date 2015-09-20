@@ -9,9 +9,9 @@ SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)%.o, $(BUILDDIR)%.o, $(patsubst %.$(SRCEXT), %.o, $(SOURCES)))
 
 CFLAGS := -Wall # -Wall
-LIB := -L./lib/poco/lib -lPocoNet -lPocoUtil -lPocoFoundation -lPocoXML -lPocoJSON
+LIB := -L./lib/poco -lPocoNet -lPocoUtil -lPocoFoundation -lPocoXML -lPocoJSON
 GTEST_LIBS := -L lib/gtest -l gtest_main -l gtest
-INC := -I./lib/poco/include
+INC := -I include
 TESTS = $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
 
 

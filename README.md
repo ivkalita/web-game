@@ -7,7 +7,7 @@ You need Git installed globally:
 ```sh
 $ git clone https://github.com/kaduev13/web-game
 $ cd web-game
-$ ./deploy.sh
+$ make deploy
 ```
 
 C++ libraries:

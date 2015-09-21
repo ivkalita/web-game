@@ -4,3 +4,4 @@ build/*
 CMakeLists.txt
 logs/*
 lib/*
+gtestresults.xml

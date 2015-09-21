@@ -38,7 +38,7 @@ compile_tests:
 
 test: compile_tests
 	@echo " Running tests..."
-	bin/tester
+	bin/tester --gtest_output=xml:gtestresults.xml
 
 start: bin/runner
 	@mkdir -p $(LOGDIR)

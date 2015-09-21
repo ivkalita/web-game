@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-make deploy
+if [ "$DEP_INSTALL" = "true" ]
+then
+	echo "Installing dependencies"
+	make deploy
+fi

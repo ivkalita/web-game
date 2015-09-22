@@ -18,7 +18,9 @@ C++ libraries:
 
 ### Compilation
 
-You need g++ compiler.
+You need `g++` compiler and `cmake`.
+
+
 
 If you are using OS X/Ubuntu, just use "make".
 

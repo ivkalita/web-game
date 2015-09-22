@@ -2,5 +2,14 @@ bin/*
 build/*
 .idea/*
 logs/*
-
+Makefile
+CMakeCache.txt
+CMakeFiles/*
+lib/*
+!lib/gtest
+!lib/poco
+CPackConfig.cmake
+CPackSourceConfig.cmake
+cmake_install.cmake
+Poco/*
 gtestresults.xml

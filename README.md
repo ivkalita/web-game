@@ -4,8 +4,8 @@
 
 Required C++ libraries (they will be installed automatically):
 
-- googletest framework: libgtest, libgtest_main (for testing only) `sh scripts/install-googletest.sh`
-- poco libraries: libPocoNet, libPocoUtil, libPocoJSON, libPocoXML, libPocoFoundation `sh scripts/install-poco.sh`
+- googletest framework: libgtest, libgtest_main (for testing only)
+- poco libraries: libPocoNet, libPocoUtil, libPocoJSON, libPocoXML, libPocoFoundation
 
 ### Ubuntu/Mac OS X
 

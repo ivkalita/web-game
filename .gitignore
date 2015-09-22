@@ -1,7 +1,6 @@
 bin/*
 build/*
 .idea/*
-CMakeLists.txt
 logs/*
 
 gtestresults.xml

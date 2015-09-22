@@ -41,6 +41,6 @@ Read this articles first.
 
 [Collaborator's guide](https://github.com/kaduev13/web-game/wiki/Collaborator's-guide)
 
-[Libraries guide](docs/LibrariesGuide.md)
+[Libraries guide](doc/LibrariesGuide.md)
 
 

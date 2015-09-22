@@ -3,5 +3,5 @@ build/*
 .idea/*
 CMakeLists.txt
 logs/*
-lib/*
+
 gtestresults.xml

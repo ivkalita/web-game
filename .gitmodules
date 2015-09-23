@@ -4,3 +4,6 @@
 [submodule "lib/poco"]
 	path = lib/poco
 	url = https://github.com/pocoproject/poco
+[submodule "lib/libpq"]
+	path = lib/libpq
+	url = https://github.com/LuaDist/libpq.git

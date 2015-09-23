@@ -14,8 +14,7 @@ You need Git installed globally, g++ compiler and cmake (v3+).
 ```sh
 $ git clone https://github.com/kaduev13/web-game
 $ cd web-game
-$ git submodule init
-$ git submodule update
+$ git submodule update --init
 $ cmake .
 $ make runner
 $ make tester

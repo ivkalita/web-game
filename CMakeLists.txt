@@ -28,8 +28,8 @@ add_executable(runner
         src/main.cpp
         src/WebSocketServer.cpp
 )
-target_link_libraries(runner ${POCO_LIBS})
+target_link_libraries(runner ${POCO_LIBS} pq)
 
 add_executable(tester
         tests/test_1.cpp)
-target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS})
+target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} pq)

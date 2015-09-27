@@ -249,7 +249,10 @@ Response StartGame(UserInfo owner, GameInfoAll game)
 [GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
-TBD
+[Response](#Response)::data contains nothing.
+[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+ * "Ok" - Start the game there was a successfully.
+ * "NotStarted" - failed to start game.
 
 ##### Route
 This method is available at url - **/api/start_game** [POST]

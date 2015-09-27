@@ -74,6 +74,7 @@ struct Credentials {
 ### <a name="GameInfo"></a>GameInfo
 ```c++
 class GameInfo {
+public:
    int id;
    string name;
    UserInfo owner;
@@ -87,6 +88,7 @@ class GameInfo {
 This type inherits [GameInfo](#gameinfo).
 ```c++
 class GameInfoAll : public GameInfo {
+public:
    int curNumPlayers;
 }
 ```

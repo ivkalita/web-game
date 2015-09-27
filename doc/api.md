@@ -10,7 +10,7 @@
     - [Access control](#access-control)
         - [UserInfo](#userinfo)
         - [Credentials](#credentials)
-    - [Connection with the game](#connection-with-the-game)
+    - [Game connection](#game-connection)
         - [GameInfo](#gameinfo)
         - [GameInfoAll](#gameinfoall)
         - [Mode](#mode)
@@ -23,7 +23,7 @@
             - [Register](#register)
         - [Logging out](#logging-out)
             - [Logout](#logout)
-    - [Connection with the game](#connection-with-the-game-1)
+    - [Game connection](#game-connection-1)
         - [GetGames](#getgames)
         - [JoinToGame](#jointogame)
         - [CreateGame](#creategame)
@@ -33,7 +33,7 @@
 *****
 
 # Serialization
-Serialization of objects is performed in the format JSON. Read the rules of data in JSON format by this link: https://en.wikipedia.org/wiki/JSON#Data_types.2C_syntax_and_example 
+Object serialization is performed in the JSON format. You can learn about data conversion to JSON format by following this link - https://en.wikipedia.org/wiki/JSON#Data_types.2C_syntax_and_example 
 
 # Classes
 
@@ -69,7 +69,7 @@ struct Credentials {
 * login - [0-9a-zA-Z]{6, 36}
 * password - .{6, 36}
 
-## Connection with the game
+## Game connection
 
 ### <a name="GameInfo"></a>GameInfo
 ```c++
@@ -102,13 +102,13 @@ Type, which describes the map of the game. Enum.
 # Methods
 
 ## Access control
-This section describes the methods of work with access control, such as authorization, registration and logging out.
+This section describes access control methods, such as authorization, registration and logging out.
 
 ### Authorization
 Here are the methods of authorization.
 
 #### Authorize
-This method should be used for authorization of users. Below you can see method signature.
+This method should be used for authorization of users. Its signature is shown below.
 
 ```c++
 Response Authorize(Credentials credentials)
@@ -127,10 +127,10 @@ This method is available at url - **/authorize** [POST]
 
 
 ### Registration
-Here are the methods of registration.
+Here are the registration methods.
 
 #### Register
-This method should be used for registration of new users. Below you can see method signature.
+This method should be used for new user(s) registration. Its signature is shown below.
 
 ```c++
 Response Register(string login, string name, string password)
@@ -158,7 +158,7 @@ This method is available at url - **/register** [POST]
 Here are the methods for logging out.
 
 #### Logout
-This method should be used for logging out of users. Below you can see method signature.
+This method should be used for logging users out. Its signature is shown below.
 ```c++
 Response Logout(void)
 ```
@@ -175,11 +175,11 @@ There are no arguments
 This method is available at url - **/logout** [POST]
 
 
-## Connection with the game
-This section describes the methods which allow connect to specific game, as well as to get out of it.
+## Game connection
+This section describes methods of connection and disconnection to a specific game.
 
 #### GetGames
-This method allows you to get a list of all games (with information about them). Below you can see method signature.
+This method allows you to get a list of all games (including game information). Its signature is shown below.
 ```c++
 Response GetGames(void)
 ```
@@ -196,7 +196,7 @@ This method is available at url - **/api/get_games** [GET]
 
 
 #### JoinToGame
-This method allows to connect to specific game. Below you can see method signature.
+This method allows to connect to specific game. Its signature is shown below.
 ```c++
 Response JoinToGame(UserInfo user, GameInfoAll game)
 ```
@@ -217,7 +217,7 @@ This method is available at url - **/api/join_to_game** [GET]
 
 
 #### CreateGame
-This method should be used for creating new game. Below you can see method signature.
+This method should be used for creating new game. Its signature is shown below.
 ```c++
 Response CreateGame(UserInfo owner, GameInfo game)
 ```
@@ -238,7 +238,7 @@ This method is available at url - **/api/create_game** [POST]
 
 
 ### StartGame
-This method allows the owner to start the game. Below you can see method signature.
+This method allows the owner to start the game. Its signature is shown below.
 ```c++
 Response StartGame(UserInfo owner, GameInfoAll game)
 ```
@@ -256,7 +256,7 @@ This method is available at url - **/api/start_game** [POST]
 
 
 ### ExitGame
-This method allows the user to exit from the game. Below you can see method signature.
+This method allows the user to exit the game. Its signature is shown below.
 ```c++
 Response ExitGame(UserInfo user, GameInfoAll game)
 ```

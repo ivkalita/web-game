@@ -3,10 +3,7 @@ CREATE DATABASE testbase
        ENCODING = 'UTF8'
        TABLESPACE = pg_default;
 
-
--- Sequence: players_id_seq
-
--- DROP SEQUENCE players_id_seq;
+\c testbase
 
 CREATE SEQUENCE players_id_seq
   INCREMENT 1

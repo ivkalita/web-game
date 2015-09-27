@@ -185,7 +185,7 @@ There are no arguments
 This method is available at url - **/api/get_games** [GET]
 
 
-#### joinToGame (TBD)
+#### joinToGame
 This method allows to connect to specific game. Below you can see method signature.
 ```c++
 Response joinToGame(UserInfo user, GameInfo game)

@@ -39,7 +39,7 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
         ostr << "<br><br>";
     }
     else {
-        fprintf(stderr, "SELECT failed: %s", PQerrorMessage(conn));
+        cerr << "SELECT failed " << PQerrorMessage(conn) << endl;
         PQclear(res);
     }
 

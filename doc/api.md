@@ -12,6 +12,7 @@
         - [Credentials](#credentials)
     - [Connection with the game](#connection-with-the-game)
         - [GameInfo](#gameinfo)
+        - [GameInfoAll](#gameinfoall)
         - [Mode](#mode)
         - [Map](#map)
 - [Methods](#methods)
@@ -72,14 +73,21 @@ struct Credentials {
 
 ### <a name="GameInfo"></a>GameInfo
 ```c++
-struct GameInfo {
+class GameInfo {
    int id;
    string name;
    UserInfo owner;
-   int maxNumPeople;
-   int curNumPeople;
+   int maxNumPlayers;
    Mode mode;
    Map map;
+}
+```
+
+### <a name="GameInfoAll"></a>GameInfoAll
+This type inherits [GameInfo](#gameinfo).
+```c++
+class GameInfoAll : public GameInfo {
+   int curNumPlayers;
 }
 ```
 
@@ -177,7 +185,7 @@ Response GetGames(void)
 There are no arguments
 
 ##### Result
-[Response](#Response)::data contains array of [GameInfo](#GameInfo) objects with key "games" or nothing (in case of fail).
+[Response](#Response)::data contains array of [GameInfoAll](#GameInfoAll) objects with key "games" or nothing (in case of fail).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - list of a games successfully obtained
 
@@ -188,12 +196,12 @@ This method is available at url - **/api/get_games** [GET]
 #### JoinToGame
 This method allows to connect to specific game. Below you can see method signature.
 ```c++
-Response JoinToGame(UserInfo user, GameInfo game)
+Response JoinToGame(UserInfo user, GameInfoAll game)
 ```
 ##### Arguments
 [UserInfo](#UserInfo) user - required argument. User that is connected to the game.
 
-[GameInfo](#GameInfo) game - required argument.
+[GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
 TBD
@@ -223,13 +231,13 @@ This method is available at url - **/api/create_game** [POST]
 ### StartGame
 This method allows the owner to start the game. Below you can see method signature.
 ```c++
-Response StartGame(UserInfo owner, GameInfo game)
+Response StartGame(UserInfo owner, GameInfoAll game)
 ```
 
 ##### Arguments
 [UserInfo](#UserInfo) owner - required argument. The user who creates the game.
 
-[GameInfo](#GameInfo) game - required argument.
+[GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
 TBD
@@ -241,13 +249,13 @@ This method is available at url - **/api/start_game** [POST]
 ### ExitGame
 This method allows the user to exit from the game. Below you can see method signature.
 ```c++
-Response ExitGame(UserInfo user, GameInfo game)
+Response ExitGame(UserInfo user, GameInfoAll game)
 ```
 
 ##### Arguments
 [UserInfo](#UserInfo) user - required argument.
 
-[GameInfo](#GameInfo) game - required argument.
+[GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
 [Response](#Response)::data contains nothing.

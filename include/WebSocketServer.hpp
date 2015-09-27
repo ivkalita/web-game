@@ -13,6 +13,9 @@
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Format.h"
+
+#include "libpq-fe.h"
+
 #include <iostream>
 
 class PageRequestHandler: public Poco::Net::HTTPRequestHandler {

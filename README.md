@@ -2,6 +2,17 @@
 
 ## Installation
 
+You have to install PostgreSQL 9.4
+Key files for project are: libpq-fe.h and libpq.lib
+
+If you install for Visual Studio you should:
+- install 32bit version of PostgreSQL
+- add libpq.lib to Linker->Input->Additional dependencies
+- add <pgsql install path>\include and \lib to VC++ Directories->Include and ->Library, correspondingly
+
+You should create your own local PostgreSQL database server
+Then you can use sql/database.sql file for creating and filling your database
+
 Required C++ libraries (they will be installed automatically):
 
 - googletest framework: libgtest, libgtest_main (for testing only)

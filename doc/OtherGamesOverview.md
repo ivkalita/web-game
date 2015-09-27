@@ -1,51 +1,41 @@
-Обзоры фич игр, наподобие галкона
+Overview of features from other games
 ========================
-
-Глоссарий
--------------
-* ЛКМ - левая кнопка мыши
-* ПКМ - правая кнопка мыши
 
 1. Auralux
 ----------------
-Реализована под  Android, iOS, Windows. Есть онлайн-версия игры.
+Platforms:  Android, iOS, Windows. There is online version of the game.
 
-[Версия для Android](https://play.google.com/store/apps/details?id=com.wardrumstudios.auralux)
-[Версия для iOS](https://itunes.apple.com/us/app/auralux/id604580669?ls=1&mt=8)
-[Онлайн-версия](www.auraluxgame.com/game/)
+[Website](https://www.auraluxgame.com/)
+[Android version](https://play.google.com/store/apps/details?id=com.wardrumstudios.auralux)
+[iOS version](https://itunes.apple.com/us/app/auralux/id604580669?ls=1&mt=8)
+[Online version](www.auraluxgame.com/game/)
 
-Основные фичи:
-* Корабли можно отправить в любую точку карты, не только на планету.
-* При столкновении своего корабля с вражеским оба взрываются.
-* У планет есть ХП. Чтоб захватить нейтральную планету, её надо "убить". Чтоб захватить вражескую планету, её надо "убить" дважды: сначала отнять её у противника, а потом захватить как нейтральную.
-* Некоторые планеты можно улучшать до 2 или 3 уровня. Чем выше уровень планеты, тем больше у неё ХП и тем быстрее она производит корабли. Улучшение стоит определенное количество кораблей.
+Features:
+* The ships can be sent to any point on the map, not only to the planet.
+* If your ship collides with enemy ship, they both explode.
+* Planets have HP. To capture a neutral planet you have to "kill" it. To capture an enemy's planet you have to "kill" it twice. After first "killing" the planet becomes neutral. Then you have to capture it as neutral.
+* Some planets can be upgraded up to 2 or 3 lvl. Higher level means more HP and faster ships production. Upgrade costs some ships.
 
 
 2. Eufloria
 ------------------
-Реализована под  Android, iOS, Windows, Linux, OS X. Есть онлайн-версия игры.
+Platforms:  Android, iOS, Windows, Linux, OS X.
 
-[Сайт игры](http://www.eufloria-game.com/)
-[Версия для Android](https://play.google.com/store/apps/details?id=com.omnilabs.eufloria)
-[Версия для iOS](https://itunes.apple.com/app/eufloria-hd/id484072119?mt=8)
+[Website](http://www.eufloria-game.com/)
+[ Android version](https://play.google.com/store/apps/details?id=com.omnilabs.eufloria)
+[iOS version](https://itunes.apple.com/app/eufloria-hd/id484072119?mt=8)
 
-Основные фичи:
-* На планете можно построить от одного до трех зданий: заводы или вышки. Завод производит корабли; вышка защищает планету, стреляя по вражеским кораблям во время нападения. Максимальное количество построек на планете зависит от её размера. Возведение постройки стоит определенное количество кораблей. На планете должен быть хотя бы один завод.
-* У кораблей есть хп, атака и скорость. Каждая планета производит корабли со своими параметрами.
-* Дальность перелета корабля с одной планеты на другую ограничена. Можно перелетать только на достаточно близкую планету. Радиус перелета для всех планет одинаковый.
-* Игрок видит все планеты на карте, но войска противника скрыты в "тумане войны". Игрок видит войска противника, только если неподалеку находится хотя бы один свой корабль.
-* На другую планету можно отправить определенный процент кораблей текущей планеты.
-* Можно отправить один корабль на разведку. Если корабль после разведки уцелеет, он возвращается обратно.
-* Чтобы захватить нейтральную планету, на ней надо возвести завод.
-* Чтобы захватить вражескую планету, надо убить все вражеские корабли на орбите, а так же уничтожить все вражеские постройки, после чего возвести завод. Процесс битвы не контролируется: во время битвы корабль решает автоматически, атаковать ему постройку или корабль.
+Features:
+* Player can build from one to three buildings: factories or towers. Factory produces ships. Tower shoots enemy ships during the attack on the planet. Maximum number of buildings depends on planet size. Building costs some ships. The planet must have at least one factory.
+* Ships have HP, damage and speed. Each planet produces ships with its own parametrs.
+* Distance of flight from one planet to another is limited. This distance is the same for all planets.
+* Player can see all planets on map, but enemy forces are hidden in the "fog of war". Player can see enemy ships only if nearby is at least one player's ship.
+* To capture the neutral planet you have to build factory on it.
+* To capture the enemy planet you have to destroy all enemy ships in orbit and destroy all enemy buildings. After you have to build factory on the planet. Battle is going automatically, you can't control it.
 
 
-3. Ещё фичи
+3. More features
 ----------------
-* Планеты могут перемещаться.
-* Некоторые планеты время от времени производят бонусы. Чтоб получить бонус, надо захватить планету и удержать её некоторое время. После этого иконка бонуса появится на панели бонусов. Бонус можно использовать в любой момент. Нельзя хранить больше некоторого количества бонусов. Возможные бонусы: 
- * временное ускорение всех своих / замедление всех чужих кораблей; 
- * временное увеличение защиты/регенерации/скорости производства кораблей своей (одной) планеты; 
- * подкрепление: мгновенно увеличивает количество кораблей на своей планете;
- * заморозка времени вокруг планеты: указанная планета временно перестает производить корабли; вражеские корабли, которые атакуют замороженную планету, не наносят ей никакого урона; на замороженную планету не действуют никакие другие бонусы.
+* Some planets are moving.
+* Some planets make bonuses. To get it you have to capture the planet and keep it for some time. After getting then bonus you can use it in any moment. Maximum number of stored bonuses is limited.
  

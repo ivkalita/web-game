@@ -17,17 +17,17 @@
 - [Methods](#methods)
     - [Access control](#access-control-1)
         - [Authorization](#authorization)
-            - [authorize](#authorize)
+            - [Authorize](#authorize)
         - [Registration](#registration)
-            - [register](#register)
+            - [Register](#register)
         - [Logging out](#logging-out)
-            - [logout](#logout)
+            - [Logout](#logout)
     - [Connection with the game](#connection-with-the-game-1)
-        - [getGames](#getgames)
-        - [joinToGame](#jointogame)
-        - [createGame](#creategame)
-        - [startGame](#startgame)
-        - [exitGame](#exitgame)
+        - [GetGames](#getgames)
+        - [JoinToGame](#jointogame)
+        - [CreateGame](#creategame)
+        - [StartGame](#startgame)
+        - [ExitGame](#exitgame)
 
 *****
 
@@ -97,11 +97,11 @@ This section describes the methods of work with access control, such as authoriz
 ### Authorization
 Here are the methods of authorization.
 
-#### authorize
+#### Authorize
 This method should be used for authorization of users. Below you can see method signature.
 
 ```c++
-Response authorize(Credentials credentials)
+Response Authorize(Credentials credentials)
 ```
 ##### Arguments
 [Credentials](#Credentials) credentials - required argument.
@@ -119,11 +119,11 @@ This method is available at url - **/authorize** [POST]
 ### Registration
 Here are the methods of registration.
 
-#### register
+#### Register
 This method should be used for registration of new users. Below you can see method signature.
 
 ```c++
-Response register(string login, string name, string password)
+Response Register(string login, string name, string password)
 ```
 ##### Arguments
 string login - required argument.
@@ -147,10 +147,10 @@ This method is available at url - **/register** [POST]
 ### Logging out
 Here are the methods for logging out.
 
-#### logout
+#### Logout
 This method should be used for logging out of users. Below you can see method signature.
 ```c++
-Response logout(void)
+Response Logout(void)
 ```
 ##### Arguments
 There are no arguments
@@ -168,10 +168,10 @@ This method is available at url - **/logout** [POST]
 ## Connection with the game
 This section describes the methods which allow connect to specific game, as well as to get out of it.
 
-#### getGames
+#### GetGames
 This method allows you to get a list of all games (with information about them). Below you can see method signature.
 ```c++
-Response getGames(void)
+Response GetGames(void)
 ```
 ##### Arguments
 There are no arguments
@@ -185,10 +185,10 @@ There are no arguments
 This method is available at url - **/api/get_games** [GET]
 
 
-#### joinToGame
+#### JoinToGame
 This method allows to connect to specific game. Below you can see method signature.
 ```c++
-Response joinToGame(UserInfo user, GameInfo game)
+Response JoinToGame(UserInfo user, GameInfo game)
 ```
 ##### Arguments
 [UserInfo](#UserInfo) user - required argument. User that is connected to the game.
@@ -202,10 +202,10 @@ TBD
 This method is available at url - **/api/join_to_game** [GET]
 
 
-#### createGame
+#### CreateGame
 This method should be used for creating new game. Below you can see method signature.
 ```c++
-Response createGame(UserInfo owner, GameInfo game)
+Response CreateGame(UserInfo owner, GameInfo game)
 ```
 
 ##### Arguments
@@ -220,10 +220,10 @@ TBD
 This method is available at url - **/api/create_game** [POST]
 
 
-### startGame
+### StartGame
 This method allows the owner to start the game. Below you can see method signature.
 ```c++
-Response startGame(UserInfo owner, GameInfo game)
+Response StartGame(UserInfo owner, GameInfo game)
 ```
 
 ##### Arguments
@@ -238,10 +238,10 @@ TBD
 This method is available at url - **/api/start_game** [POST]
 
 
-### exitGame
+### ExitGame
 This method allows the user to exit from the game. Below you can see method signature.
 ```c++
-Response exitGame(UserInfo user, GameInfo game)
+Response ExitGame(UserInfo user, GameInfo game)
 ```
 
 ##### Arguments

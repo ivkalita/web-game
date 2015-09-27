@@ -206,7 +206,11 @@ Response JoinToGame(UserInfo user, GameInfoAll game)
 [GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
-TBD
+[Response](#Response)::data contains nothing.
+[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+ * "Ok" - user is successfully connected to the game.
+ * "NotFound" - this game is not exist.
+ * "GameStarted" - this game already started.
 
 ##### Route
 This method is available at url - **/api/join_to_game** [GET]
@@ -224,7 +228,10 @@ Response CreateGame(UserInfo owner, GameInfo game)
 [GameInfo](#GameInfo) game - required argument. 
 
 ##### Result
-TBD
+[Response](#Response)::data contains nothing.
+[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+ * "Ok" - game successfully created.
+ * "NotCreated" - failed to create game.
 
 ##### Route
 This method is available at url - **/api/create_game** [POST]

@@ -93,11 +93,11 @@ public:
 }
 ```
 
-### <a name="Mode"></a>Mode (TBD)
-Type, which describes the mode of the game. Enum.
+### <a name="Mode"></a>Mode
+Type, which describes the mode of the game. Enum. **(TBD)**
 
-### <a name="Map"></a>Map (TBD)
-Type, which describes the map of the game. Enum.
+### <a name="Map"></a>Map
+Type, which describes the map of the game. Enum. **(TBD)**
 
 # Methods
 

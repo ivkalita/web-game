@@ -1,6 +1,6 @@
 [database]
-user=dev
-password=16ytu91ito
+user=
+password=
 hostaddr=127.0.0.1
 port=5432
 [application]

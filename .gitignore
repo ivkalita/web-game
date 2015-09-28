@@ -1,6 +1,6 @@
 bin/*
-!bin/runner.ini
-!bin/tester.ini
+!bin/runner.ini.dist
+!bin/tester.ini.dist
 build/*
 .idea/*
 logs/*

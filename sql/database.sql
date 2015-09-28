@@ -1,68 +1,43 @@
-CREATE DATABASE testbase
-  WITH OWNER = postgres
-       ENCODING = 'UTF8'
+CREATE DATABASE galcon
+    WITH ENCODING = 'UTF8'
        TABLESPACE = pg_default;
 
-\c testbase
+\c galcon
 
 CREATE SEQUENCE players_id_seq
-  INCREMENT 1
-  MINVALUE 1
-  MAXVALUE 9223372036854775807
-  START 1
-  CACHE 1;
-ALTER TABLE players_id_seq
-  OWNER TO postgres;
-
-
--- Sequence: games_id_seq
-
--- DROP SEQUENCE games_id_seq;
+    INCREMENT 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    START 1
+    CACHE 1;
 
 CREATE SEQUENCE games_id_seq
-  INCREMENT 1
-  MINVALUE 1
-  MAXVALUE 9223372036854775807
-  START 1
-  CACHE 1;
-ALTER TABLE games_id_seq
-  OWNER TO postgres;
-
-
--- Table: games
-
--- DROP TABLE games;
+    INCREMENT 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    START 1
+    CACHE 1;
 
 CREATE TABLE games
 (
-  id integer NOT NULL DEFAULT nextval('games_id_seq'::regclass),
-  name character varying(50),
-  CONSTRAINT games_pkey PRIMARY KEY (id)
+    id integer NOT NULL DEFAULT nextval('games_id_seq'::regclass),
+    name character varying(50),
+    CONSTRAINT games_pkey PRIMARY KEY (id)
 )
 WITH (
-  OIDS=FALSE
+    OIDS=FALSE
 );
-ALTER TABLE games
-  OWNER TO postgres;
-
-
--- Table: players
-
--- DROP TABLE players;
 
 CREATE TABLE players
 (
-  id integer NOT NULL DEFAULT nextval('players_id_seq'::regclass),
-  login character varying(30),
-  password character varying(30),
-  CONSTRAINT players_pkey PRIMARY KEY (id)
+    id integer NOT NULL DEFAULT nextval('players_id_seq'::regclass),
+    login character varying(30),
+    password character varying(30),
+    CONSTRAINT players_pkey PRIMARY KEY (id)
 )
 WITH (
-  OIDS=FALSE
+    OIDS=FALSE
 );
-ALTER TABLE players
-  OWNER TO postgres;
-
 
 --insert data
 

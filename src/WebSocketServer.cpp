@@ -24,9 +24,10 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
     response.setChunkedTransferEncoding(true);
     response.setContentType("text/html");
     std::ostream& ostr = response.send();
+    Application &app = Application::instance();
+    string connection_string = app.config().getString("database.connection_string");
 
-    PGconn* conn = NULL;
-    conn = PQconnectdb("user=postgres password=1 dbname=testbase hostaddr=127.0.0.1 port=5432"); 
+    PGconn* conn = PQconnectdb(connection_string.c_str());
     if (PQstatus(conn) != CONNECTION_OK) {
         ostr << "Connection failed" << endl;
     }
@@ -117,7 +118,22 @@ WebSocketServer::WebSocketServer() : _helpRequested(false) {}
 WebSocketServer::~WebSocketServer() {}
 
 void WebSocketServer::initialize(Application& self) {
-    loadConfiguration(); // load default configuration files, if present
+    loadConfiguration();
+
+    //initialize connection_string for database and load it into config
+    map<string, string> database_configs;
+    database_configs.insert(pair<string, string>("user", "postgres"));
+    database_configs.insert(pair<string, string>("hostaddr", "127.0.0.1"));
+    database_configs.insert(pair<string, string>("port", "5432"));
+    database_configs.insert(pair<string, string>("dbname", "galcon"));
+    database_configs.insert(pair<string, string>("password", ""));
+    string connection_string = "";
+    for (auto it = database_configs.begin(); it != database_configs.end(); ++it) {
+        string key = "database." + it->first;
+        string value = config().getString(key, it->second);
+        connection_string += it->first + "=" + value + " ";
+    }
+    config().setString("database.connection_string", connection_string);
     ServerApplication::initialize(self);
 }
 
@@ -155,18 +171,11 @@ int WebSocketServer::main(const std::vector<std::string>& args) {
     }
 
     else {
-        // get parameters from configuration file
-        unsigned short port = (unsigned short)config().getInt("WebSocketServer.port", 1337);
-
-        // set-up a server socket
+        unsigned short port = (unsigned short)config().getInt("application.port", 1336);
         ServerSocket svs(port);
-        // set-up a HTTPServer instance
         HTTPServer srv(new RequestHandlerFactory, svs, new HTTPServerParams);
-        // start the HTTPServer
         srv.start();
-        // wait for CTRL-C or kill
         waitForTerminationRequest();
-        // Stop the HTTPServer
         srv.stop();
     }
 

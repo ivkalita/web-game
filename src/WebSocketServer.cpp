@@ -24,12 +24,15 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
     response.setChunkedTransferEncoding(true);
     response.setContentType("text/html");
     std::ostream& ostr = response.send();
+
     Application &app = Application::instance();
     string connection_string = app.config().getString("database.connection_string");
-
     PGconn* conn = PQconnectdb(connection_string.c_str());
     if (PQstatus(conn) != CONNECTION_OK) {
         ostr << "Connection failed" << endl;
+        cerr << "Database connection error:" << endl << PQerrorMessage(conn) << endl;
+        PQfinish(conn);
+        return;
     }
   
     PGresult* res;
@@ -40,8 +43,10 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
         ostr << "<br><br>";
     }
     else {
-        cerr << "SELECT failed " << PQerrorMessage(conn) << endl;
-        PQclear(res);
+        cerr << "SELECT failed: " << endl << PQerrorMessage(conn) << endl;
+        ostr << "Statement execution failed" << endl;
+        PQfinish(conn);
+        return;
     }
 
     for (int i = 0; i < PQntuples(res); i++) { // PQntuples - count of rows

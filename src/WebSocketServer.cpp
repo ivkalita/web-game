@@ -131,7 +131,9 @@ void WebSocketServer::initialize(Application& self) {
     for (auto it = database_configs.begin(); it != database_configs.end(); ++it) {
         string key = "database." + it->first;
         string value = config().getString(key, it->second);
-        connection_string += it->first + "=" + value + " ";
+        if (value.length() > 0) {
+            connection_string += it->first + "=" + value + " ";
+        }
     }
     config().setString("database.connection_string", connection_string);
     ServerApplication::initialize(self);

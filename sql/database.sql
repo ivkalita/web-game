@@ -1,6 +1,7 @@
 CREATE DATABASE galcon
     WITH ENCODING = 'UTF8'
-       TABLESPACE = pg_default;
+       TABLESPACE = pg_default
+    TEMPLATE template0;
 
 \c galcon
 

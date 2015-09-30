@@ -13,17 +13,12 @@ elseif (MSVC71 OR MSVC80)
 endif()
 
 #PostgreSQL
-if (WIN32)
-	FIND_PACKAGE(PostgreSQL)
-	if(PostgreSQL_FOUND)
-		include_directories(${PostgreSQL_INCLUDE_DIRS})
-		link_directories(${PostgreSQL_LIBRARY_DIRS})
-	else()
-		message(SEND_ERROR "PostgreSQL not found.")
-	endif()
-	set(PQ_LIBS ${PostgreSQL_LIBRARIES}})
+FIND_PACKAGE(PostgreSQL)
+if(PostgreSQL_FOUND)
+    include_directories(${PostgreSQL_INCLUDE_DIRS})
+    link_directories(${PostgreSQL_LIBRARY_DIRS})
 else()
-	set(PQ_LIBS pq)
+    message(SEND_ERROR "PostgreSQL not found.")
 endif()
 
 #external libraries
@@ -46,18 +41,11 @@ set(POCO_LIBS
 #targets
 #specify source files by listing them explicitly
 #http://stackoverflow.com/a/18538444/3838486
-
-if (WIN32)
-set(PQ_LIBS libpq)
-else()
-set(PQ_LIBS pq)				#??? Check library name on non windows platforms.
-endif()
-
 add_executable(runner
     src/main.cpp
     src/WebSocketServer.cpp)
-target_link_libraries(runner ${POCO_LIBS} ${PQ_LIBS})
+target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester
     tests/test_1.cpp)
-target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} ${PQ_LIBS})
+target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} ${PostgreSQL_LIBRARIES})

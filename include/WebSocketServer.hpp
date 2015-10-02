@@ -20,6 +20,7 @@
 class PageRequestHandler: public Poco::Net::HTTPRequestHandler {
 public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
+	std::pair<std::string, std::string> getFile(Poco::Net::HTTPServerRequest& request);
 };
 
 class WebSocketRequestHandler: public Poco::Net::HTTPRequestHandler { 

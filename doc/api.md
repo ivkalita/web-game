@@ -3,9 +3,15 @@
 *****
 
 # Table of contents
+- [Terminology](#terminology)
+    - [Struct](#struct)
+    - [Inheritance](#inheritance)
 - [Serialization](#serialization)
 - [Classes](#classes)
     - [Common](#common)
+        - [Data](#data)
+        - [UserInfoData](#userinfodata)
+        - [GameInfoAllData](#gameinfoalldata)
         - [Response](#response)
     - [Access control](#access-control)
         - [UserInfo](#userinfo)
@@ -28,29 +34,98 @@
         - [JoinToGame](#jointogame)
         - [CreateGame](#creategame)
         - [StartGame](#startgame)
-        - [ExitGame](#exitgame)
+        - [LeaveGame](#leavegame)
 
 *****
 
+# Terminology
+In this section some concepts and terms which occur in the protocol are explained.
+
+## Struct
+The term struct designates data type which comprises variables of any types as properties. For example:
+```c++
+struct StructName {
+    AnyType1 property1;
+    AnyType2 property2;
+    ...
+    AnyTypeN propertyN;
+}
+```
+
+## Enum
+The term enum designates data type which comprises the list of integer constants, each of which has a certain identifier. For example:
+```c++
+enum EnumName {
+    CONSTANT1;
+    CONSTANT2;
+    ...
+    CONSTANTN;
+}
+```
+
+## Inheritance
+Within this protocol inheritance like type "B" from the type "A" means that the type "B" contains the properties inherent in the type "A", and also some properties which can redefine type "A" properties. Such inheritance is designated as follows:
+```c++
+struct B: A {
+    ...
+}
+```
+
 # Serialization
 Object serialization is performed in the JSON format. You can learn about data conversion to JSON format by following this link - https://en.wikipedia.org/wiki/JSON#Data_types.2C_syntax_and_example 
+
+Table of correspondences of the types used in the protocol in the JSON types:
+| API type  | JSON type |
+| ------------- | ------------- |
+| int  | number |
+| string  | string |
+| struct type  | object |
+| enum type  | object |
+
+In case of POST requests objects of JSON are transferred with a key of "jsonObj".
+
+# Routing
+For the appeal to methods from the section [Methods](#methods) the following template is used:
+```
+api/method_name
+```
 
 # Classes
 
 ## Common
 
-### <a name="Response"></a>Response
+### Data
+This type is used in [Response](#responce).
+```c++
+struct Data { }
+```
+
+### UserInfoData
+```c++
+struct UserInfoData: Data {
+    UserInfo user;
+}
+```
+
+### GameInfoAllData
+```c++
+struct GameInfoAllData: Data {
+   GameInfoAll * game; 
+}
+```
+
+### Response
 ```c++
 struct Response {
     string result;
-    object *data;
+    Data data;
 }
 ```
 * <a name="Response.result"></a>result - ("BadRequest"|"InternalError")
 
 ## Access control
 
-### <a name="UserInfo"></a>UserInfo
+### UserInfo
 ```c++
 struct UserInfo {
     int id;
@@ -59,7 +134,7 @@ struct UserInfo {
 }
 ```
 
-### <a name="Credentials"></a>Credentials
+### Credentials
 ```c++
 struct Credentials {
     string login;
@@ -71,10 +146,9 @@ struct Credentials {
 
 ## Game connection
 
-### <a name="GameInfo"></a>GameInfo
+### GameInfo
 ```c++
-class GameInfo {
-public:
+struct GameInfo {
    int id;
    string name;
    UserInfo owner;
@@ -84,19 +158,18 @@ public:
 }
 ```
 
-### <a name="GameInfoAll"></a>GameInfoAll
+### GameInfoAll
 This type inherits [GameInfo](#gameinfo).
 ```c++
-class GameInfoAll : public GameInfo {
-public:
+struct GameInfoAll: GameInfo {
    int curNumPlayers;
 }
 ```
 
-### <a name="Mode"></a>Mode
+### Mode
 Type, which describes the mode of the game. Enum. **(TBD)**
 
-### <a name="Map"></a>Map
+### Map
 Type, which describes the map of the game. Enum. **(TBD)**
 
 # Methods
@@ -117,7 +190,7 @@ Response Authorize(Credentials credentials)
 [Credentials](#Credentials) credentials - required argument.
 
 ##### Result
-[Response](#Response)::data contains [UserInfo](#UserInfo) object with key "user" or nothing (in case of fail).
+[Response](#Response)::data contains object like [UserInfoData](#userinfodata).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - authorization succeed
  * "BadCredentials" - user provides bad login/password
@@ -143,7 +216,7 @@ string name - required argument.
 string password - required argument.
 
 ##### Result
-[Response](#Response)::data contains [UserInfo](#UserInfo) object with key "user" or nothing (in case of fail).
+[Response](#Response)::data contains object like [UserInfoData](#userinfodata).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - registration succeed
  * "BadPassword" - user provides bad password
@@ -166,7 +239,7 @@ Response Logout(void)
 There are no arguments
 
 ##### Result
-[Response](#Response)::data contains nothing.
+[Response](#Response)::data contains object like [Data](#data).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - logging out succeed
  * "NotLoggedIn" - the user is not logged
@@ -187,7 +260,7 @@ Response GetGames(void)
 There are no arguments
 
 ##### Result
-[Response](#Response)::data contains array of [GameInfoAll](#GameInfoAll) objects with key "games" or nothing (in case of fail).
+[Response](#Response)::data contains object like [GameInfoAllData](#data).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - list of a games successfully obtained
 
@@ -206,7 +279,7 @@ Response JoinToGame(UserInfo user, GameInfoAll game)
 [GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
-[Response](#Response)::data contains nothing.
+[Response](#Response)::data contains object like [Data](#data).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - user is successfully connected to the game.
  * "NotFound" - this game is not exist.
@@ -228,7 +301,7 @@ Response CreateGame(UserInfo owner, GameInfo game)
 [GameInfo](#GameInfo) game - required argument. 
 
 ##### Result
-[Response](#Response)::data contains nothing.
+[Response](#Response)::data contains object like [Data](#data).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - game successfully created.
  * "NotCreated" - failed to create game.
@@ -249,7 +322,7 @@ Response StartGame(UserInfo owner, GameInfoAll game)
 [GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
-[Response](#Response)::data contains nothing.
+[Response](#Response)::data contains object like [Data](#data).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - Start the game there was a successfully.
  * "NotStarted" - failed to start game.
@@ -258,10 +331,10 @@ Response StartGame(UserInfo owner, GameInfoAll game)
 This method is available at url - **/api/start_game** [POST]
 
 
-### ExitGame
+### LeaveGame
 This method allows the user to exit the game. Its signature is shown below.
 ```c++
-Response ExitGame(UserInfo user, GameInfoAll game)
+Response LeaveGame(UserInfo user, GameInfoAll game)
 ```
 
 ##### Arguments
@@ -270,7 +343,7 @@ Response ExitGame(UserInfo user, GameInfoAll game)
 [GameInfoAll](#GameInfoAll) game - required argument.
 
 ##### Result
-[Response](#Response)::data contains nothing.
+[Response](#Response)::data contains object like [Data](#data).
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - Quit the game there was a successfully.
 

@@ -1,14 +1,16 @@
 # Web game
 
+## Configuration
+
+All config files located at `./bin` folder, and have extension `.ini`. First time you clonned repository,
+ you will see files like `*.ini.dist` in `./bin` folder. Copy them with new names, without `.dist` suffix
+ (for example, copy `./bin/runner.ini.dist` to `./bin/runner.ini`). Now you can setup your own configuration
+ in `./bin/*.ini` files (for example, database username).
+
 ## Installation
 
 You have to install PostgreSQL 9.4
-Key files for project are: libpq-fe.h and libpq.lib
-
-If you install for Visual Studio you should:
-- install 32bit version of PostgreSQL
-- add libpq.lib to Linker->Input->Additional dependencies
-- add <pgsql install path>\include and \lib to VC++ Directories->Include and ->Library, correspondingly
+Key files for project are: libpq-fe.h and libpq.lib (libpq.a)
 
 You should create your own local PostgreSQL database server
 Then you can use sql/database.sql file for creating and filling your database
@@ -20,7 +22,7 @@ Required C++ libraries (they will be installed automatically):
 
 ### Ubuntu/Mac OS X
 
-You need Git installed globally, g++ compiler and cmake (v3+).
+You need Git installed globally, g++ compiler, PostgreSQL and cmake (v3+).
 
 ```sh
 $ git clone https://github.com/kaduev13/web-game
@@ -31,9 +33,18 @@ $ make runner
 $ make tester
 ```
 
+#### Known issues
+
+If you will get problems with libpq-fe.h, than make sure, that libpq-fe.h exists (check `/usr/include`, `/usr/local/include`, `/usr/include/postgresql`, `/usr/local/include/postgresql`).
+Also, you compiler should know about include path for libpq-fe.h. Look through environment variables like
+`CPLUS_INCLUDE_PATH` and `C_INCLUDE_PATH`.
+
 ### Windows
 
-???
+If you install for Visual Studio you should:
+- install 32bit version of PostgreSQL
+- add libpq.lib to Linker->Input->Additional dependencies
+- add <pgsql install path>\include and \lib to VC++ Directories->Include and ->Library, correspondingly
 
 ## Running
 

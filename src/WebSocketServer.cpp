@@ -21,7 +21,7 @@ using Poco::Util::HelpFormatter;
 using namespace std;
 
 pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
-    string path = "web/";
+    string path = "../web/";
     string type;
 
     string URI = request.getURI();
@@ -42,10 +42,17 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
     response.setChunkedTransferEncoding(true);
     pair<string, string> file = getFile(request);
     response.sendFile(file.first, file.second);
-    
-    /*PGconn* conn = PQconnectdb(connection_string.c_str());
+
+    /* Database interaction example
+    Application &app = Application::instance();
+    string connection_string = app.config().getString("database.connection_string");
+
+    PGconn* conn = PQconnectdb(connection_string.c_str());
     if (PQstatus(conn) != CONNECTION_OK) {
         ostr << "Connection failed" << endl;
+        cerr << "Database connection error:" << endl << PQerrorMessage(conn) << endl;
+        PQfinish(conn);
+        return;
     }
   
     PGresult* res;
@@ -56,8 +63,10 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
         ostr << "<br><br>";
     }
     else {
-        cerr << "SELECT failed " << PQerrorMessage(conn) << endl;
-        PQclear(res);
+        cerr << "SELECT failed: " << endl << PQerrorMessage(conn) << endl;
+        ostr << "Statement execution failed" << endl;
+        PQfinish(conn);
+        return;
     }
 
     for (int i = 0; i < PQntuples(res); i++) { // PQntuples - count of rows
@@ -147,7 +156,9 @@ void WebSocketServer::initialize(Application& self) {
     for (auto it = database_configs.begin(); it != database_configs.end(); ++it) {
         string key = "database." + it->first;
         string value = config().getString(key, it->second);
-        connection_string += it->first + "=" + value + " ";
+        if (value.length() > 0) {
+            connection_string += it->first + "=" + value + " ";
+        }
     }
     config().setString("database.connection_string", connection_string);
     ServerApplication::initialize(self);

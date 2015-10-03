@@ -82,8 +82,8 @@ Object serialization is performed in the JSON format. You can learn about data c
 Table of correspondences of the types used in the protocol in the JSON types:
 <table>
     <tr>
-        <td>**API type**</td>
-        <td>**JSON type**</td>
+        <td>API type</td>
+        <td>JSON type</td>
     </tr>
     <tr>
         <td>int</td>

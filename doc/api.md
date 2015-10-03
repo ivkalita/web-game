@@ -6,7 +6,7 @@
 - [Terminology](#terminology)
     - [Struct](#struct)
     - [Inheritance](#inheritance)
-    - [Methods for the authorized users](#methods-for-the-autorized-users)
+    - [Methods for the authorized users](#methods-for-the-authorized-users)
 - [Serialization](#serialization)
 - [Classes](#classes)
     - [Common](#common)

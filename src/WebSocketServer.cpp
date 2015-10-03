@@ -20,13 +20,33 @@ using Poco::Util::HelpFormatter;
 
 using namespace std;
 
+pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
+    string path = "../web/";
+    string type;
+
+    string URI = request.getURI();
+
+    if (URI == "/") {
+        path += "html/index.html";
+        type = "text/html";
+    } else {
+        string extension = URI.substr(URI.find(".") + 1, URI.length());
+        path += URI;
+        type = "text/" + extension;  
+    }
+
+    return *new pair<string, string>(path, type);
+}
+
 void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) {
     response.setChunkedTransferEncoding(true);
-    response.setContentType("text/html");
-    std::ostream& ostr = response.send();
+    pair<string, string> file = getFile(request);
+    response.sendFile(file.first, file.second);
 
+    /* Database interaction example
     Application &app = Application::instance();
     string connection_string = app.config().getString("database.connection_string");
+
     PGconn* conn = PQconnectdb(connection_string.c_str());
     if (PQstatus(conn) != CONNECTION_OK) {
         ostr << "Connection failed" << endl;
@@ -55,7 +75,7 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
     }
 
     PQclear(res);
-    PQfinish(conn);
+    PQfinish(conn); */
 }
 
 

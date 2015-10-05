@@ -17,11 +17,12 @@ using Poco::Util::Application;
 using Poco::Util::Option;
 using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
+using Poco::FileException;
 
 using namespace std;
 
 pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
-    string path = "../web/";
+    string path = "web/";
     string type;
 
     string URI = request.getURI();
@@ -30,7 +31,7 @@ pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
         path += "html/index.html";
         type = "text/html";
     } else {
-        string extension = URI.substr(URI.find(".") + 1, URI.length());
+        string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
         path += URI;
         type = "text/" + extension;  
     }
@@ -40,42 +41,109 @@ pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
 
 void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) {
     response.setChunkedTransferEncoding(true);
-    pair<string, string> file = getFile(request);
-    response.sendFile(file.first, file.second);
-
-    /* Database interaction example
-    Application &app = Application::instance();
-    string connection_string = app.config().getString("database.connection_string");
-
-    PGconn* conn = PQconnectdb(connection_string.c_str());
-    if (PQstatus(conn) != CONNECTION_OK) {
-        ostr << "Connection failed" << endl;
-        cerr << "Database connection error:" << endl << PQerrorMessage(conn) << endl;
-        PQfinish(conn);
-        return;
-    }
-  
-    PGresult* res;
-    res = PQexec(conn, "SELECT * FROM PLAYERS"); 
-
-    if (PQresultStatus(res) == PGRES_TUPLES_OK) {
-        ostr << "All players in database:";
-        ostr << "<br><br>";
-    }
-    else {
-        cerr << "SELECT failed: " << endl << PQerrorMessage(conn) << endl;
-        ostr << "Statement execution failed" << endl;
-        PQfinish(conn);
-        return;
-    }
-
-    for (int i = 0; i < PQntuples(res); i++) { // PQntuples - count of rows
-        ostr << i + 1 << " - " << PQgetvalue(res, i, PQfnumber(res, "login"));
-        ostr << "<br>";
-    }
-
-    PQclear(res);
-    PQfinish(conn); */
+	
+	string URI = request.getURI();
+    if(URI == "/") {
+		std::ostream& st = response.send();
+		try {
+			Poco::JSON::Template tmp("views/index.html");
+			tmp.parse();
+			Poco::JSON::Object params;
+			params.set("title", "Main Page");
+			params.set("number", 42);
+			Poco::Dynamic::Var var(params);
+			tmp.render(var, st);
+		} catch (const exception& e) {
+			st << "Error: " << e.what();
+		}
+		st.flush();
+	} else if (URI == "/database") {
+		/* Database interaction example */
+		response.setContentType("text/html");
+		std::stringstream ostr;
+		Application &app = Application::instance();
+		string connection_string = app.config().getString("database.connection_string");
+		PGconn* conn = PQconnectdb(connection_string.c_str());
+		if (PQstatus(conn) != CONNECTION_OK) {
+			ostr << "Connection failed" << endl;
+			cerr << "Database connection error:" << endl << PQerrorMessage(conn) << endl;
+			PQfinish(conn);
+			return;
+		}
+		PGresult* res;
+		res = PQexec(conn, "SELECT * FROM PLAYERS");
+		if (PQresultStatus(res) == PGRES_TUPLES_OK) {
+			ostr << "All players in database:";
+			ostr << "<br><br>";
+		} else {
+			cerr << "SELECT failed: " << endl << PQerrorMessage(conn) << endl;
+			ostr << "Statement execution failed" << endl;
+			PQfinish(conn);
+			return;
+		}
+		for (int i = 0; i < PQntuples(res); i++) { // PQntuples - count of rows
+			ostr << i + 1 << " - " << PQgetvalue(res, i, PQfnumber(res, "login"));
+			ostr << "<br>";
+		}
+		PQclear(res);
+		PQfinish(conn);
+		//ostr.flush();
+		
+		std::ostream& st = response.send();
+		try {
+			Poco::JSON::Template tmp("views/base.html");
+			tmp.parse();
+			Poco::JSON::Object params;
+			params.set("title", "Database test");
+			params.set("content", ostr.str());
+			Poco::Dynamic::Var var(params);
+			tmp.render(var, st);
+		} catch (const exception& e) {
+			st << "Error: " << e.what();
+		}
+		st.flush();
+    } else if (URI == "/login") {
+		std::ostream& st = response.send();
+		try {
+			Poco::JSON::Template tmp("views/login.html");
+			tmp.parse();
+			Poco::JSON::Object params;
+			params.set("title", "Вход в систему");
+			Poco::Dynamic::Var var(params);
+			tmp.render(var, st);
+		} catch (const exception& e) {
+			st << "Error: " << e.what();
+		}
+		st.flush();
+	} else if (URI == "/register") {
+		std::ostream& st = response.send();
+		try {
+			Poco::JSON::Template tmp("views/register.html");
+			tmp.parse();
+			Poco::JSON::Object params;
+			params.set("title", "Регистрация");
+			Poco::Dynamic::Var var(params);
+			tmp.render(var, st);
+		} catch (const exception& e) {
+			st << "Error: " << e.what();
+		}
+		st.flush();
+	} else {
+		pair<string, string> file = getFile(request);
+		try {
+			response.sendFile(file.first, file.second);
+		}
+		catch (const FileException& e) {
+			std::ostream& st = response.send();
+			st << "404" << endl << e.className();
+			st.flush();
+		}
+		/*catch (OpenFileException & e) {
+			std::ostream& st = response.send();
+			st << "403";
+			st.flush();
+		}*/
+	}
 }
 
 
@@ -121,16 +189,13 @@ HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const HTTPServer
 
     app.logger().information("Request from "
         + request.clientAddress().toString()
-        + ": "
-        + request.getMethod()
-        + " "
-        + request.getURI()
-        + " "
-        + request.getVersion());
+        + ": " + request.getMethod()
+        + " " + request.getURI()
+        + " " + request.getVersion());
 
-    for (HTTPServerRequest::ConstIterator it = request.begin(); it != request.end(); ++it) {
+    /*for (HTTPServerRequest::ConstIterator it = request.begin(); it != request.end(); ++it) {
         app.logger().information(it->first + ": " + it->second);
-    }
+    }*/
 
     if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
         return new WebSocketRequestHandler;
@@ -162,6 +227,9 @@ void WebSocketServer::initialize(Application& self) {
     }
     config().setString("database.connection_string", connection_string);
     ServerApplication::initialize(self);
+	Application& app = Application::instance();
+    app.logger().information("Web-game server listening on http://0.0.0.0:"
+		+ config().getString("application.port"));
 }
 
 void WebSocketServer::uninitialize() {

@@ -13,6 +13,11 @@
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Format.h"
+#include "Poco/Exception.h"
+#include "Poco/JSON/Template.h"
+#include "Poco/JSON/Object.h"
+#include "Poco/Dynamic/Var.h"
+
 #include "libpq-fe.h"
 #include <iostream>
 #include <string>

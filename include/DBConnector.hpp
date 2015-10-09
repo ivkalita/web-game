@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <exception>
 #include <initializer_list>
+#include <memory>
 using namespace std;
 
 
@@ -26,13 +27,100 @@ public:
 class DBConnection {
 private:
     PGconn* conn;
+    int prepared_statement_counter;
+
+    static void result_deleter(PGresult* result) {
+        PQclear(result);
+    }
+
+    void check_errors(PGresult* result) {
+        string error_message = PQresultErrorMessage(result);
+        if (!error_message.empty()) {
+            throw ConnectionException(error_message);
+        }
+    }
+    
+    void check_connection() {
+        if (!conn)
+            throw ConnectionException("connection is null (disconnected)");
+            
+        if (PQstatus(conn) == CONNECTION_BAD)
+            throw ConnectionException("connection status is CONNECTION_BAD");
+    }
+
+    char** prepare_values_array(initializer_list<string>& params) {
+        char** values = nullptr;
+        if (params.size() > 0) {
+            values = new char*[params.size()];
+            int i = 0;
+            for (auto param : params) {
+                values[i] = new char[param.length() + 1];
+                strcpy(values[i], param.c_str());
+                i++;
+            }
+        }
+
+        return values;
+    }
+
+    void free_values_array(char** values, int size) {
+        for (int i = 0; i < size; i++)
+            delete values[i];
+        delete values;
+    }
+    
+    class QueryResult;
+
+    class PreparedStatement {
+    private:
+        DBConnection* parent;
+        string query, stmt_name;
+        shared_ptr<PGresult> res;
+
+    public:
+        PreparedStatement(DBConnection* _parent, string _query) : parent(_parent), query(_query) {
+            parent->check_connection();
+            stmt_name = "stmt" + to_string(parent->prepared_statement_counter++);
+
+            res = shared_ptr<PGresult>(PQprepare(parent->conn, stmt_name.c_str(), query.c_str(), 0, nullptr), result_deleter);
+
+            parent->check_errors(res.get());
+        }
+
+        PreparedStatement(const PreparedStatement& a): parent(a.parent), query(a.query), stmt_name(a.stmt_name) {
+            res = a.res;
+        }
+
+        PreparedStatement operator = (const PreparedStatement& a) {
+            parent = a.parent;
+            query = a.query;
+            stmt_name = a.stmt_name;
+            res = a.res;
+        }
+
+        QueryResult Exec(initializer_list<string> params) {
+            parent->check_connection();
+            
+            char** values = parent->prepare_values_array(params);
+            
+            PGresult* result = PQexecPrepared(parent->conn, stmt_name.c_str(), params.size(), values, nullptr, nullptr, 0);
+            
+            parent->free_values_array(values, params.size());
+            parent->check_errors(result);
+
+            return QueryResult(result);
+        }
+        
+    };
+
+    friend class PreparedStatement;
 
     class QueryResult {
     private:
-        PGresult* result;
+        shared_ptr<PGresult> result;
 
         ExecStatusType get_status_type() const {
-            PQresultStatus(result);
+            PQresultStatus(result.get());
         }
 
         class Row {
@@ -63,12 +151,12 @@ private:
             }
 
             Iterator operator ++ () {
-                row_num++;
+                ++row_num;
                 return *this;
             }
 
             Iterator operator -- () {
-                row_num++;
+                --row_num;
                 return *this;
             }
 
@@ -79,7 +167,7 @@ private:
             bool operator != (const Iterator& a) {
                 return a.get_row_num() != get_row_num();
             }
-            
+
             Row operator * () {
                 return Row(parent, row_num);
             }
@@ -87,27 +175,30 @@ private:
         };
 
     public:
-        QueryResult(PGresult* _result) : result(_result) {}
+        QueryResult(PGresult* _result) : result(_result, result_deleter) {}
 
-        ~QueryResult() {
-            PQclear(result);
+        QueryResult(const QueryResult& a) {
+            result = a.result;
         }
 
+        QueryResult operator = (const QueryResult& a) {
+            result = a.result;
+        }
 
         int row_count() const {
-            return PQntuples(result);
+            return PQntuples(result.get());
         }
 
         int column_count() const {
-            return PQnfields(result);
+            return PQnfields(result.get());
         }
 
         string column_name(int column_number) const {
-            return PQfname(result, column_number);
+            return PQfname(result.get(), column_number);
         }
 
         string get(int row, int col) const {
-            return PQgetvalue(result, row, col); //The caller should not free the result directly
+            return PQgetvalue(result.get(), row, col);
         }
 
         string get_status_string() const {
@@ -115,7 +206,7 @@ private:
         }
     
         string field_by_name(int row, string field_name) const {
-            return get(row, PQfnumber(result, field_name.c_str()));
+            return get(row, PQfnumber(result.get(), field_name.c_str()));
         }
 
         Iterator begin() {
@@ -128,10 +219,17 @@ private:
     };
 
 public:
-    DBConnection(): conn(nullptr) {}
+    DBConnection(): conn(nullptr), prepared_statement_counter(0) {}
+    
+    void Disconnect() {
+        if (conn) {
+            PQfinish(conn);
+            conn = nullptr;
+        }
+    };
 
     ~DBConnection() {
-        PQfinish(conn);
+        Disconnect();
     }
 
     static DBConnection& instance() {
@@ -139,6 +237,9 @@ public:
         return *sh.get();
     }
 
+    PreparedStatement CreatePreparedStatement(string query) {
+        return PreparedStatement(this, query);
+    }
 
     void Connect(string hostaddr, string port, string dbname, string user, string password) {
         const char* const keywords[] = { "hostaddr", "port", "dbname", "user", "password", nullptr};
@@ -162,26 +263,16 @@ public:
     *    initializer_list is { "1", "2", "abc" } 
     */
 
-    //template <class T>
     QueryResult ExecParams(string statement, initializer_list<string> params) {
-        if (!conn)
-            throw ConnectionException("connection is null");
-        
-        if (PQstatus(conn) == CONNECTION_BAD)
-            throw ConnectionException("connection status is CONNECTION_BAD");
+        check_connection();
 
-        char** values = nullptr;
-        if (params.size() > 0) {
-            values = new char*[params.size()];
-            int i = 0;
-            for (auto param : params) {
-                values[i] = new char[param.length() + 1];
-                strcpy(values[i], param.c_str());
-                i++;
-            }
-        }
-            
+        char** values = prepare_values_array(params);
+
         PGresult* res = PQexecParams(conn, statement.c_str(), params.size(), nullptr, values, nullptr, nullptr, 0);
+
+        free_values_array(values, params.size());
+        
+        check_errors(res);
         return QueryResult(res);
     }
 };

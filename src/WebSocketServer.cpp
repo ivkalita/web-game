@@ -1,4 +1,5 @@
 #include "WebSocketServer.hpp"
+#include "Router.h"
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -17,133 +18,12 @@ using Poco::Util::Application;
 using Poco::Util::Option;
 using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
-using Poco::FileException;
 
 using namespace std;
 
-pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
-    string path = "web/";
-    string type;
-
-    string URI = request.getURI();
-
-    if (URI == "/") {
-        path += "html/index.html";
-        type = "text/html";
-    } else {
-        string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
-        path += URI;
-        type = "text/" + extension;  
-    }
-
-    return *new pair<string, string>(path, type);
-}
-
 void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) {
     response.setChunkedTransferEncoding(true);
-	
-	string URI = request.getURI();
-    if(URI == "/") {
-		std::ostream& st = response.send();
-		try {
-			Poco::JSON::Template tmp("views/index.html");
-			tmp.parse();
-			Poco::JSON::Object params;
-			params.set("title", "Main Page");
-			params.set("number", 42);
-			Poco::Dynamic::Var var(params);
-			tmp.render(var, st);
-		} catch (const exception& e) {
-			st << "Error: " << e.what();
-		}
-		st.flush();
-	} else if (URI == "/database") {
-		/* Database interaction example */
-		response.setContentType("text/html");
-		std::stringstream ostr;
-		Application &app = Application::instance();
-		string connection_string = app.config().getString("database.connection_string");
-		PGconn* conn = PQconnectdb(connection_string.c_str());
-		if (PQstatus(conn) != CONNECTION_OK) {
-			ostr << "Connection failed" << endl;
-			cerr << "Database connection error:" << endl << PQerrorMessage(conn) << endl;
-			PQfinish(conn);
-			return;
-		}
-		PGresult* res;
-		res = PQexec(conn, "SELECT * FROM PLAYERS");
-		if (PQresultStatus(res) == PGRES_TUPLES_OK) {
-			ostr << "All players in database:";
-			ostr << "<br><br>";
-		} else {
-			cerr << "SELECT failed: " << endl << PQerrorMessage(conn) << endl;
-			ostr << "Statement execution failed" << endl;
-			PQfinish(conn);
-			return;
-		}
-		for (int i = 0; i < PQntuples(res); i++) { // PQntuples - count of rows
-			ostr << i + 1 << " - " << PQgetvalue(res, i, PQfnumber(res, "login"));
-			ostr << "<br>";
-		}
-		PQclear(res);
-		PQfinish(conn);
-		//ostr.flush();
-		
-		std::ostream& st = response.send();
-		try {
-			Poco::JSON::Template tmp("views/base.html");
-			tmp.parse();
-			Poco::JSON::Object params;
-			params.set("title", "Database test");
-			params.set("content", ostr.str());
-			Poco::Dynamic::Var var(params);
-			tmp.render(var, st);
-		} catch (const exception& e) {
-			st << "Error: " << e.what();
-		}
-		st.flush();
-    } else if (URI == "/login") {
-		std::ostream& st = response.send();
-		try {
-			Poco::JSON::Template tmp("views/login.html");
-			tmp.parse();
-			Poco::JSON::Object params;
-			params.set("title", "Вход в систему");
-			Poco::Dynamic::Var var(params);
-			tmp.render(var, st);
-		} catch (const exception& e) {
-			st << "Error: " << e.what();
-		}
-		st.flush();
-	} else if (URI == "/register") {
-		std::ostream& st = response.send();
-		try {
-			Poco::JSON::Template tmp("views/register.html");
-			tmp.parse();
-			Poco::JSON::Object params;
-			params.set("title", "Регистрация");
-			Poco::Dynamic::Var var(params);
-			tmp.render(var, st);
-		} catch (const exception& e) {
-			st << "Error: " << e.what();
-		}
-		st.flush();
-	} else {
-		pair<string, string> file = getFile(request);
-		try {
-			response.sendFile(file.first, file.second);
-		}
-		catch (const FileException& e) {
-			std::ostream& st = response.send();
-			st << "404" << endl << e.className();
-			st.flush();
-		}
-		/*catch (OpenFileException & e) {
-			std::ostream& st = response.send();
-			st << "403";
-			st.flush();
-		}*/
-	}
+	Router::instance().Process(request, response);
 }
 
 

@@ -14,18 +14,13 @@
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Format.h"
 #include "Poco/Exception.h"
-#include "Poco/JSON/Template.h"
-#include "Poco/JSON/Object.h"
-#include "Poco/Dynamic/Var.h"
 
-#include "libpq-fe.h"
 #include <iostream>
 #include <string>
 
 class PageRequestHandler: public Poco::Net::HTTPRequestHandler {
 public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
-	std::pair<std::string, std::string> getFile(Poco::Net::HTTPServerRequest& request);
 };
 
 class WebSocketRequestHandler: public Poco::Net::HTTPRequestHandler { 

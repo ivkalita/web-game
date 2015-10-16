@@ -1,4 +1,5 @@
 #include "WebSocketServer.hpp"
+#include "DBConnector.hpp"
 #include "Router.h"
 
 using Poco::Net::ServerSocket;
@@ -90,26 +91,19 @@ WebSocketServer::~WebSocketServer() {}
 void WebSocketServer::initialize(Application& self) {
     loadConfiguration();
 
-    //initialize connection_string for database and load it into config
-    map<string, string> database_configs;
-    database_configs.insert(pair<string, string>("user", "postgres"));
-    database_configs.insert(pair<string, string>("hostaddr", "127.0.0.1"));
-    database_configs.insert(pair<string, string>("port", "5432"));
-    database_configs.insert(pair<string, string>("dbname", "galcon"));
-    database_configs.insert(pair<string, string>("password", ""));
-    string connection_string = "";
-    for (auto it = database_configs.begin(); it != database_configs.end(); ++it) {
-        string key = "database." + it->first;
-        string value = config().getString(key, it->second);
-        if (value.length() > 0) {
-            connection_string += it->first + "=" + value + " ";
-        }
-    }
-    config().setString("database.connection_string", connection_string);
+	config().setString("database.hostaddr", config().getString("database.hostaddr", "localhost"));
+	config().setString("database.port", config().getString("database.port", "5432"));
+	config().setString("database.dbname", config().getString("database.dbname", "web-game"));
+	config().setString("database.user", config().getString("database.user", "web-game"));
+	config().setString("database.password", config().getString("database.password", "web-game"));
+
     ServerApplication::initialize(self);
-	Application& app = Application::instance();
-    app.logger().information("Web-game server listening on http://0.0.0.0:"
+
+	logger().information("Web-game server listening on http://0.0.0.0:"
 		+ config().getString("application.port"));
+
+	DBConnection::instance().Connect(config().getString("database.hostaddr"), config().getString("database.port"),
+		config().getString("database.dbname"), config().getString("database.user"), config().getString("database.password"));
 }
 
 void WebSocketServer::uninitialize() {

@@ -3,10 +3,11 @@
 #include "Poco/SingletonHolder.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/JSON/Object.h"
 
 class Router {
 private:
-	typedef void RoutineHandler(Poco::Net::HTTPServerRequest&, Poco::Net::HTTPServerResponse&);
+	typedef void RoutineHandler(Poco::Net::HTTPServerRequest&, Poco::Net::HTTPServerResponse&, Poco::JSON::Object::Ptr);
 	struct Routine {
 		std::string URI;
 		RoutineHandler * handler;

@@ -5,14 +5,15 @@
 # Table of contents
 - [Terminology](#terminology)
     - [Struct](#struct)
+    - [Enum](#enum)
+    - [Array](#array)
     - [Inheritance](#inheritance)
-    - [Methods for the authorized users](#methods-for-the-authorized-users)
 - [Serialization](#serialization)
 - [Classes](#classes)
     - [Common](#common)
         - [Data](#data)
         - [UserInfoData](#userinfodata)
-        - [GameInfoAllData](#gameinfoalldata)
+        - [GameInfoData](#gameinfodata)
         - [Response](#response)
     - [Access control](#access-control)
         - [UserInfo](#userinfo)
@@ -20,7 +21,6 @@
     - [Game connection](#game-connection)
         - [Game](#game)
         - [GameInfo](#gameinfo)
-        - [GameInfoAll](#gameinfoall)
         - [Mode](#mode)
         - [Map](#map)
 - [Methods](#methods)
@@ -44,7 +44,7 @@
 In this section some concepts and terms which occur in the protocol are explained.
 
 ## Struct
-The term struct designates data type which comprises variables of any types as properties. For example:
+The term struct designates data type which contains variables of any types as properties. For example:
 ```c++
 struct StructName {
     AnyType1 property1;
@@ -55,7 +55,7 @@ struct StructName {
 ```
 
 ## Enum
-The term enum designates data type which comprises the list of integer constants, each of which has a certain identifier. For example:
+The term enum designates data type which contains the list of constants. For example:
 ```c++
 enum EnumName {
     CONSTANT1;
@@ -65,6 +65,12 @@ enum EnumName {
 }
 ```
 
+## Array
+To identify the variables that refer to the sequence data of any type used empty square brackets. For example:
+```c++
+anyType [] variableName
+```
+
 ## Inheritance
 Within this protocol inheritance like type "B" from the type "A" means that the type "B" contains the properties inherent in the type "A", and also some properties which can redefine type "A" properties. Such inheritance is designated as follows:
 ```c++
@@ -72,9 +78,6 @@ struct B: A {
     ...
 }
 ```
-
-## Methods for the authorized users
-Methods of this group are characterized by that only the authorized users can use them. Also authorized user always gives **access_token.**
 
 # Serialization
 Object serialization is performed in the JSON format. You can learn about data conversion to JSON format by following this link - https://en.wikipedia.org/wiki/JSON#Data_types.2C_syntax_and_example 
@@ -94,17 +97,17 @@ Table of correspondences of the types used in the protocol in the JSON types:
         <td>string</td>
     </tr>
     <tr>
-        <td>struct type</td>
+        <td>struct</td>
         <td>object</td>
     </tr>
     <tr>
-        <td>enum type</td>
-        <td>object</td>
+        <td>enum</td>
+        <td>string</td>
     </tr>
 </table>
 
 
-In case of POST requests objects of JSON are transferred with a key of "jsonObj".
+In case of POST requests objects of JSON are transferred with a key of **"jsonObj"**.
 
 # Routing
 For the appeal to methods from the section [Methods](#methods) the following template is used:
@@ -129,10 +132,10 @@ struct UserInfoData: Data {
 }
 ```
 
-### GameInfoAllData
+### GameInfoData
 ```c++
-struct GameInfoAllData: Data {
-   GameInfoAll * game; 
+struct GameInfoData: Data {
+   GameInfo [] game; 
 }
 ```
 
@@ -143,7 +146,9 @@ struct Response {
     Data data;
 }
 ```
-* <a name="Response.result"></a>result - ("BadRequest"|"InternalError")
+Allowed values of **Response::result** specified for each method. Also this property can have the following values:
+* "BadRequest"
+* "InternalError"
 
 ## Access control
 
@@ -155,6 +160,15 @@ struct UserInfo {
     string name;
 }
 ```
+#### Restrictions
+for **UserInfo::login**:
+```
+[0-9a-zA-Z]{6, 36}
+```
+for **UserInfo::name**:
+```
+[a-zA-Z]{4, 32}
+```
 
 ### Credentials
 ```c++
@@ -163,8 +177,15 @@ struct Credentials {
     string password;
 }
 ```
-* login - [0-9a-zA-Z]{6, 36}
-* password - .{6, 36}
+#### Restrictions 
+for **Credentials::login**:
+```
+[0-9a-zA-Z]{6, 36}
+```
+for **Credentials::password**:
+```
+.{6, 36}
+```
 
 ## Game connection
 
@@ -181,15 +202,8 @@ struct Game {
 ### GameInfo
 This type inherits [Game](#game).
 ```c++
-struct GameInfo: Game {
-   int id;
-}
-```
-
-### GameInfoAll
-This type inherits [GameInfo](#gameinfo).
-```c++
-struct GameInfoAll: GameInfo {
+struct GameInfo: GameInfo {
+	int id;
     UserInfo owner;
     int curNumPlayers;
 }
@@ -206,64 +220,43 @@ Type, which describes the map of the game. Enum. **(TBD)**
 ## Access control
 This section describes access control methods, such as authorization, registration and logging out.
 
-### Authorization
-Here are the methods of authorization.
-
 #### Authorize
-This method should be used for authorization of users. Its signature is shown below.
+This method available only for not authorized users. Its signature is shown below.
 
 ```c++
 Response Authorize(Credentials credentials)
 ```
-##### Arguments
-[Credentials](#Credentials) credentials - required argument.
 
 ##### Result
-[Response](#Response)::data contains object like [UserInfoData](#userinfodata).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
- * "Ok" - authorization succeed
+**[Response](#Response)::data** contains object type of **[UserInfoData](#userinfodata)** (In case fail contains **NULL**).
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
+ * "Ok" - authorization successed
  * "BadCredentials" - user provides bad login/password
 
-
-### Registration
-Here are the registration methods.
-
 #### Register
-This method should be used for new user(s) registration. Its signature is shown below.
+This method available only for not authorized users. Its signature is shown below.
 
 ```c++
 Response Register(string login, string name, string password)
 ```
-##### Arguments
-string login - required argument.
-
-string name - required argument.
-
-string password - required argument.
 
 ##### Result
-[Response](#Response)::data contains object like [UserInfoData](#userinfodata).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
- * "Ok" - registration succeed
+**[Response](#Response)::data** contains object type of **[UserInfoData](#userinfodata)** (In case fail contains **NULL**).
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
+ * "Ok" - registration successed
  * "BadPassword" - user provides bad password
  * "BadLogin" - user provides bad login
- * "LoginExist" - user provides existing login
-
-
-### Logging out
-Here are the methods for logging out.
+ * "LoginExists" - user provides existing login
 
 #### Logout
 This method should be used for logging users out. Its signature is shown below.
 ```c++
-Response Logout(void)
+Response Logout()
 ```
-##### Arguments
-There are no arguments
 
 ##### Result
-[Response](#Response)::data contains object like [Data](#data).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+**[Response](#Response)::data** contains **NULL**.
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - logging out succeed
  * "NotLoggedIn" - the user is not logged
 
@@ -274,83 +267,69 @@ This section describes methods of connection and disconnection to a specific gam
 #### GetGames
 This method allows you to get a list of all games (including game information). Its signature is shown below.
 ```c++
-Response GetGames(void)
+Response GetGames()
 ```
-##### Arguments
-There are no arguments
 
 ##### Result
-[Response](#Response)::data contains object like [GameInfoAllData](#data).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+**[Response](#Response)::data** contains object type of **[GameInfoData](#gameinfodata)** (In case fail contains **NULL**).
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - list of a games successfully obtained
 
 
 #### JoinToGame
-*Method for the authorized users*
-
 This method allows to connect to specific game. Its signature is shown below.
 ```c++
-Response JoinToGame(GameInfoAll game)
+Response JoinToGame(int gameId)
 ```
 ##### Arguments
-[GameInfoAll](#GameInfoAll) game - required argument.
+int gameId - id of connected game.
 
 ##### Result
-[Response](#Response)::data contains object like [Data](#data).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+**[Response](#Response)::data** contains **NULL**.
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - user is successfully connected to the game.
  * "NotFound" - this game is not exist.
  * "GameStarted" - this game already started.
 
 
 #### CreateGame
-*Method for the authorized users*
-
 This method should be used for creating new game. Its signature is shown below.
 ```c++
 Response CreateGame(Game game)
 ```
 
 ##### Arguments
-[Game](#Game) game - required argument. 
+[Game](#Game) game - object with information about created game.
 
 ##### Result
-[Response](#Response)::data contains object like [Data](#data).
+**[Response](#Response)::data** contains **NULL**.
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - game successfully created.
  * "NotCreated" - failed to create game.
 
 
 #### StartGame
-*Method for the authorized users*
-
 This method allows the owner to start the game. Its signature is shown below.
 ```c++
-Response StartGame(GameInfoAll game)
+Response StartGame()
 ```
 
-##### Arguments
-[GameInfoAll](#GameInfoAll) game - required argument.
-
 ##### Result
-[Response](#Response)::data contains object like [Data](#data).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+**[Response](#Response)::data** contains **NULL**.
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - Start the game there was a successfully.
  * "NotStarted" - failed to start game.
+ * "AlreadyStarted" - the game has already started.
 
 
 #### LeaveGame
-*Method for the authorized users*
-
 This method allows the user to exit the game. Its signature is shown below.
 ```c++
-Response LeaveGame(GameInfoAll game)
+Response LeaveGame()
 ```
 
-##### Arguments
-[GameInfoAll](#GameInfoAll) game - required argument.
-
 ##### Result
-[Response](#Response)::data contains object like [Data](#data).
-[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+**[Response](#Response)::data** contains **NULL**.
+**[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - Quit the game there was a successfully.
+ * "OutOfGame" - Player out of any games.

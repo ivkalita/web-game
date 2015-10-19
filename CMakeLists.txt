@@ -50,7 +50,8 @@ set(POCO_LIBS
 #http://stackoverflow.com/a/18538444/3838486
 add_executable(runner
     src/main.cpp
-    src/WebSocketServer.cpp)
+    src/WebSocketServer.cpp
+	src/AbstractRouter.cpp)
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester

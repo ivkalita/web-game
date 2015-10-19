@@ -1,5 +1,5 @@
-#ifndef ROUTER_H
-#define ROUTER_H
+#ifndef ABSTRACT_ROUTER_H
+#define ABSTRACT_ROUTER_H
 
 #include <string>
 #include <vector>

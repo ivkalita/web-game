@@ -56,7 +56,9 @@ add_executable(runner
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester
+	src/AbstractRouter.cpp
     tests/test_1.cpp
 	tests/DBConnector/test_1.cpp
+	tests/Router/test_1.cpp
 	)
 target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} ${PostgreSQL_LIBRARIES})

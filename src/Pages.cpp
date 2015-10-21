@@ -1,3 +1,4 @@
+#include "Router.h"
 #include "Pages.h"
 
 #include "Poco/JSON/Template.h"
@@ -32,15 +33,20 @@ void TemplateRender(HTTPServerResponse& response, Poco::JSON::Object::Ptr params
 
 using namespace std;
 
-namespace Pages {
-
-	void Index(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
+class Pages {
+public:
+	Pages() {
+		Router::instance().Register("/", Index);
+		Router::instance().Register("/database", Database);
+	}
+private:
+	static void Index(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
 		params->set("title", "Main Page");
 		params->set("number", 42);
 		TemplateRender(response, params, "index.html");
 	}
 
-	void Database(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
+	static void Database(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
 		/* Database interaction example */
 		response.setContentType("text/html");
 		std::stringstream ostr;
@@ -94,5 +100,6 @@ namespace Pages {
 		params->set("content", ostr.str());
 		TemplateRender(response, params, "base.html");
 	}
+};
 
-}
+static Pages pages;

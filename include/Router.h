@@ -7,16 +7,12 @@
 
 class Router {
 private:
-	typedef void RoutineHandler(Poco::Net::HTTPServerRequest&, Poco::Net::HTTPServerResponse&, Poco::JSON::Object::Ptr);
-	struct Routine {
-		std::string URI;
-		RoutineHandler * handler;
-		Routine(std::string _URI, RoutineHandler * _handler) : URI(_URI), handler(_handler) {}
-	};
-	std::vector<Routine> routines;
+	typedef void RouteHandler(Poco::Net::HTTPServerRequest&, Poco::Net::HTTPServerResponse&, Poco::JSON::Object::Ptr);
+	std::map<std::string, RouteHandler *> Routes;
 public:
-	Router();
+	Router() {}
 	~Router() {}
 	static Router& instance();
+	void Register(std::string URI, RouteHandler * handler);
 	void Process(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 };

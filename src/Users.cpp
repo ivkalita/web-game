@@ -1,4 +1,4 @@
-#include "Users.h"
+#include "Router.h"
 #include "Pages.h"
 #include "DBConnector.hpp"
 
@@ -85,9 +85,16 @@ static bool checkEmailExist(Poco::JSON::Object::Ptr params, const std::string & 
 	return exist;
 }
 
-namespace Pages {
-
-	void Login(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
+class Users {
+public:
+	Users() {
+		Router::instance().Register("/login", Login);
+		Router::instance().Register("/logout", Logout);
+		Router::instance().Register("/register", Register);
+		Router::instance().Register("/profile", Profile);
+	}
+private:
+	static void Login(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
 		if (request.getMethod() == "POST") {
 			Poco::Net::HTMLForm form(request, request.stream());
 			bool valid = true;
@@ -109,12 +116,12 @@ namespace Pages {
 		TemplateRender(response, params, "login.html");
 	}
 
-	void Logout(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
+	static void Logout(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
 		response.addCookie(Poco::Net::HTTPCookie("token", ""));
 		response.redirect("/", Poco::Net::HTTPResponse::HTTP_FOUND);
 	}
 
-	void Register(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
+	static void Register(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
 		if (request.getMethod() == "POST") {
 			Poco::Net::HTMLForm form(request, request.stream());
 			bool valid = true;
@@ -145,7 +152,7 @@ namespace Pages {
 		TemplateRender(response, params, "register.html");
 	}
 
-	void Profile(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
+	static void Profile(HTTPServerRequest& request, HTTPServerResponse& response, Poco::JSON::Object::Ptr params) {
 		if (!params->has("user")) throw Poco::FileAccessDeniedException();
 		if (request.getMethod() == "POST") {
 			Poco::Net::HTMLForm form(request, request.stream());
@@ -193,4 +200,6 @@ namespace Pages {
 		params->set("title", "Профиль");
 		TemplateRender(response, params, "profile.html");
 	}
-}
+};
+
+static Users users;

@@ -2,18 +2,12 @@
 #include "DBConnector.hpp"
 
 #include "Pages.h"
-#include "Users.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/Exception.h"
 
-Router::Router() {
-	routines.push_back(Routine("/", Pages::Index));
-	routines.push_back(Routine("/login", Pages::Login));
-	routines.push_back(Routine("/logout", Pages::Logout));
-	routines.push_back(Routine("/profile", Pages::Profile));
-	routines.push_back(Routine("/register", Pages::Register));
-	routines.push_back(Routine("/database", Pages::Database));
+void Router::Register(std::string URI, RouteHandler * handler) {
+	Routes.insert(pair<std::string, RouteHandler *>(URI, handler));
 }
 
 Router& Router::instance() {
@@ -24,14 +18,13 @@ Router& Router::instance() {
 void Router::Process(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
 	try {
 		std::string URI = request.getURI();
-		for (auto it = routines.begin(); it != routines.end(); ++it)
-			if (it->URI == URI) {
-				Poco::JSON::Object::Ptr params(new Poco::JSON::Object);
-				AddUserInfo(request, params);
-				it->handler(request, response, params);
-				return;
-			}
-
+		auto it = Routes.find(URI);
+		if (it != Routes.end()) {
+			Poco::JSON::Object::Ptr params(new Poco::JSON::Object);
+			AddUserInfo(request, params);
+			it->second(request, response, params);
+			return;
+		}
 		response.sendFile("web/" + URI,
 			"text/" + URI.substr(URI.find_last_of(".") + 1, URI.length()));
 	}

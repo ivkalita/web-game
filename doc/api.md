@@ -125,6 +125,13 @@ This type is used in [Response](#responce).
 struct Data { }
 ```
 
+### AccessTokenData
+```c++
+struct AccessTokenData: Data {
+    AccessToken accessToken;   
+}
+```
+
 ### UserInfoData
 ```c++
 struct UserInfoData: Data {
@@ -149,6 +156,9 @@ struct Response {
 Allowed values of **Response::result** specified for each method. Also this property can have the following values:
 * "BadRequest"
 * "InternalError"
+
+### AccessToken
+Object which identifies the user. **(TBD)**
 
 ## Access control
 
@@ -228,7 +238,7 @@ Response Authorize(Credentials credentials)
 ```
 
 ##### Result
-**[Response](#Response)::data** contains object type of **[UserInfoData](#userinfodata)** (In case fail contains **NULL**).
+**[Response](#Response)::data** contains object type of **[AccessTokenData](#accesstokendata)** (In case fail contains **NULL**).
 **[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - authorization successed
  * "BadCredentials" - user provides bad login/password
@@ -251,7 +261,7 @@ Response Register(string login, string name, string password)
 #### Logout
 This method should be used for logging users out. Its signature is shown below.
 ```c++
-Response Logout()
+Response Logout(AccessToken accessToken)
 ```
 
 ##### Result
@@ -279,7 +289,7 @@ Response GetGames()
 #### JoinToGame
 This method allows to connect to specific game. Its signature is shown below.
 ```c++
-Response JoinToGame(int gameId)
+Response JoinToGame(int gameId, AccessToken accessToken)
 ```
 ##### Arguments
 int gameId - id of connected game.
@@ -295,7 +305,7 @@ int gameId - id of connected game.
 #### CreateGame
 This method should be used for creating new game. Its signature is shown below.
 ```c++
-Response CreateGame(Game game)
+Response CreateGame(Game game, AccessToken accessToken)
 ```
 
 ##### Arguments
@@ -311,7 +321,7 @@ Response CreateGame(Game game)
 #### StartGame
 This method allows the owner to start the game. Its signature is shown below.
 ```c++
-Response StartGame()
+Response StartGame(AccessToken accessToken)
 ```
 
 ##### Result
@@ -325,7 +335,7 @@ Response StartGame()
 #### LeaveGame
 This method allows the user to exit the game. Its signature is shown below.
 ```c++
-Response LeaveGame()
+Response LeaveGame(AccessToken accessToken)
 ```
 
 ##### Result

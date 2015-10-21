@@ -11,7 +11,9 @@
 - [Serialization](#serialization)
 - [Classes](#classes)
     - [Common](#common)
+        - [AccessToken](#accesstoken)
         - [Data](#data)
+        - [AccessTokenData](#accesstokendata)
         - [UserInfoData](#userinfodata)
         - [GameInfoData](#gameinfodata)
         - [Response](#response)
@@ -119,6 +121,9 @@ api/method_name
 
 ## Common
 
+### AccessToken
+Object which identifies the user. **(TBD)**
+
 ### Data
 This type is used in [Response](#responce).
 ```c++
@@ -156,9 +161,6 @@ struct Response {
 Allowed values of **Response::result** specified for each method. Also this property can have the following values:
 * "BadRequest"
 * "InternalError"
-
-### AccessToken
-Object which identifies the user. **(TBD)**
 
 ## Access control
 

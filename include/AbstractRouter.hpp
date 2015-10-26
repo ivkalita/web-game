@@ -17,9 +17,9 @@ protected:
 	RoutePathSegment(bool isLiteral) : m_isLiteral(isLiteral) { }
 
 public:
-	virtual bool match(PathTraverse& t) const = 0 { }
+	virtual bool match(PathTraverse& t) const = 0;
 
-	virtual std::string toString() const = 0 { }
+	virtual std::string toString() const = 0;
 
 	bool isLiteral() const { return m_isLiteral; }
 

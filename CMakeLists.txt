@@ -13,6 +13,8 @@ elseif (MSVC71 OR MSVC80)
 endif()
 
 #PostgreSQL
+set(PostgreSQL_ADDITIONAL_VERSIONS "9.4" "9.3")
+set(PostgreSQL_ADDITIONAL_SEARCH_PATHS "/usr/include/postgresql/9.4/server" "/usr/include/postgresql/9.3/server")
 FIND_PACKAGE(PostgreSQL)
 if(PostgreSQL_FOUND)
     include_directories(${PostgreSQL_INCLUDE_DIRS})
@@ -52,7 +54,11 @@ add_executable(runner
     src/main.cpp
     src/WebSocketServer.cpp
 	src/AbstractRouter.cpp
-	src/Router.cpp)
+	src/Router.cpp
+	include/DBConnector.hpp
+	include/Router.hpp
+	include/WebSocketServer.hpp
+)
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester

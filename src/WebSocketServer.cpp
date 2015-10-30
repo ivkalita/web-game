@@ -24,7 +24,7 @@ using namespace std;
 
 void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) {
     response.setChunkedTransferEncoding(true);
-	Router::instance().Process(request, response);
+    Router::instance().Process(request, response);
 }
 
 
@@ -91,19 +91,19 @@ WebSocketServer::~WebSocketServer() {}
 void WebSocketServer::initialize(Application& self) {
     loadConfiguration();
 
-	config().setString("database.hostaddr", config().getString("database.hostaddr", "localhost"));
-	config().setString("database.port", config().getString("database.port", "5432"));
-	config().setString("database.dbname", config().getString("database.dbname", "web-game"));
-	config().setString("database.user", config().getString("database.user", "web-game"));
-	config().setString("database.password", config().getString("database.password", "web-game"));
+    config().setString("database.hostaddr", config().getString("database.hostaddr", "localhost"));
+    config().setString("database.port", config().getString("database.port", "5432"));
+    config().setString("database.dbname", config().getString("database.dbname", "web-game"));
+    config().setString("database.user", config().getString("database.user", "web-game"));
+    config().setString("database.password", config().getString("database.password", "web-game"));
 
     ServerApplication::initialize(self);
 
-	logger().information("Web-game server listening on http://0.0.0.0:"
-		+ config().getString("application.port"));
+    logger().information("Web-game server listening on http://0.0.0.0:"
+        + config().getString("application.port"));
 
-	DBConnection::instance().Connect(config().getString("database.hostaddr"), config().getString("database.port"),
-		config().getString("database.dbname"), config().getString("database.user"), config().getString("database.password"));
+    DBConnection::instance().Connect(config().getString("database.hostaddr"), config().getString("database.port"),
+        config().getString("database.dbname"), config().getString("database.user"), config().getString("database.password"));
 }
 
 void WebSocketServer::uninitialize() {

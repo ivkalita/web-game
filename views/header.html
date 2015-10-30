@@ -1,67 +1,67 @@
 <!DOCTYPE html>
 <html lang="ru-RU">
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-		<meta name="keywords" content="Web-game">
-		<meta name="description" content="Web-game">
-		<meta name="author" content="">
-		<!--<link rel="icon" href="favicon.ico">-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="keywords" content="Web-game">
+        <meta name="description" content="Web-game">
+        <meta name="author" content="">
+        <!--<link rel="icon" href="favicon.ico">-->
 
-		<title>Web-game<? ifexist title ?> — <? echo title ?><? endif ?></title>
+        <title>Web-game<? ifexist title ?> — <? echo title ?><? endif ?></title>
 
-		<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-		
-		<link href="/assets/css/style.css" rel="stylesheet">
-	</head>
-	<body>
-	<nav class="navbar navbar-default">
-		<div class="container">
-			<div class="navbar-header">
-			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
-				<span class="icon-bar"></span>
-				<span class="icon-bar"></span>
-				<span class="icon-bar"></span>
-			</button>
-			<a class="navbar-brand" href="/">Web-game</a>
-			</div>
-			<div id="navbar" class="collapse navbar-collapse">
-				<ul class="nav navbar-nav">
-					<li><!-- class="active" -->
-						<a href="/database">Database test</a>
-					</li>
-				</ul>
-				<? ifexist user ?>
-				<ul class="nav navbar-right">
-					<a href="/profile" class="btn btn-default navbar-btn" title="Редактировать профиль"><? echo user.name ?></a>
-					<a href="/logout" class="btn btn-default navbar-btn">Выход</a>
-				</ul>
-				<? else ?>
-				<ul class="nav navbar-right">
-					<a href="/login" class="btn btn-default navbar-btn hidden-lg hidden-xs">Вход</a>
-					<a href="/register" class="btn btn-success navbar-btn">Регистрация</a>
-				</ul>
-				<form action="/login" method="post" class="navbar-form navbar-right visible-lg visible-xs">
-					<div class="form-group">
-						<input name="email" type="email" placeholder="Email" class="form-control" required>
-					</div>
-					<div class="form-group">
-						<input name="password" type="password" placeholder="Пароль" class="form-control" required>
-					</div>
-					<button type="submit" class="btn btn-default">Вход</button>
-				</form>
-				<? endif ?>
-			</div>
-		</div>
-	</nav>
+        <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+
+        <link href="/assets/css/style.css" rel="stylesheet">
+    </head>
+    <body>
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Web-game</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><!-- class="active" -->
+                        <a href="/database">Database test</a>
+                    </li>
+                </ul>
+                <? ifexist user ?>
+                <ul class="nav navbar-right">
+                    <a href="/profile" class="btn btn-default navbar-btn" title="Редактировать профиль"><? echo user.name ?></a>
+                    <a href="/logout" class="btn btn-default navbar-btn">Выход</a>
+                </ul>
+                <? else ?>
+                <ul class="nav navbar-right">
+                    <a href="/login" class="btn btn-default navbar-btn hidden-lg hidden-xs">Вход</a>
+                    <a href="/register" class="btn btn-success navbar-btn">Регистрация</a>
+                </ul>
+                <form action="/login" method="post" class="navbar-form navbar-right visible-lg visible-xs">
+                    <div class="form-group">
+                        <input name="email" type="email" placeholder="Email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <input name="password" type="password" placeholder="Пароль" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-default">Вход</button>
+                </form>
+                <? endif ?>
+            </div>
+        </div>
+    </nav>
 
 <main class="container">
 <? ifexist title ?><div class="page-header"><h3><? echo title ?></h3></div><? endif ?>
 
 <? for message messages ?>
 <div class="alert alert-<? echo message.type ?> alert-dismissable">
-	<button type="button" class="close" data-dismiss="alert">&times;</button>
-	<? echo message.content ?>
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <? echo message.content ?>
 </div>
 <? endfor ?>

@@ -23,7 +23,14 @@ else()
     message(SEND_ERROR "PostgreSQL not found.")
 endif()
 
+#Use shared crt instead of static
+if (MSVC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+endif()
+
 #external libraries
+set(gtest_force_shared_crt ON CACHE BOOL "Use shared (DLL) run-time lib even when Google Test is built as static lib.")
 add_subdirectory(lib/gtest/googletest)
 include_directories(${gtest_SOURCE_DIR}/include)
 set(GTEST_LIBS
@@ -47,11 +54,16 @@ add_executable(runner
     src/main.cpp
     src/WebSocketServer.cpp
     src/Pages.cpp
-    src/Users.cpp)
+    src/Users.cpp
+    src/AbstractRouter.cpp
+    src/Router.cpp
+)
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester
+    src/AbstractRouter.cpp
     tests/test_1.cpp
-	tests/DBConnector/test_1.cpp
-	)
+    tests/DBConnector/test_1.cpp
+    tests/Router/test_1.cpp
+)
 target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} ${PostgreSQL_LIBRARIES})

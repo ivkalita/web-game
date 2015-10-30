@@ -5,6 +5,7 @@
 #include "Poco/SingletonHolder.h"
 
 #include <string>
+#include <cstring>
 #include <cstdlib>
 #include <exception>
 #include <initializer_list>
@@ -18,7 +19,7 @@ private:
 public:
     ConnectionException(string _message) : message(_message) {}
 
-    const char* what() const override {
+    virtual const char* what() const throw() {
         return message.c_str();
     }
 };
@@ -240,7 +241,7 @@ public:
     PreparedStatement CreatePreparedStatement(string query) {
         return PreparedStatement(this, query);
     }
-
+    
     void Connect(string hostaddr, string port, string dbname, string user, string password) {
         const char* const keywords[] = { "hostaddr", "port", "dbname", "user", "password", nullptr};
         const char* const values[] = { hostaddr.c_str(), port.c_str(), dbname.c_str(), user.c_str(), password.c_str(), nullptr};

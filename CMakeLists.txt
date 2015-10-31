@@ -52,12 +52,12 @@ set(POCO_LIBS
 #http://stackoverflow.com/a/18538444/3838486
 add_executable(runner
     src/main.cpp
-    src/WebSocketServer.cpp
+    src/WebgameServer.cpp
 	src/AbstractRouter.cpp
 	src/Router.cpp
 	include/DBConnector.hpp
 	include/Router.hpp
-	include/WebSocketServer.hpp
+	include/WebgameServer.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 

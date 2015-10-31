@@ -1,4 +1,4 @@
-#include "WebSocketServer.hpp"
+#include "WebgameServer.hpp"
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -138,11 +138,11 @@ HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const HTTPServer
         return new PageRequestHandler;
 }
 
-WebSocketServer::WebSocketServer() : _helpRequested(false) {}
+WebgameServer::WebgameServer() : _helpRequested(false) {}
 
-WebSocketServer::~WebSocketServer() {}
+WebgameServer::~WebgameServer() {}
 
-void WebSocketServer::initialize(Application& self) {
+void WebgameServer::initialize(Application& self) {
     loadConfiguration();
 
     //initialize connection_string for database and load it into config
@@ -164,11 +164,11 @@ void WebSocketServer::initialize(Application& self) {
     ServerApplication::initialize(self);
 }
 
-void WebSocketServer::uninitialize() {
+void WebgameServer::uninitialize() {
     ServerApplication::uninitialize();
 }
 
-void WebSocketServer::defineOptions(OptionSet& options) {
+void WebgameServer::defineOptions(OptionSet& options) {
     ServerApplication::defineOptions(options);
 
     options.addOption(
@@ -177,14 +177,14 @@ void WebSocketServer::defineOptions(OptionSet& options) {
         .repeatable(false));
 }
 
-void WebSocketServer::handleOption(const std::string& name, const std::string& value) {
+void WebgameServer::handleOption(const std::string& name, const std::string& value) {
     ServerApplication::handleOption(name, value);
 
     if (name == "help")
         _helpRequested = true;
 }
 
-void WebSocketServer::displayHelp() {
+void WebgameServer::displayHelp() {
     HelpFormatter helpFormatter(options());
     helpFormatter.setCommand(commandName());
     helpFormatter.setUsage("OPTIONS");
@@ -192,7 +192,7 @@ void WebSocketServer::displayHelp() {
     helpFormatter.format(std::cout);
 }
 
-int WebSocketServer::main(const std::vector<std::string>& args) {
+int WebgameServer::main(const std::vector<std::string>& args) {
     if (_helpRequested) {
         displayHelp();
     }

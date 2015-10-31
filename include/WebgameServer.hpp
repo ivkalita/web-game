@@ -34,7 +34,7 @@ public:
 	Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
 };
 
-class WebSocketServer: public Poco::Util::ServerApplication {
+class WebgameServer: public Poco::Util::ServerApplication {
 private:
 	bool _helpRequested;
 protected:
@@ -45,6 +45,6 @@ protected:
 	void displayHelp();
 	int main(const std::vector<std::string>& args);
 public:
-	WebSocketServer();
-	~WebSocketServer();
+	WebgameServer();
+	~WebgameServer();
 };

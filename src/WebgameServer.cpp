@@ -2,23 +2,10 @@
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
-using Poco::Net::ServerSocket;
-using Poco::Net::WebSocket;
-using Poco::Net::WebSocketException;
-using Poco::Net::HTTPRequestHandler;
-using Poco::Net::HTTPRequestHandlerFactory;
-using Poco::Net::HTTPServer;
-using Poco::Net::HTTPServerRequest;
-using Poco::Net::HTTPResponse;
-using Poco::Net::HTTPServerResponse;
-using Poco::Net::HTTPServerParams;
-using Poco::Timestamp;
-using Poco::ThreadPool;
-using Poco::Util::ServerApplication;
-using Poco::Util::Application;
-using Poco::Util::Option;
-using Poco::Util::OptionSet;
-using Poco::Util::HelpFormatter;
+#include "Poco/Net/HTTPServer.h"
+#include "Poco/Util/HelpFormatter.h"
+#include "Poco/Net/ServerSocket.h"
+#include "Poco/Net/NetException.h"
 
 using namespace std;
 
@@ -38,21 +25,20 @@ void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
     }
 }
 
-HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const HTTPServerRequest& request) {
+Poco::Net::HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
     WebgameServer& app = WebgameServer::instance();
 
     app.logger().information("Request from "
         + request.clientAddress().toString()
-        + ": "
-        + request.getMethod()
-        + " "
-        + request.getURI()
-        + " "
-        + request.getVersion());
+        + ": " + request.getMethod()
+        + " " + request.getURI()
+        + " " + request.getVersion());
 
-    for (HTTPServerRequest::ConstIterator it = request.begin(); it != request.end(); ++it) {
+#ifdef SHOW_REQUEST_INFORMATION
+    for (auto it = request.begin(); it != request.end(); ++it) {
         app.logger().information(it->first + ": " + it->second);
     }
+#endif
 
     return new RequestHandler;
 }
@@ -61,9 +47,8 @@ WebgameServer::WebgameServer() : _helpRequested(false) {}
 
 WebgameServer::~WebgameServer() {}
 
-void WebgameServer::initialize(Application& self) {
+void WebgameServer::initialize(Poco::Util::Application& self) {
     loadConfiguration();
-
 
     DBConnection::instance().Connect(
         config().getString("database.hostaddr", "localhost"),
@@ -80,11 +65,11 @@ void WebgameServer::uninitialize() {
     ServerApplication::uninitialize();
 }
 
-void WebgameServer::defineOptions(OptionSet& options) {
+void WebgameServer::defineOptions(Poco::Util::OptionSet& options) {
     ServerApplication::defineOptions(options);
 
     options.addOption(
-        Option("help", "h", "display help information on command line arguments")
+        Poco::Util::Option("help", "h", "display help information on command line arguments")
         .required(false)
         .repeatable(false));
 }
@@ -97,7 +82,7 @@ void WebgameServer::handleOption(const std::string& name, const std::string& val
 }
 
 void WebgameServer::displayHelp() {
-    HelpFormatter helpFormatter(options());
+    Poco::Util::HelpFormatter helpFormatter(options());
     helpFormatter.setCommand(commandName());
     helpFormatter.setUsage("OPTIONS");
     helpFormatter.setHeader("A sample HTTP server supporting the WebSocket protocol.");
@@ -122,5 +107,5 @@ int WebgameServer::main(const std::vector<std::string>& args) {
         srv.stop();
     }
 
-    return Application::EXIT_OK;
+    return EXIT_OK;
 }

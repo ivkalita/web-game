@@ -1,4 +1,5 @@
 #include "WebgameServer.hpp"
+#include "Router.hpp"
 #include "DBConnector.hpp"
 
 using Poco::Net::ServerSocket;
@@ -21,104 +22,24 @@ using Poco::Util::HelpFormatter;
 
 using namespace std;
 
-pair<string, string> PageRequestHandler::getFile(HTTPServerRequest& request) {
-    string path = "../web/";
-    string type;
-
-    string URI = request.getURI();
-
-    if (URI == "/") {
-        path += "html/index.html";
-        type = "text/html";
-    } else {
-        string extension = URI.substr(URI.find(".") + 1, URI.length());
-        path += URI;
-        type = "text/" + extension;  
-    }
-
-    return *new pair<string, string>(path, type);
-}
-
-void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) {
+void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     response.setChunkedTransferEncoding(true);
-    pair<string, string> file = getFile(request);
-    response.sendFile(file.first, file.second);
-
-    /* Database interaction example
-    Application &app = Application::instance();
-    string connection_string = app.config().getString("database.connection_string");
-
-    PGconn* conn = PQconnectdb(connection_string.c_str());
-    if (PQstatus(conn) != CONNECTION_OK) {
-        ostr << "Connection failed" << endl;
-        cerr << "Database connection error:" << endl << PQerrorMessage(conn) << endl;
-        PQfinish(conn);
-        return;
-    }
-  
-    PGresult* res;
-    res = PQexec(conn, "SELECT * FROM PLAYERS"); 
-
-    if (PQresultStatus(res) == PGRES_TUPLES_OK) {
-        ostr << "All players in database:";
-        ostr << "<br><br>";
-    }
-    else {
-        cerr << "SELECT failed: " << endl << PQerrorMessage(conn) << endl;
-        ostr << "Statement execution failed" << endl;
-        PQfinish(conn);
-        return;
-    }
-
-    for (int i = 0; i < PQntuples(res); i++) { // PQntuples - count of rows
-        ostr << i + 1 << " - " << PQgetvalue(res, i, PQfnumber(res, "login"));
-        ostr << "<br>";
-    }
-
-    PQclear(res);
-    PQfinish(conn); */
-}
-
-
-void WebSocketRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) {
-    Application& app = Application::instance();
-
-    try {
-        WebSocket ws(request, response);
-        app.logger().information("WebSocket connection established.");
-        char buffer[1024];
-        int flags;
-        int n;
-
-        do {
-            n = ws.receiveFrame(buffer, sizeof(buffer), flags);
-            app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
-            ws.sendFrame(buffer, n, flags);
-        } while (n > 0 || (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
-
-        app.logger().information("WebSocket connection closed.");
-    }
-
-    catch (WebSocketException& exc) {
-        app.logger().log(exc);
-
-        switch (exc.code()) {
-        case WebSocket::WS_ERR_HANDSHAKE_UNSUPPORTED_VERSION:
-            response.set("Sec-WebSocket-Version", WebSocket::WEBSOCKET_VERSION);
-            // fallthrough
-        case WebSocket::WS_ERR_NO_HANDSHAKE:
-        case WebSocket::WS_ERR_HANDSHAKE_NO_VERSION:
-        case WebSocket::WS_ERR_HANDSHAKE_NO_KEY:
-            response.setStatusAndReason(HTTPResponse::HTTP_BAD_REQUEST);
-            response.setContentLength(0);
-            response.send();
-            break;
+    if (!Router::instance().handle(request, response)) {
+        string URI = request.getURI();
+        string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
+        try {
+            response.sendFile("web" + URI, "text/" + extension);
+        }
+        catch (const Poco::Exception& e) {
+            std::ostream& st = response.send();
+            st << e.displayText();
+            st.flush();
         }
     }
 }
 
 HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const HTTPServerRequest& request) {
-    Application& app = Application::instance();
+    WebgameServer& app = WebgameServer::instance();
 
     app.logger().information("Request from "
         + request.clientAddress().toString()
@@ -133,10 +54,7 @@ HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const HTTPServer
         app.logger().information(it->first + ": " + it->second);
     }
 
-    if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
-        return new WebSocketRequestHandler;
-    else
-        return new PageRequestHandler;
+    return new RequestHandler;
 }
 
 WebgameServer::WebgameServer() : _helpRequested(false) {}

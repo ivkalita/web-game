@@ -1,4 +1,5 @@
 #include "WebgameServer.hpp"
+#include "DBConnector.hpp"
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -145,22 +146,15 @@ WebgameServer::~WebgameServer() {}
 void WebgameServer::initialize(Application& self) {
     loadConfiguration();
 
-    //initialize connection_string for database and load it into config
-    map<string, string> database_configs;
-    database_configs.insert(pair<string, string>("user", "postgres"));
-    database_configs.insert(pair<string, string>("hostaddr", "127.0.0.1"));
-    database_configs.insert(pair<string, string>("port", "5432"));
-    database_configs.insert(pair<string, string>("dbname", "galcon"));
-    database_configs.insert(pair<string, string>("password", ""));
-    string connection_string = "";
-    for (auto it = database_configs.begin(); it != database_configs.end(); ++it) {
-        string key = "database." + it->first;
-        string value = config().getString(key, it->second);
-        if (value.length() > 0) {
-            connection_string += it->first + "=" + value + " ";
-        }
-    }
-    config().setString("database.connection_string", connection_string);
+
+    DBConnection::instance().Connect(
+        config().getString("database.hostaddr", "localhost"),
+        config().getString("database.port", "5432"),
+        config().getString("database.dbname", "web-game"),
+        config().getString("database.user", "web-game"),
+        config().getString("database.password", "web-game")
+    );
+
     ServerApplication::initialize(self);
 }
 

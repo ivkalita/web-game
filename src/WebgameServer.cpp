@@ -192,10 +192,14 @@ int WebgameServer::main(const std::vector<std::string>& args) {
     }
 
     else {
-        unsigned short port = (unsigned short)config().getInt("application.port", 1336);
-        ServerSocket svs(port);
-        HTTPServer srv(new RequestHandlerFactory, svs, new HTTPServerParams);
+        Poco::Net::SocketAddress addr(
+            config().getString("application.hostaddr", "127.0.0.1"),
+            config().getUInt("application.port", 1337)
+        );
+        Poco::Net::ServerSocket svs(addr);
+        Poco::Net::HTTPServer srv(new RequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
         srv.start();
+        logger().information("Web-game server listening on http://" + addr.toString());
         waitForTerminationRequest();
         srv.stop();
     }

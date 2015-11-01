@@ -2,11 +2,11 @@
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
-void index(const RouteMatch& m) {
+static void index(const RouteMatch& m) {
     m.response().redirect("/index.html");
 }
 
-void http_example(const RouteMatch& m) {
+static void http_example(const RouteMatch& m) {
     auto & s = m.response().send();
     s << "Hello world!";
     auto & db = DBConnection::instance();
@@ -19,7 +19,7 @@ void http_example(const RouteMatch& m) {
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/NetException.h"
 
-void websocket_example(const RouteMatch& m) {
+static void websocket_example(const RouteMatch& m) {
     auto & app = WebgameServer::instance();
 
     try {
@@ -66,4 +66,4 @@ public:
     }
 };
 
-Pages pages;
+static Pages pages;

@@ -69,7 +69,7 @@ private:
             delete values[i];
         delete values;
     }
-    
+
     class QueryResult;
 
     class PreparedStatement {
@@ -83,7 +83,12 @@ private:
             parent->check_connection();
             stmt_name = "stmt" + to_string(parent->prepared_statement_counter++);
 
-            res = shared_ptr<PGresult>(PQprepare(parent->conn, stmt_name.c_str(), query.c_str(), 0, nullptr), result_deleter);
+            res = shared_ptr<PGresult>(PQprepare(
+                parent->conn,
+                stmt_name.c_str(),
+                query.c_str(),
+                0,
+                nullptr), result_deleter);
 
             parent->check_errors(res.get());
         }
@@ -101,12 +106,20 @@ private:
 
         QueryResult Exec(initializer_list<string> params) {
             parent->check_connection();
-            
+
             char** values = parent->prepare_values_array(params);
-            
-            PGresult* result = PQexecPrepared(parent->conn, stmt_name.c_str(), params.size(), values, nullptr, nullptr, 0);
-            
+
+            PGresult* result = PQexecPrepared(
+                parent->conn,
+                stmt_name.c_str(),
+                params.size(),
+                values,
+                nullptr,
+                nullptr,
+                0);
+
             parent->free_values_array(values, params.size());
+
             parent->check_errors(result);
 
             return QueryResult(result);
@@ -219,9 +232,12 @@ private:
         }
     };
 
+    DBConnection(const DBConnection&) {}
+    DBConnection& operator = (const DBConnection&) {}
+
 public:
     DBConnection(): conn(nullptr), prepared_statement_counter(0) {}
-    
+
     void Disconnect() {
         if (conn) {
             PQfinish(conn);
@@ -238,7 +254,7 @@ public:
         return *sh.get();
     }
 
-    PreparedStatement CreatePreparedStatement(string query) {
+    PreparedStatement Prepare(string query) {
         return PreparedStatement(this, query);
     }
     
@@ -258,7 +274,7 @@ public:
 
 
     /*  Use $1, $2, etc in statement as a placeholder for parameters.
-    *    Postgresql will infare parameters types. To explicitly set a parameter type use, for example,
+    *    Postgresql will infer parameters types. To explicitly set a parameter type use, for example,
     *    SELECT * FROM mytable WHERE x = $1::bigint;
     *    
     *    initializer_list is { "1", "2", "abc" } 
@@ -269,10 +285,18 @@ public:
 
         char** values = prepare_values_array(params);
 
-        PGresult* res = PQexecParams(conn, statement.c_str(), params.size(), nullptr, values, nullptr, nullptr, 0);
+        PGresult* res = PQexecParams(
+            conn,
+            statement.c_str(),
+            params.size(),
+            nullptr,
+            values,
+            nullptr,
+            nullptr,
+            0);
 
         free_values_array(values, params.size());
-        
+
         check_errors(res);
         return QueryResult(res);
     }

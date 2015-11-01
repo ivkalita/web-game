@@ -17,12 +17,15 @@ CREATE TABLE games
 CREATE TABLE users
 (
     id SERIAL PRIMARY KEY,
-    email TEXT,
-	name TEXT,
+    login TEXT,
+    name TEXT,
     password TEXT,
-	token TEXT
+    token TEXT
 );
 
 --insert data
+
+INSERT INTO users(login, name, password, token) VALUES ('qwe','Qwe','k3kUonq2GNvP5VCmxQvkDgps5Xhqm12e:f9ac53b501caf001c78b4f560638c1e20d7bd703','');
+INSERT INTO users(login, name, password, token) VALUES ('asd','Asd','5gYtKlwTuSL8vd8i4yr77c9sygNHbz2L:c81f3db17a169c1ebcc31bbe74919de2fe22784b','');
 
 INSERT INTO GAMES (name) VALUES ('game 1');

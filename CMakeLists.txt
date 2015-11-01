@@ -58,6 +58,7 @@ add_executable(runner
     src/AbstractRouter.cpp
     src/Router.cpp
     src/Pages.cpp
+    src/Users.cpp
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp

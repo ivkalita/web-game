@@ -4,6 +4,7 @@
 #include <AbstractRouter.hpp>
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
+#include "Poco/SingletonHolder.h"
 #include <functional>
 
 class RouteMatch
@@ -52,6 +53,11 @@ public:
 	void registerRoute(const std::string& method, const std::string& path, const RouteHandler& handler);
 
 	bool handle(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) const;
+
+	static Router& instance() {
+		static Poco::SingletonHolder<Router> sh;
+		return *sh.get();
+	}
 };
 
 #endif

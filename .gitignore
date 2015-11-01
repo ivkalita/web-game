@@ -13,3 +13,14 @@ CPackSourceConfig.cmake
 cmake_install.cmake
 Poco/*
 gtestresults.xml
+
+#Windows - Visual Studio
+*.sln
+*.sdf
+*.suo
+*.opensdf
+*.vcxproj
+*.vcxproj.filters
+runner.dir/*
+tester.dir/*
+x64/*

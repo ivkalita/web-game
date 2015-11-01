@@ -49,15 +49,6 @@ WebgameServer::~WebgameServer() {}
 
 void WebgameServer::initialize(Poco::Util::Application& self) {
     loadConfiguration();
-
-    DBConnection::instance().Connect(
-        config().getString("database.hostaddr", "localhost"),
-        config().getString("database.port", "5432"),
-        config().getString("database.dbname", "web-game"),
-        config().getString("database.user", "web-game"),
-        config().getString("database.password", "web-game")
-    );
-
     ServerApplication::initialize(self);
 }
 
@@ -95,6 +86,21 @@ int WebgameServer::main(const std::vector<std::string>& args) {
     }
 
     else {
+        
+        try {
+            DBConnection::instance().Connect(
+                config().getString("database.hostaddr", "127.0.0.1"),
+                config().getString("database.port", "5432"),
+                config().getString("database.dbname", "web-game"),
+                config().getString("database.user", "web-game"),
+                config().getString("database.password", "web-game")
+                );
+        }
+        catch (const ConnectionException& e) {
+            logger().fatal(e.what());
+            return EXIT_SOFTWARE;
+        }
+        
         Poco::Net::SocketAddress addr(
             config().getString("application.hostaddr", "127.0.0.1"),
             config().getUInt("application.port", 1337)

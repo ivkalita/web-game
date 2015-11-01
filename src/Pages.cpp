@@ -2,8 +2,15 @@
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
+#include "Poco/JSON/Template.h"
+#include "Poco/JSON/Object.h"
+
 static void index(const RouteMatch& m) {
-    m.response().redirect("/index.html");
+    Poco::JSON::Template tpl("views/index.html");
+    tpl.parse();
+    std::ostream& st = m.response().send();
+    tpl.render(Poco::JSON::Object(), st);
+    st.flush();
 }
 
 static void http_example(const RouteMatch& m) {

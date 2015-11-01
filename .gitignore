@@ -14,7 +14,6 @@ cmake_install.cmake
 Poco/*
 gtestresults.xml
 
-
 #Windows - Visual Studio
 *.sln
 *.sdf

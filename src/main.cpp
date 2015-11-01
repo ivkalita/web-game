@@ -1,3 +1,3 @@
-#include "WebSocketServer.hpp"
+#include "WebgameServer.hpp"
 
-POCO_SERVER_MAIN(WebSocketServer);
+POCO_SERVER_MAIN(WebgameServer);

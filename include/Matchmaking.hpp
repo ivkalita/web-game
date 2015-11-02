@@ -108,3 +108,14 @@ public:
     UserInfo user;
 };
 
+
+class MathcmakingAPI
+{
+public:
+    static const string OK_STATUS;
+    static Response GetGames();
+    static Response JoinToGame(int gameId, AccessToken accessToken);
+    static Response CreateGame(Game game, AccessToken accessToken);
+    static Response StartGame(AccessToken accessToken);
+    static Response LeaveGame(AccessToken accessToken);
+};

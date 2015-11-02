@@ -1,0 +1,11 @@
+INSERT INTO PLAYERS (login, password) VALUES ('test', 'test');
+INSERT INTO PLAYERS (login, password) VALUES ('Вова Смерть', 'Вова Смерть password');
+INSERT INTO PLAYERS (login, password) VALUES ('STRELOK25RUS', 'STRELOK25RUS password');
+INSERT INTO PLAYERS (login, password) VALUES ('Ярик Решето', 'Ярик Решето password');
+INSERT INTO PLAYERS (login, password) VALUES ('Теньго Мороз', 'Теньго Мороз password');
+INSERT INTO PLAYERS (login, password) VALUES ('Гриша', 'Гриша password');
+INSERT INTO PLAYERS (login, password) VALUES ('S.T.A.L.K.E.R.', 'S.T.A.L.K.E.R. password');
+INSERT INTO PLAYERS (login, password) VALUES ('S.T.A.L.K.E.R.(1)', 'S.T.A.L.K.E.R.(1) password');
+INSERT INTO PLAYERS (login, password) VALUES ('S.T.A.L.K.E.R.(2)', 'S.T.A.L.K.E.R.(2) password');
+INSERT INTO PLAYERS (login, password) VALUES ('Player', 'Player password');
+INSERT INTO PLAYERS (login, password) VALUES ('Player(1)', 'Player(1) password');

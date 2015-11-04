@@ -59,7 +59,7 @@ static void Login(const RouteMatch& m) {
         query.find("login").convert(login);
         query.find("password").convert(password);
     }
-    catch (const Poco::Exception&) {
+    catch (...) {
         return returnResponse(m, "BadRequest");
     }
     try {
@@ -77,7 +77,7 @@ static void Login(const RouteMatch& m) {
         res.set("accessToken", token);
         return returnResponse(m, "Ok", res);
     }
-    catch (const Poco::Exception&) {
+    catch (...) {
         return returnResponse(m, "InternalError");
     }
 }
@@ -87,7 +87,7 @@ static void Logout(const RouteMatch& m) {
     try {
         getJSONQuery(m).find("accessToken").convert(accessToken);
     }
-    catch (const Poco::Exception&) {
+    catch (...) {
         return returnResponse(m, "BadRequest");
     }
     try {
@@ -98,7 +98,7 @@ static void Logout(const RouteMatch& m) {
         }
         return returnResponse(m, "NotLoggedIn");
     }
-    catch (const Poco::Exception&) {
+    catch (...) {
         return returnResponse(m, "InternalError");
     }
 }
@@ -111,7 +111,7 @@ static void Register(const RouteMatch& m) {
         query.find("name").convert(name);
         query.find("password").convert(password);
     }
-    catch (const Poco::Exception&) {
+    catch (...) {
         return returnResponse(m, "BadRequest");
     }
     try {
@@ -129,7 +129,7 @@ static void Register(const RouteMatch& m) {
             { login, name, getPasswordHash(password), token });
         return returnResponse(m, "Ok", "{\"accessToken\":\""+token+"\"}");
     }
-    catch (const Poco::Exception&) {
+    catch (...) {
         return returnResponse(m, "InternalError");
     }
 }

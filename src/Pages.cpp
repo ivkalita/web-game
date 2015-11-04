@@ -2,7 +2,7 @@
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
-static void index(const RouteMatch& m) {
+static void root(const RouteMatch& m) {
     m.response().redirect("/index.html");
 }
 
@@ -60,7 +60,7 @@ class Pages {
 public:
     Pages() {
         auto & router = Router::instance();
-        router.registerRoute("/", index);
+        router.registerRoute("/", root);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
     }

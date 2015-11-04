@@ -10,18 +10,31 @@
 using namespace std;
 
 void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
-    response.setChunkedTransferEncoding(true);
-    if (!Router::instance().handle(request, response)) {
-        string URI = request.getURI();
-        string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
-        try {
-            response.sendFile("web" + URI, "text/" + extension);
+    try {
+        response.setChunkedTransferEncoding(true);
+        if (!Router::instance().handle(request, response)) {
+            string URI = request.getURI();
+            string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
+            try {
+                response.sendFile("web" + URI, "text/" + extension);
+            }
+            catch (const Poco::FileNotFoundException & e) {
+                response.setStatus(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND);
+                response.sendBuffer(e.displayText().c_str(), e.displayText().length());
+            }
+            catch (const Poco::FileAccessDeniedException & e) {
+                response.setStatus(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+                response.sendBuffer(e.displayText().c_str(), e.displayText().length());
+            }
         }
-        catch (const Poco::Exception& e) {
-            std::ostream& st = response.send();
-            st << e.displayText();
-            st.flush();
-        }
+    }
+    catch (const Poco::Exception & e) {
+        response.setStatus(Poco::Net::HTTPServerResponse::HTTP_INTERNAL_SERVER_ERROR);
+        response.sendBuffer(e.displayText().c_str(), e.displayText().length());
+    }
+    catch (const std::exception & e) {
+        response.setStatus(Poco::Net::HTTPServerResponse::HTTP_INTERNAL_SERVER_ERROR);
+        response.sendBuffer(e.what(), strlen(e.what()));
     }
 }
 
@@ -49,15 +62,6 @@ WebgameServer::~WebgameServer() {}
 
 void WebgameServer::initialize(Poco::Util::Application& self) {
     loadConfiguration();
-
-    DBConnection::instance().Connect(
-        config().getString("database.hostaddr", "localhost"),
-        config().getString("database.port", "5432"),
-        config().getString("database.dbname", "web-game"),
-        config().getString("database.user", "web-game"),
-        config().getString("database.password", "web-game")
-    );
-
     ServerApplication::initialize(self);
 }
 
@@ -95,6 +99,21 @@ int WebgameServer::main(const std::vector<std::string>& args) {
     }
 
     else {
+        
+        try {
+            DBConnection::instance().Connect(
+                config().getString("database.hostaddr", "127.0.0.1"),
+                config().getString("database.port", "5432"),
+                config().getString("database.dbname", "web-game"),
+                config().getString("database.user", "web-game"),
+                config().getString("database.password", "web-game")
+                );
+        }
+        catch (const ConnectionException& e) {
+            logger().fatal(e.what());
+            return EXIT_SOFTWARE;
+        }
+        
         Poco::Net::SocketAddress addr(
             config().getString("application.hostaddr", "127.0.0.1"),
             config().getUInt("application.port", 1337)

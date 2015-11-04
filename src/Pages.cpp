@@ -5,7 +5,7 @@
 #include "Poco/JSON/Template.h"
 #include "Poco/JSON/Object.h"
 
-static void index(const RouteMatch& m) {
+static void root(const RouteMatch& m) {
     Poco::JSON::Template tpl("views/index.html");
     tpl.parse();
     std::ostream& st = m.response().send();
@@ -67,7 +67,7 @@ class Pages {
 public:
     Pages() {
         auto & router = Router::instance();
-        router.registerRoute("/", index);
+        router.registerRoute("/", root);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
     }

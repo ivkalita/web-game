@@ -10,24 +10,26 @@
 #include "Poco/Net/HTMLForm.h"
 
 #include "Poco/Random.h"
+#include "Poco/PBKDF2Engine.h"
+#include "Poco/HMACEngine.h"
 #include "Poco/SHA1Engine.h"
 
-static std::string getRandomString() {
-    Poco::Random rnd;
-    rnd.seed();
-    std::string token;
-    static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    for (int i = 0; i < 32; i++)
-        token += alphanum[rnd.next() % (sizeof(alphanum) - 1)];
-    return token;
+#include <iomanip>
+
+static Poco::Random rnd;
+
+static std::string getRandomString(int len = 64) {
+    std::stringstream res;
+    for (int i = 0; i < (int)ceil(len / 8); i++)
+        res << std::setfill('0') << std::setw(8) << std::hex << rnd.next();
+    return res.str().substr(0, len);
 }
 
-static std::string getPasswordHash(std::string password, std::string salt = getRandomString()) {
-    salt.resize(32);
-    Poco::SHA1Engine hs;
-    hs.reset();
+#define SALT_LENGTH 64
+
+static std::string getPasswordHash(std::string password, std::string salt = getRandomString(SALT_LENGTH)) {
+    Poco::PBKDF2Engine<Poco::HMACEngine<Poco::SHA1Engine>> hs(salt, 4096);
     hs.update(password);
-    hs.update(salt);
     return salt + ":" + hs.digestToHex(hs.digest());
 }
 
@@ -67,7 +69,7 @@ static void Login(const RouteMatch& m) {
         bool valid = user.row_count();
         if (valid) {
             std::string passhash((*user.begin()).field_by_name("password"));
-            valid &= !getPasswordHash(password, passhash).compare(passhash);
+            valid &= !getPasswordHash(password, passhash.substr(0, SALT_LENGTH)).compare(passhash);
         }
         if (!valid) return returnResponse(m, "BadCredentials");
         std::string token = getRandomString();
@@ -137,6 +139,7 @@ static void Register(const RouteMatch& m) {
 class Users {
 public:
     Users() {
+        rnd.seed();
         auto & router = Router::instance();
         router.registerRoute("POST", "/api/login", Login);
         router.registerRoute("POST", "/api/register", Register);

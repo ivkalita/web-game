@@ -1,4 +1,5 @@
 #pragma once
+
 #include<iostream>
 #include<String>
 #include<vector>
@@ -12,6 +13,7 @@ using namespace std;
 using namespace Poco;
 using namespace Poco::JSON;
 
+#define MATCHMAKING_DEBUG
 
 class MObject
 {
@@ -42,7 +44,7 @@ private:
 class UserInfo : MObject {
 public:
     virtual  Object toJson();
-    UserInfo(int id, string login, string name);
+    UserInfo(int id, string login);
 private:
     int mId;
     string mLogin;
@@ -54,8 +56,15 @@ class Map {};
 
 class Game : MObject {
 public:
+
+	static const string VERBOSE_NAME;
+	static const string VERBOSE_MAXNUMPLAYERS;
+	static const string VERBOSE_MODE;
+	static const string VERBOSE_MAP;
+	static const string VERBOSE_THIS;
+
     Game();
-    Game(Object::Ptr game);
+    Game(Object game);
     virtual  Object toJson();
     string getName();
     int getMaxNumPlayers();
@@ -78,14 +87,20 @@ public:
 
 class AccessToken : MObject {
 public:
-    AccessToken(Object::Ptr token);
+	static const string VERBOSE_THIS;
+	AccessToken(Object token){};
     int getPlayerId();
-    virtual Object toJson();
+	virtual Object toJson() { return Object(); };
+
+#ifdef MATCHMAKING_DEBUG
+	AccessToken(int playerId) { mPlayerId = playerId; };
+#endif
+
 private:
-    int playerId;
+    int mPlayerId;
 };
 
-class GameInfo : public Game {
+class GameInfo : Game {
 private:
     int mId;
     UserInfo mOwner;
@@ -113,9 +128,10 @@ class MathcmakingAPI
 {
 public:
     static const string OK_STATUS;
-    static Response GetGames();
+    static Response GetGames(int player=NULL);
     static Response JoinToGame(int gameId, AccessToken accessToken);
     static Response CreateGame(Game game, AccessToken accessToken);
     static Response StartGame(AccessToken accessToken);
     static Response LeaveGame(AccessToken accessToken);
+	static void DeleteGame(int gameId);
 };

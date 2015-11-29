@@ -1,6 +1,7 @@
 #include "WebgameServer.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"
+#include "User.hpp"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Query.h"
@@ -13,6 +14,18 @@
 #include "Poco/PBKDF2Engine.h"
 #include "Poco/HMACEngine.h"
 #include "Poco/SHA1Engine.h"
+
+User::User(std::string field, std::string value) {
+    auto user = DBConnection::instance().ExecParams("SELECT id, name FROM users WHERE " + field + "=$1", { value });
+    std::string t1;
+    int t2;
+    if (user.row_count() == 1) {
+        id = stoi((*user.begin()).field_by_name("id"));
+        name = (*user.begin()).field_by_name("name");
+    }
+    else
+        throw std::exception("User does not exist");
+}
 
 #include <iomanip>
 

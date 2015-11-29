@@ -62,6 +62,7 @@ add_executable(runner
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp
+    include/User.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 

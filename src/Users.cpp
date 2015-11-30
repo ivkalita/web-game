@@ -17,14 +17,9 @@
 
 User::User(std::string field, std::string value) {
     auto user = DBConnection::instance().ExecParams("SELECT id, name FROM users WHERE " + field + "=$1", { value });
-    std::string t1;
-    int t2;
-    if (user.row_count() == 1) {
-        id = stoi((*user.begin()).field_by_name("id"));
-        name = (*user.begin()).field_by_name("name");
-    }
-    else
-        throw std::exception("User does not exist");
+    if (user.row_count() != 1) throw std::exception("User does not exist");
+    id = stoi((*user.begin()).field_by_name("id"));
+    name = (*user.begin()).field_by_name("name");
 }
 
 #include <iomanip>
@@ -37,6 +32,12 @@ static std::string genRandomString(int len = 64) {
         res << std::setfill('0') << std::setw(8) << std::hex << rnd.next();
     return res.str().substr(0, len);
 }
+
+class JsonException : public runtime_error
+{
+public:
+    JsonException(std::string message) : runtime_error(message) {}
+};
 
 class JsonRequest {
     Poco::Dynamic::Var v;
@@ -55,33 +56,29 @@ public:
             q.find(name).convert(value);
         }
         catch (...) {
-            JsonResponse(_m, "BadRequest").send();
+            throw JsonException("BadRequest");
         }
     }
 };
 
 class JsonResponse {
     const RouteMatch & _m;
-    std::string _result;
     Poco::JSON::Object data;
 public:
-    JsonResponse(const RouteMatch& m, const std::string result): _m(m), _result(result) {}
+    JsonResponse(const RouteMatch& m): _m(m) {}
 
     template <typename T>
     void set(const std::string & name, T & value) {
         data.set(name, value);
     }
 
-    void send() {
+    void send(const std::string result) {
+        Poco::JSON::Object response;
+        response.set("result", result);
+        response.set("data", (data.size() != 0) ? data : "null");
         std::ostream& st = _m.response().send();
-        st << "{\"result\":\"" + _result + "\",\"data\":";
-        if (data.size() != 0)
-            Poco::JSON::Stringifier::condense(data, st);
-        else
-            st << "null";
-        st << "}";
+        Poco::JSON::Stringifier::condense(response, st);
         st.flush();
-        throw std::exception("JsonResponse sent");
     }
 };
 
@@ -93,66 +90,67 @@ static std::string getPasswordHash(std::string password, std::string salt = genR
     return salt + ":" + hs.digestToHex(hs.digest());
 }
 
-static void Login(const RouteMatch& m) {
+static void Login(JsonRequest & rq, JsonResponse & rs) {
     std::string login, password;
-    JsonRequest rq(m);
     rq.get("login", login);
     rq.get("password", password);
     
     auto user = DBConnection::instance().ExecParams("SELECT password, name FROM users WHERE login=$1", { login });
-    if (user.row_count() != 1) JsonResponse(m, "BadCredentials").send();
+    if (user.row_count() != 1) return rs.send("BadCredentials");
     std::string passhash = (*user.begin()).field_by_name("password");
     if (getPasswordHash(password, passhash.substr(0, SALT_LENGTH)).compare(passhash))
-        JsonResponse(m, "BadCredentials").send();
+        return rs.send("BadCredentials");
     std::string token = genRandomString();
     DBConnection::instance().ExecParams("UPDATE users SET token = $1 WHERE login = $2", { token, login });
 
-    JsonResponse rs(m, "Ok");
     rs.set("name", (*user.begin()).field_by_name("name"));
     rs.set("accessToken", token);
-    rs.send();
+    rs.send("Ok");
 }
 
-static void Logout(const RouteMatch& m) {
+static void Logout(JsonRequest & rq, JsonResponse & rs) {
     std::string token;
-    JsonRequest(m).get("accessToken", token);
+    rq.get("accessToken", token);
 
     auto res = DBConnection::instance().ExecParams("SELECT token FROM users WHERE token=$1", { token });
-    if (!res.row_count()) JsonResponse(m, "NotLoggedIn").send();
+    if (!res.row_count()) return rs.send("NotLoggedIn");
     DBConnection::instance().ExecParams("UPDATE users SET token = '' WHERE token = $1", { token });
-    JsonResponse(m, "Ok").send();
+    rs.send("Ok");
 }
 
-static void Register(const RouteMatch& m) {
+static void Register(JsonRequest & rq, JsonResponse & rs) {
     std::string login, password, name;
-    JsonRequest rq(m);
     rq.get("login", login);
     rq.get("password", password);
     rq.get("name", name);
 
-    if (login.length() < 2 || login.length() > 36) JsonResponse(m, "BadLogin").send();
-    if (DBConnection::instance().ExecParams("SELECT login FROM users WHERE login=$1", { login }).row_count() != 0) JsonResponse(m, "LoginExist").send();
-    if (password.length() < 2 || password.length() > 36) JsonResponse(m, "BadPassword").send();
-    if (name.length() < 2 || name.length() > 36) JsonResponse(m, "BadName").send();
+    if (login.length() < 2 || login.length() > 36) return rs.send("BadLogin");
+    if (DBConnection::instance().ExecParams("SELECT login FROM users WHERE login=$1", { login }).row_count() != 0) return rs.send("LoginExists");
+    if (password.length() < 2 || password.length() > 36) return rs.send("BadPassword");
+    if (name.length() < 2 || name.length() > 36) return rs.send("BadName");
 
     std::string token = genRandomString();
     DBConnection::instance().ExecParams("INSERT INTO users (login, name, password, token) values ($1, $2, $3, $4)", {
         login, name, getPasswordHash(password), token
     });
 
-    JsonResponse rs(m, "Ok");
     rs.set("accessToken", token);
-    rs.send();
+    rs.send("Ok");
 }
 
-template <void (*T)(const RouteMatch& )>
-static void Wrapper(const RouteMatch& m) {
+template <void (*T)(JsonRequest &, JsonResponse &)>
+static void CatchException(const RouteMatch& m) {
+    JsonRequest rq(m);
+    JsonResponse rs(m);
     try {
-        T(m);
+        T(rq, rs);
     }
-    catch (...) {
-        if (!m.response().sent())
-            JsonResponse(m, "InternalError").send();
+    catch (const JsonException & e) {
+        rs.send(e.what());
+    }
+    catch (const std::exception & e) {
+        if (m.response().sent()) throw e;
+        else rs.send("InternalError");
     }
 }
 
@@ -161,9 +159,9 @@ public:
     Users() {
         rnd.seed();
         auto & router = Router::instance();
-        router.registerRoute("POST", "/api/login", Wrapper<Login>);
-        router.registerRoute("POST", "/api/register", Wrapper<Register>);
-        router.registerRoute("POST", "/api/logout", Wrapper<Logout>);
+        router.registerRoute("POST", "/api/login", CatchException<Login>);
+        router.registerRoute("POST", "/api/register", CatchException<Register>);
+        router.registerRoute("POST", "/api/logout", CatchException<Logout>);
     }
 };
 

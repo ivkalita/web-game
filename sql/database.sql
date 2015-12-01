@@ -1,10 +1,3 @@
-CREATE DATABASE galcon
-    WITH ENCODING = 'UTF8'
-       TABLESPACE = pg_default
-    TEMPLATE template0;
-
-\c galcon
-
 CREATE SEQUENCE players_id_seq
     INCREMENT 1
     MINVALUE 1
@@ -46,7 +39,7 @@ CREATE TABLE games
     name character varying(50),
     maxNumPlayers integer NOT NULL,
     curNumPlayers integer NOT NULL,
-    owner_id integer references players(id),
+    owner_id integer references players(id) UNIQUE,
     CHECK (curNumPlayers <= maxNumPlayers),
     CONSTRAINT games_pkey PRIMARY KEY (id)
 )
@@ -57,8 +50,8 @@ WITH (
 CREATE TABLE connections
 (
     id integer NOT NULL DEFAULT nextval('connections_id_seq'::regclass),
-    game_id integer references games(id),
-    player_id integer references players(id),
+    game_id integer references games(id) ON DELETE CASCADE,
+    player_id integer references players(id) UNIQUE,
     CONSTRAINT connections_pkey PRIMARY KEY (id)
 )
 WITH (

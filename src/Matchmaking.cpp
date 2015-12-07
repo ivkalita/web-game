@@ -318,11 +318,20 @@ vector<string> Matchmaking::getPlayersList(int game_id)
 }
 
 Response Matchmaking::onCreateGame(Poco::JSON::Array::Ptr params) {
-	Poco::JSON::Object gameObj = *params->getObject(0);
-	string acessTokenObj = params->getElement<string>(1);
-	Game gameobj = Game(gameObj);
-	AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
-	return Matchmaking::CreateGame(gameobj, at);
+	try {
+		Poco::JSON::Object gameObj = *params->getObject(0);
+		string acessTokenObj = params->getElement<string>(1);
+		Game gameobj = Game(gameObj);
+		AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
+		return Matchmaking::CreateGame(gameobj, at);
+	}
+	catch (exception &e)
+	{
+		cout << e.what() << endl;
+		Response r;
+		r.setResult(Response::_ERROR);
+		return r;
+	}
 }
 
 bool Matchmaking::isInGame(int player_id)

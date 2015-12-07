@@ -1,5 +1,6 @@
 #include "CommonObjects.hpp"
 #include "Matchmaking.hpp"
+#include "WSConnection.hpp"
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/ParseHandler.h"
 #include <Poco/Dynamic/Var.h>
@@ -8,6 +9,16 @@
 using namespace std;
 using namespace Poco::JSON;
 
+
+
+const map<string, Actions::ACTIONS> Actions::actions =
+{
+	{ "CreateGame", CREATE_GAME  },
+	{ "GetGames",   GET_GAMES    },
+	{ "LeaveGame",  LEAVE_GAME   },
+	{ "JoinToGame", JOIN_TO_GAME },
+	{ "StartGame",  START_GAME   }
+};
 
 Response Matchmaking::GetGames()
 {
@@ -107,6 +118,7 @@ Response Matchmaking::LeaveGame(AccessToken accessToken)
 	}else{
 		con.ExecParams("DELETE FROM connections WHERE player_id=$1", { player_ID });
 		con.ExecParams("UPDATE games SET curnumplayers = curnumplayers - 1 WHERE id=$1", { game_id });
+		//send Lobby state
 	}
 	#ifndef MATCHMAKING_TEST
 		for (auto iter = players.begin(); iter != players.end(); ++iter){
@@ -132,4 +144,142 @@ void Matchmaking::DeleteGame(int gameId)
 		cout << e.what() << endl;
 	}
 	con.Disconnect();
+}
+
+Response Matchmaking::HandleAction(string text)
+{
+	Parser parser;
+	Poco::Dynamic::Var result = parser.parse(text);
+	Object::Ptr object = result.extract<Object::Ptr>();
+	std::string action = object->get("action").convert<std::string>();
+	cout << "Action: " << action << endl;
+	switch (Actions::getActionByName(action))
+	{
+	case Actions::GET_GAMES:
+		return GetGames();
+	case Actions::CREATE_GAME:
+		return onCreateGame(object->getArray("params"));
+		break;
+	case Actions::JOIN_TO_GAME:
+		return onJoinGame(object->getArray("params"));
+		break;
+	case Actions::LEAVE_GAME:
+		return onLeaveGame(object->getArray("params"));
+		break;
+	default:
+		Response r;
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+}
+
+Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
+{
+	try {
+		string acessTokenObj = params->getElement<string>(0);
+		int gameId = params->getElement<int>(1);
+		AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
+		Response r = Matchmaking::JoinToGame(gameId, at);
+		ostringstream ostr;
+		string message = ostr.str();
+		for (auto player : getPlayersList(gameId))
+		{
+			if (player != to_string(at.getPlayerId()))
+				ConnectionsPoll::instance().sendMessage(message, player);
+		}
+		return r;
+	}
+	catch (MatchMakingException &e)
+	{
+		cout << "Error: " << e.what() << endl;
+		Response r;
+		r.setAction("JoinGame");
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+	catch (ConnectionException &e)
+	{
+		cout << e.what() << endl;
+		Response r;
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+}
+
+Response Matchmaking::onLeaveGame(Poco::JSON::Array::Ptr params)
+{
+	try {
+		string acessTokenObj = params->getElement<string>(0);
+		AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
+		return Matchmaking::LeaveGame(at);
+	}
+	catch (MatchMakingException &e)
+	{
+		cout << "Error: " << e.what() << endl;
+		Response r;
+		r.setAction("LeaveGame");
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+	catch (ConnectionException &e)
+	{
+		cout << e.what() << endl;
+		Response r;
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+}
+
+vector<string> Matchmaking::getPlayersList(int game_id)
+{
+	vector<string> playerList;
+	DBConnection con = DBConnection::instance();
+	Response response = Response();
+	GameInfoData *gameInfoData = new GameInfoData();
+	try {
+		BaseConnection::connect(con);
+		auto players = con.ExecParams("SELECT player_id FROM Connections WHERE game_id=$1", { to_string(game_id) });
+		for (auto player = players.begin(); player != players.end(); ++player)
+		{
+			playerList.push_back((*player).field_by_name("player_id"));
+		}
+	}
+	catch (ConnectionException &e)
+	{
+		cout << e.what() << endl;
+	}
+	return playerList;
+}
+
+Response Matchmaking::onCreateGame(Poco::JSON::Array::Ptr params) {
+	Poco::JSON::Object gameObj = *params->getObject(0);
+	string acessTokenObj = params->getElement<string>(1);
+	Game gameobj = Game(gameObj);
+	AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
+	return Matchmaking::CreateGame(gameobj, at);
+}
+
+bool Matchmaking::isInGame(int player_id)
+{
+	DBConnection con = DBConnection::instance();
+	bool res = con.ExecParams("SELECT * FROM CONNECTIONS WHERE player_id=$1", { to_string(player_id) }).row_count() != 0;
+	con.Disconnect();
+	return res;
+}
+
+void Matchmaking::onCloseConnection(string accessToken)
+{
+	//temperal
+	if (isInGame(atoi(accessToken.c_str())))
+		LeaveGame(AccessToken(atoi(accessToken.c_str())));
+}
+
+void Matchmaking::CreateConnection(string id, WebSocket& ws)
+{
+	ConnectionsPoll::instance().addThread(
+		id,
+		ws,
+		Matchmaking::onCloseConnection,
+		MatchmakingActionHandler
+		);
 }

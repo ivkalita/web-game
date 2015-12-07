@@ -1,6 +1,8 @@
 #include "WebgameServer.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"
+#include "Matchmaking.hpp"
+#include "Poco/Net/WebSocket.h"
 
 static void index(const RouteMatch& m) {
     m.response().redirect("/index.html");
@@ -56,6 +58,15 @@ static void websocket_example(const RouteMatch& m) {
     }
 }
 
+static void lobby(const RouteMatch& m) {
+	Poco::Net::WebSocket ws(m.request(), m.response());
+	auto temp = m.request().HTTP_GET;
+	auto params = m.captures();
+	string user = params.at("user");
+	Matchmaking::CreateConnection(user, ws);
+}
+
+
 class Pages {
 public:
     Pages() {
@@ -63,6 +74,7 @@ public:
         router.registerRoute("/", index);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
+		router.registerRoute("/lobby/{user}", lobby);
     }
 };
 

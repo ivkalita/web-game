@@ -73,7 +73,7 @@ Game::Game() {}
 
 Game::Game(Object game) {
 	this->name = game.get(P_NAME).toString();
-	this->maxNumPlayers = atoi(game.get(P_MAXNUMPLAYERS).toString().c_str());
+	this->maxNumPlayers = abs(atoi(game.get(P_MAXNUMPLAYERS).toString().c_str()));
 	// mode and map are undefined 
 }
 

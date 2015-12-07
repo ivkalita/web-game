@@ -56,6 +56,12 @@ add_executable(runner
     src/AbstractRouter.cpp
     src/Router.cpp
     src/Pages.cpp
+    src/CommonObjects.cpp
+    src/Matchmaking.cpp
+    src/WSConnection.cpp
+    include/CommonObjects.hpp
+    include/Matchmaking.hpp
+    include/WSConnection.hpp
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp
@@ -64,8 +70,12 @@ target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester
     src/AbstractRouter.cpp
+    src/CommonObjects.cpp
+    src/Matchmaking.cpp
+    src/WSConnection.cpp
     tests/test_1.cpp
     tests/DBConnector/test_1.cpp
+    tests/Matchmaking/test_1.cpp
     tests/Router/test_1.cpp
 )
 target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} ${PostgreSQL_LIBRARIES})

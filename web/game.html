@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+    <link rel="stylesheet" type="text/css" href="assets/css/game.css"/>
+    <script type="text/javascript" src="assets/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="assets/js/engine/utils/webgl-utils.js"></script>
+    <script type="text/javascript" src="assets/js/engine/utils/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="assets/js/engine/gameObject.js"></script>
+    <script type="text/javascript" src="assets/js/engine/engine.js"></script>
+    <script type="text/javascript" src="assets/js/engine/scene.js"></script>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        void main(void) {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    </script>
+</head>
+<body onload="startGame();">
+    <canvas id="game-screen"></canvas>
+</body>
+</html>

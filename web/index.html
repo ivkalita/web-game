@@ -2,30 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>Websocket test page</title>
     <link rel="stylesheet" type="text/css" href="assets/css/style.css"/>
     <script type="text/javascript" src="assets/js/script.js"></script>
-    <title>Websocket test page</title>
-    <script src="assets/js/jquery-2.1.4.min.js"></script>
-    <script src="assets/js/gl-matrix-min.js"></script>
-    <script src="assets/js/webgl.js"></script>
-    <script id="vertex-shader" type="x-shader/x-vertex">
-        attribute vec3 aVertexPosition;
-        uniform mat4 uMVMatrix;
-        uniform mat4 uPMatrix;
-
-        void main(void) {
-            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        }
-    </script>
-    <script id="fragment-shader" type="x-shader/x-fragment">
-        void main(void) {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-        }
-    </script>
 </head>
-<body onload="webGLStart();">
+<body>
     <div class="test-block"></div>
     <form><input type="button" onclick="WebSocketTest()" value="Run WebSocket Script"></form>
-    <canvas id="canvas" style="border: 5px; border-color: blue; width: 1024px; height: 768px;"></canvas>
 </body>
 </html>

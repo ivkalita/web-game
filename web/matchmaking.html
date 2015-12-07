@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <title>Websocket test page</title>
+</head>
+<body>
+  <table border="1px">
+    <tr>
+      <td>
+      </td>s
+      <td>
+        <select id="user_choice">
+          <option> 1
+          <option> 2
+          <option> 3
+        </select>
+        <input type="button" id="login_btn" value="select User">
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <div id="GameList">
+        </div>
+      </td>
+      <td>
+        <input type="button" id="echo_btn" value="GetGames">
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <div>
+          <input type="text" id="gameNameInput" placeholder="game name"/>
+          <input type="text" id="gameMapInput" placeholder="map name"/>
+          <input type="text" id="gameModeInput" placeholder="game mode"/>
+          <input type="number" id="gameMaxNumPlayers" placeholder="game players number"/>
+        </div>
+      </td>
+      <td>
+        <button id="CreateGameBtn">Create Game</button>
+      </td>
+          <tr>
+      <td>
+        <div id="GameList2">
+        </div>
+      </td>
+      <td>
+        <input type="button" id="leave_btn" value="LeaveGame">
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <div id="LobbyInfo">
+        </div>
+      </td>
+      <td>
+        <input type="button" id="lobby_btn" value="GetLobyInfo">
+      </td>
+    </tr>
+  </table>
+  <input type="button" id="close_btn" value="close WebSocket">
+</body>
+<button id="connect">Connect</button>
+<script>
+  var user = 1;
+  var curentAction = null;
+  var ws;
+
+  connect = function(){
+    if ("WebSocket" in window){
+      ws = new WebSocket("ws://localhost:1337/lobby/" + user);
+    	ws.onopen = function(){
+        alert("Connected");
+      };
+
+    	ws.onmessage = function(evt) { 
+      	jsobj = JSON.parse(evt.data);
+        if( jsobj["result"] == "ERROR")
+        {
+          alert("Error");
+        }
+        switch(jsobj["action"]){
+          case "GetGames":
+            showGames(jsobj["data"]["game"]);
+            break;
+          case "CreateGame":
+            ws.send(JSON.stringify(GetLobby(user)) + '\0');
+            break;
+          case "LeaveGame":
+            switch(jsobj["result"])
+            {
+              case "Ok":
+                alert("Вы покинули игру");
+                $("#LobbyInfo").children().remove();
+                break;
+              case "HOST_LEAVE_LOBBY":
+                alert("Создатель игры покинул игру");
+                $("#LobbyInfo").children().remove();
+                break;
+              default:
+                break;
+            }
+            break;
+          case "GetLobby":
+           switch(jsobj["result"])
+              {
+                case "Ok":
+                LobbyInfo(jsobj["data"]["game"][0]["players"]);
+                break;
+                case "ERROR":
+                  $("#LobbyInfo").children().remove();
+                  break;
+                default:
+                  break;
+                }
+                break;
+          case "JoinToGame":
+            ws.send(JSON.stringify(GetLobby(user)) + '\0');
+            break;
+          default:
+            break;
+          }
+      };
+
+      ws.onclose = function() { 
+        alert("WebSocket closed.");
+      };
+      
+    }else {
+      alert("This browser does not support WebSockets.");
+    }
+
+    function GetGames(){ 
+      return {
+        "action": "GetGames" 
+      }
+    }
+
+    function CreateGame(accessToken, game)
+    {
+      return {
+          "action": "CreateGame",
+          "params": [ game, accessToken ]
+      }
+    }
+
+    function LeaveGame(accessToken)
+    {
+      return { 
+        "action": "LeaveGame",
+        "params": [accessToken]
+      }
+    }
+
+    function JoinGame(accessToken, gameId)
+    {
+        return { 
+        "action": "JoinToGame",
+        "params": [gameId, accessToken]
+      }
+    }
+
+    function GetLobby(accessToken)
+    {
+      return { 
+        "action": "GetLobby",
+        "params": [accessToken]
+      }
+    }
+
+    function Game(name, maxNumPlayers, mode, map){
+      return {
+        "name": name,
+        "maxNumPlayers": maxNumPlayers,
+        "mode": mode,
+        "map": map
+      }
+    }
+
+    $("#echo_btn").click(function(){
+      curentAction = "GetGames";
+      ws.send(JSON.stringify(GetGames()) + '\0');
+    });
+
+    $("#leave_btn").click(function(){
+      curentAction = "LeaveGame";
+      ws.send(JSON.stringify(LeaveGame(user)) + '\0');
+    });
+
+    $("#lobby_btn").click(function(){
+      curentAction = "LeaveGame";
+      ws.send(JSON.stringify(GetLobby(user)) + '\0');
+    });
+
+    $("#close_btn").click(function(){
+      ws.close();
+    });
+
+    $("#CreateGameBtn").click(function(){
+
+      curentAction = "CreateGame";
+      data = CreateGame( 
+      user, //accessToken
+      Game(
+        $("#gameNameInput").val(),
+        $("#gameMaxNumPlayers").val(),
+        $("#gameModeInput").val(),
+        $("#gameMapInput").val()
+        )
+      );
+      txt = JSON.stringify(data)
+      ws.send(txt + '\0');
+    });
+
+    function LobbyInfo(data)
+    {
+      $lobby = $("#LobbyInfo")
+      $lobby.children().remove();
+      for (player in  data)
+      {
+        $lobby.append($("<span>").text(data[player]));
+      }
+    }
+
+    function showGames(data)
+    {
+      $gamelist = $("#GameList")
+      $gamelist.children().remove();
+      for (elem in data)
+      {
+        owner = data[elem]["owner"]["login"]
+        curplayers = data[elem]["curNumPlayers"]
+        gameId = data[elem]["id"]
+        $gamelist.append($("<span>").text(owner + " - "), $("<span>").text(curplayers),
+          $("<button>").text("Connect").click(function(){
+              txt = JSON.stringify(JoinGame(gameId, user));
+              ws.send(txt + '\0');
+          }));
+      }
+    } 
+  }
+
+   $("#login_btn").click(function()
+    {
+        user = $("#user_choice").val();
+        alert("выбран " + user + " пользователь");
+    });
+
+  $("#connect").click(connect);
+</script>
+</html>

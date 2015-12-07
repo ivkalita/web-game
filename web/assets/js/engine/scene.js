@@ -38,7 +38,18 @@ function updateObjects(scene) {
 
     if (scene.needUpdate) {
         //some testing code here
+        s = new Ship(0.0, 0.0, [3.0, 1.0]);
+        s.x = 1.0;
+        scene.addObject(s);
 
+        p = new Planet(2.0, 0.0);
+        p.radius = 1;
+        scene.addObject(p);
+        scene.addObject(new Planet(1.0, 1.0));
+
+        scene.addObject(new Ship(0.0, 1.0, [1.0, 1.0]));
+
+        scene.removeObjectAtCoords([1.0, 1.0]);
     }
 
     scene.needUpdate = false;

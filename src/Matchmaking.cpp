@@ -17,7 +17,8 @@ const map<string, Actions::ACTIONS> Actions::actions =
 	{ "GetGames",   GET_GAMES    },
 	{ "LeaveGame",  LEAVE_GAME   },
 	{ "JoinToGame", JOIN_TO_GAME },
-	{ "StartGame",  START_GAME   }
+	{ "StartGame",  START_GAME   },
+	{ "GetLobby",   GET_LOBBY    }
 };
 
 Response Matchmaking::GetGames()
@@ -118,16 +119,52 @@ Response Matchmaking::LeaveGame(AccessToken accessToken)
 	}else{
 		con.ExecParams("DELETE FROM connections WHERE player_id=$1", { player_ID });
 		con.ExecParams("UPDATE games SET curnumplayers = curnumplayers - 1 WHERE id=$1", { game_id });
-		//send Lobby state
+		GetLobby(stoi(ownerid)).toJson().stringify(stream);
 	}
 	#ifndef MATCHMAKING_TEST
 		for (auto iter = players.begin(); iter != players.end(); ++iter){
 			if ((*iter).get(0) != player_ID) {
-				// Send a message
+				ConnectionsPoll::instance().sendMessage(stream.str(), (*iter).get(0));
 			}
 		}
 	#endif
 	response.setResult(Response::_OK);
+	return response;
+}
+
+Response Matchmaking::GetLobby(int player_id)
+{
+	DBConnection con = DBConnection::instance();
+	Response response = Response();
+	GameInfoData *gameInfoData = new GameInfoData();
+	string owner_id = to_string(player_id);
+	string game_id;
+	vector<string> playersNames;
+	BaseConnection::connect(con);
+
+	auto game = con.ExecParams("SELECT * FROM GAMES JOIN PLAYERS on GAMES.owner_id=PLAYERS.id WHERE GAMES.id=(SELECT game_id FROM CONNECTIONS WHERE player_id=$1)", { to_string(player_id) });
+	if (game.row_count() == 0)
+		throw MatchMakingException("Have no lobbies");
+	game_id = game.field_by_name(0, "id");
+	auto players = con.ExecParams("SELECT login FROM CONNECTIONS JOIN PLAYERS ON CONNECTIONS.player_id=PLAYERS.id WHERE game_id=$1;", { game_id });
+
+	for (auto player = players.begin(); player != players.end(); ++player){
+		playersNames.push_back((*player).field_by_name("login"));
+	}
+	GameInfo gameInfo = GameInfo(
+		stoi(game.field_by_name(0, "id")),
+		UserInfo(
+			stoi(game.field_by_name(0, "owner_id")), 
+			game.field_by_name(0, "login")
+		),
+		stoi(game.field_by_name(0, "curNumPlayers")),
+		playersNames
+	);
+	gameInfoData->addGame(gameInfo);
+	response.setData(gameInfoData);
+	response.setResult(Response::_OK);
+	response.setAction("GetLobby");
+	con.Disconnect();
 	return response;
 }
 
@@ -166,6 +203,9 @@ Response Matchmaking::HandleAction(string text)
 	case Actions::LEAVE_GAME:
 		return onLeaveGame(object->getArray("params"));
 		break;
+	case Actions::GET_LOBBY:
+		return onGetLobby(object->getArray("params"));
+		break;
 	default:
 		Response r;
 		r.setResult(Response::_ERROR);
@@ -181,6 +221,7 @@ Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
 		AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
 		Response r = Matchmaking::JoinToGame(gameId, at);
 		ostringstream ostr;
+		GetLobby(at.getPlayerId()).toJson().stringify(ostr);
 		string message = ostr.str();
 		for (auto player : getPlayersList(gameId))
 		{
@@ -228,6 +269,31 @@ Response Matchmaking::onLeaveGame(Poco::JSON::Array::Ptr params)
 		r.setResult(Response::_ERROR);
 		return r;
 	}
+}
+
+Response Matchmaking::onGetLobby(Poco::JSON::Array::Ptr params)
+{
+	try {
+		string acessTokenObj = params->getElement<string>(0);
+		AccessToken at = AccessToken(atoi(acessTokenObj.c_str()));
+		return Matchmaking::GetLobby(at.getPlayerId());
+	}
+	catch (MatchMakingException &e)
+	{
+		cout << "Error: " << e.what() << endl;
+		Response r;
+		r.setAction("GetLobby");
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+	catch (ConnectionException &e)
+	{
+		cout << e.what() << endl;
+		Response r;
+		r.setResult(Response::_ERROR);
+		return r;
+	}
+
 }
 
 vector<string> Matchmaking::getPlayersList(int game_id)

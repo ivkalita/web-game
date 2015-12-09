@@ -28,6 +28,7 @@ using Poco::Net::SocketReactor;
 using Poco::Net::ReadableNotification;
 using Poco::Net::WritableNotification;
 using Poco::Net::ShutdownNotification;
+using Poco::Net::ErrorNotification;
 using Poco::NObserver;
 
 using Poco::Thread;
@@ -35,6 +36,7 @@ using Poco::FIFOBuffer;
 using Poco::delegate;
 
 using Poco::AutoPtr;
+
 typedef void(*ActionHandler)(string& action, ostringstream& stream);
 typedef void(*onCloseConnectionHandler)(string accessToken);
 
@@ -43,7 +45,7 @@ class GameConnecton;
 class ConnectionsPoll
 {
 private:
-	map<string, GameConnecton*> connections;
+	map<string, GameConnecton&> connections;
 public:
 	void addThread(string accessToken, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah);
 	void removeConnection(string accessToken);
@@ -128,8 +130,10 @@ public:
 
 	void onCloseConnection()
 	{
+		
 		mOnCloseHandler(accessToken);
 		thread->yield();
+		ConnectionsPoll::instance().removeConnection(accessToken);
 	}
 };
 

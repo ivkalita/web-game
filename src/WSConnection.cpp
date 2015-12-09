@@ -2,25 +2,24 @@
 
 void ConnectionsPoll::addThread(string accessToken, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah)
 {
-	GameConnecton* gc = new GameConnecton(ws, accessToken, h, ah, h);
-	pair<string, GameConnecton*> r = pair<string, GameConnecton*>(accessToken, gc);
+	GameConnecton gc(ws, accessToken, h, ah, h);
+	pair<string, GameConnecton&> r = pair<string, GameConnecton&>(accessToken, gc);
 	connections.insert(r);
-	gc->start();
+	gc.start();
 }
 
 void ConnectionsPoll::sendMessage(string message, string key)
 {
-	connections.at(key)->sendMessage(message);
+	connections.at(key).sendMessage(message);
 }
 
 void ConnectionsPoll::removeConnection(string accessToken)
 {
-	GameConnecton* buf = connections.at(accessToken);
 	connections.erase(accessToken);
 }
 
 GameConnecton& ConnectionsPoll::getConnection(string accesstoken) {
-	return *connections.at(accesstoken);
+	return connections.at(accesstoken);
 }
 
 void ConnectionsPoll::CloseConnection(string accessToken)
@@ -63,12 +62,12 @@ WebSocketHandler::~WebSocketHandler()
 }
 
 void WebSocketHandler::onSocketReadable(const AutoPtr<ReadableNotification>& pNf) {
-	if (mSocket.available())
+	try
 	{
-		int len = mSocket.receiveBytes(mFifoIn);
-		ostringstream strstream;
-		try
+		if (mSocket.available())
 		{
+			int len = mSocket.receiveBytes(mFifoIn);
+			ostringstream strstream;
 			if (mFifoIn.isEmpty()) {
 				mReactor.stop();
 				return;
@@ -77,12 +76,13 @@ void WebSocketHandler::onSocketReadable(const AutoPtr<ReadableNotification>& pNf
 			mHandler(buffer, strstream);
 			mFifoOut.write(strstream.str().c_str(), strstream.str().size());
 		}
-		catch (...)
-		{
-			//add Log
-		}
-		mFifoIn.drain();
 	}
+	catch (...)
+	{
+		mSocket.shutdownSend();
+		mConnection->onCloseConnection();
+	}
+	mFifoIn.drain();
 }
 
 void WebSocketHandler::onSocketWritable(const AutoPtr<WritableNotification>& pNf) {

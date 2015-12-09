@@ -40,7 +40,7 @@ Response Matchmaking::GetGames()
 	}
 	response.setData(gameInfoData);
 	response.setResult(Response::_OK);
-	response.setAction("GetGames");
+	response.setAction(Actions::getActionText(Actions::GET_GAMES));
 	con.Disconnect();
 	return response;
 }
@@ -69,7 +69,7 @@ Response Matchmaking::JoinToGame(int gameId, AccessToken accessToken)
 	con.ExecParams("INSERT INTO connections (game_id, player_id) VALUES($1, $2)", { to_string(gameId), to_string(host) });
 	curNumPlayers++;
 	con.ExecParams("UPDATE games SET curnumplayers = curnumplayers + 1 WHERE id=$1", { to_string(gameId) });
-	response.setAction("JoinToGame");
+	response.setAction(Actions::getActionText(Actions::JOIN_TO_GAME));
 	response.setResult(Response::_OK);
 	con.Disconnect();
 	return response;
@@ -86,7 +86,7 @@ Response Matchmaking::CreateGame(Game game, AccessToken accessToken)
 	id = res.field_by_name(0, "id");
 	con.ExecParams("INSERT INTO connections(game_id, player_id) VALUES($1, $2)", { id, to_string(host) });
 	con.Disconnect();
-	response.setAction("CreateGame");
+	response.setAction(Actions::getActionText(Actions::CREATE_GAME));
 	response.setResult(Response::_OK);
 	return response;
 }
@@ -103,7 +103,7 @@ Response Matchmaking::LeaveGame(AccessToken accessToken)
 	ostringstream stream;
 	BaseConnection::connect(con);
 	
-	response.setAction("LeaveGame");
+	response.setAction(Actions::getActionText(Actions::LEAVE_GAME));
 	string player_ID = to_string(accessToken.getPlayerId());
 	auto res = con.ExecParams("SELECT * FROM CONNECTIONS JOIN GAMES ON CONNECTIONS.game_id=GAMES.id WHERE player_id=$1", { player_ID });
 	if (res.row_count() == 0)
@@ -115,7 +115,7 @@ Response Matchmaking::LeaveGame(AccessToken accessToken)
 	
 	if (stoi(ownerid) == accessToken.getPlayerId()){
 		con.ExecParams("DELETE FROM games WHERE id=$1", { game_id });
-		Response(NULL, Response::_HOST_LEAVE_LOBBY, "GetLobby").toJson().stringify(stream);
+		Response(NULL, Response::_HOST_LEAVE_LOBBY, Actions::getActionText(Actions::LEAVE_GAME)).toJson().stringify(stream);
 	}else{
 		con.ExecParams("DELETE FROM connections WHERE player_id=$1", { player_ID });
 		con.ExecParams("UPDATE games SET curnumplayers = curnumplayers - 1 WHERE id=$1", { game_id });
@@ -163,7 +163,7 @@ Response Matchmaking::GetLobby(int player_id)
 	gameInfoData->addGame(gameInfo);
 	response.setData(gameInfoData);
 	response.setResult(Response::_OK);
-	response.setAction("GetLobby");
+	response.setAction(Actions::getActionText(Actions::GET_LOBBY));
 	con.Disconnect();
 	return response;
 }
@@ -234,7 +234,7 @@ Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
 	{
 		cout << "Error: " << e.what() << endl;
 		Response r;
-		r.setAction("JoinGame");
+		r.setAction(Actions::getActionText(Actions::JOIN_TO_GAME));
 		r.setResult(Response::_ERROR);
 		return r;
 	}
@@ -258,7 +258,7 @@ Response Matchmaking::onLeaveGame(Poco::JSON::Array::Ptr params)
 	{
 		cout << "Error: " << e.what() << endl;
 		Response r;
-		r.setAction("LeaveGame");
+		r.setAction(Actions::getActionText(Actions::LEAVE_GAME));
 		r.setResult(Response::_ERROR);
 		return r;
 	}
@@ -282,7 +282,7 @@ Response Matchmaking::onGetLobby(Poco::JSON::Array::Ptr params)
 	{
 		cout << "Error: " << e.what() << endl;
 		Response r;
-		r.setAction("GetLobby");
+		r.setAction(Actions::getActionText(Actions::GET_LOBBY));
 		r.setResult(Response::_ERROR);
 		return r;
 	}
@@ -336,15 +336,12 @@ Response Matchmaking::onCreateGame(Poco::JSON::Array::Ptr params) {
 
 bool Matchmaking::isInGame(int player_id)
 {
-	DBConnection con = DBConnection::instance();
-	bool res = con.ExecParams("SELECT * FROM CONNECTIONS WHERE player_id=$1", { to_string(player_id) }).row_count() != 0;
-	con.Disconnect();
-	return res;
+	return DBConnection::instance().ExecParams("SELECT * FROM CONNECTIONS WHERE player_id=$1", { to_string(player_id) }).row_count() != 0;
 }
 
 void Matchmaking::onCloseConnection(string accessToken)
 {
-	//temperal
+	cout << "Close connection at " << accessToken << endl;
 	if (isInGame(atoi(accessToken.c_str())))
 		LeaveGame(AccessToken(atoi(accessToken.c_str())));
 }

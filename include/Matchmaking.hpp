@@ -53,6 +53,18 @@ public:
 	static const int getActionByName(const string name) {
 		return actions.at(name);
 	}
+	static const string getActionText(const int id)
+	{
+		for (auto it = actions.begin(); it != actions.end(); ++it)
+		{
+			if (it->second == id)
+			{
+				return it->first;
+			}
+		}
+		return NULL;
+	}
+
 private:
 	static const std::map<string, ACTIONS> actions;
 };

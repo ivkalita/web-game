@@ -4,8 +4,15 @@
 #include "Matchmaking.hpp"
 #include "Poco/Net/WebSocket.h"
 
-static void index(const RouteMatch& m) {
-    m.response().redirect("/index.html");
+#include "Poco/JSON/Template.h"
+#include "Poco/JSON/Object.h"
+
+static void root(const RouteMatch& m) {
+    Poco::JSON::Template tpl("views/index.html");
+    tpl.parse();
+    std::ostream& st = m.response().send();
+    tpl.render(Poco::JSON::Object(), st);
+    st.flush();
 }
 
 static void http_example(const RouteMatch& m) {
@@ -71,7 +78,7 @@ class Pages {
 public:
     Pages() {
         auto & router = Router::instance();
-        router.registerRoute("/", index);
+        router.registerRoute("/", root);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
 		router.registerRoute("/lobby/{user}", lobby);

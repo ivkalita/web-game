@@ -1,3 +1,5 @@
+set(PostgreSQL_ADDITIONAL_VERSIONS "9.4" "9.3")
+set(PostgreSQL_ADDITIONAL_SEARCH_PATHS "/usr/include/postgresql/9.4/server" "/usr/include/postgresql/9.3/server")
 cmake_minimum_required(VERSION 2.8)
 project(web_game)
 
@@ -59,12 +61,14 @@ add_executable(runner
     src/CommonObjects.cpp
     src/Matchmaking.cpp
     src/WSConnection.cpp
+    src/Users.cpp
     include/CommonObjects.hpp
     include/Matchmaking.hpp
     include/WSConnection.hpp
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp
+    include/User.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 

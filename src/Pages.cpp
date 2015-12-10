@@ -1,4 +1,5 @@
 #include "WebgameServer.hpp"
+#include "User.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"
 #include "Matchmaking.hpp"
@@ -65,12 +66,27 @@ static void websocket_example(const RouteMatch& m) {
     }
 }
 
+static void getLobby(const RouteMatch& m)
+{
+	Poco::JSON::Template tpl("views/matchmaking.html");
+	tpl.parse();
+	std::ostream& st = m.response().send();
+	tpl.render(Poco::JSON::Object(), st);
+	st.flush();
+}
+
 static void lobby(const RouteMatch& m) {
-	Poco::Net::WebSocket ws(m.request(), m.response());
+	
 	auto temp = m.request().HTTP_GET;
 	auto params = m.captures();
-	string user = params.at("user");
-	Matchmaking::CreateConnection(user, ws);
+	string accessToken = params.at("accessToken");
+	try
+	{
+		User user(accessToken);
+		Matchmaking::CreateConnection(user, WebSocket(m.request(), m.response()));
+	}
+	catch(...)
+	{ }
 }
 
 
@@ -81,7 +97,8 @@ public:
         router.registerRoute("/", root);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
-		router.registerRoute("/lobby/{user}", lobby);
+		router.registerRoute("/games", getLobby);
+		router.registerRoute("/lobby/{accessToken}", lobby);
     }
 };
 

@@ -1,25 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <title>Websocket test page</title>
-</head>
-<body>
+<? include "header.html" ?>
+<? echo title ?>
+<div id="contentWrapper"/>
+<? echo number ?>
   <table border="1px">
-    <tr>
-      <td>
-      </td>s
-      <td>
-        <select id="user_choice">
-          <option> 1
-          <option> 2
-          <option> 3
-        </select>
-        <input type="button" id="login_btn" value="select User">
-      </td>
-    </tr>
-
     <tr>
       <td>
         <div id="GameList">
@@ -63,22 +46,23 @@
     </tr>
   </table>
   <input type="button" id="close_btn" value="close WebSocket">
-</body>
 <button id="connect">Connect</button>
+<? include "footer.html" ?>
 <script>
-  var user = 1;
+  var access;
   var curentAction = null;
   var ws;
 
   connect = function(){
     if ("WebSocket" in window){
-      ws = new WebSocket("ws://localhost:1337/lobby/" + user);
-    	ws.onopen = function(){
+      accessT = user.getToken();
+      ws = new WebSocket("ws://localhost:1337/lobby/" + accessT);
+      ws.onopen = function(){
         alert("Connected");
       };
 
-    	ws.onmessage = function(evt) { 
-      	jsobj = JSON.parse(evt.data);
+      ws.onmessage = function(evt) { 
+        jsobj = JSON.parse(evt.data);
         if( jsobj["result"] == "ERROR")
         {
           alert("Error");
@@ -88,7 +72,7 @@
             showGames(jsobj["data"]["game"]);
             break;
           case "CreateGame":
-            ws.send(JSON.stringify(GetLobby(user)) + '\0');
+            ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
             break;
           case "LeaveGame":
             switch(jsobj["result"])
@@ -140,35 +124,35 @@
       }
     }
 
-    function CreateGame(accessToken, game)
+    function CreateGame(accessT, game)
     {
       return {
           "action": "CreateGame",
-          "params": [ game, accessToken ]
+          "params": [ game, accessT ]
       }
     }
 
-    function LeaveGame(accessToken)
+    function LeaveGame(accessT)
     {
       return { 
         "action": "LeaveGame",
-        "params": [accessToken]
+        "params": [accessT]
       }
     }
 
-    function JoinGame(accessToken, gameId)
+    function JoinGame(accessT, gameId)
     {
         return { 
         "action": "JoinToGame",
-        "params": [gameId, accessToken]
+        "params": [gameId, accessT]
       }
     }
 
-    function GetLobby(accessToken)
+    function GetLobby(accessT)
     {
       return { 
         "action": "GetLobby",
-        "params": [accessToken]
+        "params": [accessT]
       }
     }
 
@@ -188,12 +172,12 @@
 
     $("#leave_btn").click(function(){
       curentAction = "LeaveGame";
-      ws.send(JSON.stringify(LeaveGame(user)) + '\0');
+      ws.send(JSON.stringify(LeaveGame(accessT)) + '\0');
     });
 
     $("#lobby_btn").click(function(){
       curentAction = "LeaveGame";
-      ws.send(JSON.stringify(GetLobby(user)) + '\0');
+      ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
     });
 
     $("#close_btn").click(function(){
@@ -204,7 +188,7 @@
 
       curentAction = "CreateGame";
       data = CreateGame( 
-      user, //accessToken
+      accessT,
       Game(
         $("#gameNameInput").val(),
         $("#gameMaxNumPlayers").val(),
@@ -252,4 +236,3 @@
 
   $("#connect").click(connect);
 </script>
-</html>

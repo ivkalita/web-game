@@ -6,6 +6,7 @@
 #include "DBConnector.hpp"
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/ParseHandler.h"
+#include "User.hpp"
 #include "Poco/JSON/Stringifier.h"
 #include "Poco/Net/WebSocket.h"
 #include "WSConnection.hpp"
@@ -18,11 +19,11 @@ class Matchmaking
 {
 public:
 	static Response GetGames();
-	static Response JoinToGame(int gameId, AccessToken accessToken);
-	static Response CreateGame(Game game, AccessToken accessToken);
-	static Response StartGame(AccessToken accessToken);
-	static Response LeaveGame(AccessToken accessToken);
-	static Response GetLobby(int player_id);
+	static Response JoinToGame(int gameId, int playerId);
+	static Response CreateGame(Game game, int playerId);
+	static Response StartGame(int playerId);
+	static Response LeaveGame(int playerId);
+	static Response GetLobby(int playerId);
 
 	static Response HandleAction(string text);
 
@@ -33,9 +34,9 @@ public:
 
 	static vector<string> getPlayersList(int game_id);
 	static void DeleteGame(int gameId);
-	static void onCloseConnection(string accessToken);
+	static void onCloseConnection(int playerId);
 	static bool isInGame(int player_id);
-	static void CreateConnection(string id, WebSocket& ws);
+	static void CreateConnection(User user, WebSocket& ws);
 };
 
 static class Actions

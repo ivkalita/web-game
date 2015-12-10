@@ -1,30 +1,30 @@
 #include "WSConnection.hpp"
 
-void ConnectionsPoll::addThread(string accessToken, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah)
+void ConnectionsPoll::addThread(int id, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah)
 {
-	GameConnecton gc(ws, accessToken, h, ah, h);
-	pair<string, GameConnecton&> r = pair<string, GameConnecton&>(accessToken, gc);
+	GameConnecton gc(ws, id, h, ah, h);
+	pair<int, GameConnecton&> r = pair<int, GameConnecton&>(id, gc);
 	connections.insert(r);
 	gc.start();
 }
 
-void ConnectionsPoll::sendMessage(string message, string key)
+void ConnectionsPoll::sendMessage(string message, int id)
 {
-	connections.at(key).sendMessage(message);
+	connections.at(id).sendMessage(message);
 }
 
-void ConnectionsPoll::removeConnection(string accessToken)
+void ConnectionsPoll::removeConnection(int id)
 {
-	connections.erase(accessToken);
+	connections.erase(id);
 }
 
-GameConnecton& ConnectionsPoll::getConnection(string accesstoken) {
-	return connections.at(accesstoken);
+GameConnecton& ConnectionsPoll::getConnection(int id) {
+	return connections.at(id);
 }
 
-void ConnectionsPoll::CloseConnection(string accessToken)
+void ConnectionsPoll::CloseConnection(int id)
 {
-	connections.erase(accessToken);
+	connections.erase(id);
 }
 
 ConnectionsPoll::~ConnectionsPoll()
@@ -37,7 +37,7 @@ void WebSocketHandler::onSocketShutdown(const AutoPtr<ShutdownNotification>& pNf
 	mConnection->onCloseConnection();
 }
 
-WebSocketHandler::WebSocketHandler(Poco::Net::WebSocket& socket, SocketReactor& reactor, string& acctkn, ActionHandler handler, GameConnecton* connection)
+WebSocketHandler::WebSocketHandler(Poco::Net::WebSocket& socket, SocketReactor& reactor, int id, ActionHandler handler, GameConnecton* connection)
 	:
 	mSocket(socket),
 	mReactor(reactor),
@@ -45,7 +45,7 @@ WebSocketHandler::WebSocketHandler(Poco::Net::WebSocket& socket, SocketReactor& 
 	mConnection(connection),
 	mFifoIn(BUFFER_SIZE, true),
 	mFifoOut(BUFFER_SIZE, true),
-	accessToken(acctkn)
+	mId(id)
 {
 
 	mReactor.addEventHandler(mSocket, NObserver<WebSocketHandler, ReadableNotification>(*this, &WebSocketHandler::onSocketReadable));

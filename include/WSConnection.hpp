@@ -38,20 +38,20 @@ using Poco::delegate;
 using Poco::AutoPtr;
 
 typedef void(*ActionHandler)(string& action, ostringstream& stream);
-typedef void(*onCloseConnectionHandler)(string accessToken);
+typedef void(*onCloseConnectionHandler)(int id);
 
 class GameConnecton;
 
 class ConnectionsPoll
 {
 private:
-	map<string, GameConnecton&> connections;
+	map<int, GameConnecton&> connections;
 public:
-	void addThread(string accessToken, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah);
-	void removeConnection(string accessToken);
-	void CloseConnection(string accessToken);
-	void sendMessage(string message, string key);
-	GameConnecton& getConnection(string accesstoken);
+	void addThread(int id, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah);
+	void removeConnection(int id);
+	void CloseConnection(int id);
+	void sendMessage(string message, int id);
+	GameConnecton& getConnection(int id);
 
 	~ConnectionsPoll();
 
@@ -70,7 +70,7 @@ public:
 	WebSocketHandler(
 		Poco::Net::WebSocket& socket, 
 		SocketReactor& reactor, 
-		string& acctkn, 
+		int id, 
 		ActionHandler handler, 
 		GameConnecton* connection
 	);
@@ -88,7 +88,7 @@ private:
 	WebSocket& mSocket;
 	SocketReactor& mReactor;
 	FIFOBuffer	mFifoIn;
-	string accessToken;
+	int mId;
 	FIFOBuffer	mFifoOut;
 };
 
@@ -102,7 +102,7 @@ private:
 	WebSocketHandler connection;
 	onCloseConnectionHandler mOnCloseHandler;
 	onCloseConnectionHandler mOnCloseConnection;
-	string accessToken;
+	int mId;
 
 public:
 	void sendMessage(string message){
@@ -115,11 +115,11 @@ public:
 		thread->join();
 	}
 
-	GameConnecton(WebSocket& ws, string accessToken, onCloseConnectionHandler h, ActionHandler ah, onCloseConnectionHandler clscn):
-		connection(ws, reactor, accessToken, ah, this),
+	GameConnecton(WebSocket& ws, int id, onCloseConnectionHandler h, ActionHandler ah, onCloseConnectionHandler clscn):
+		connection(ws, reactor, id, ah, this),
 		mOnCloseHandler(h),
 		mOnCloseConnection(clscn),
-		accessToken(accessToken)
+		mId(id)
 	{
 		thread = new Thread();
 	};
@@ -131,9 +131,9 @@ public:
 	void onCloseConnection()
 	{
 		
-		mOnCloseHandler(accessToken);
+		mOnCloseHandler(mId);
 		thread->yield();
-		ConnectionsPoll::instance().removeConnection(accessToken);
+		ConnectionsPoll::instance().removeConnection(mId);
 	}
 };
 

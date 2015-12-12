@@ -1,6 +1,5 @@
 #include "GameEngine.hpp"
 
-using namespace Engine;
-
-const tfloat Planet::CLOSE_RANGE = 15;
-const int Ship::speed = 5;
+const GameEngine::tfloat GameEngine::Planet::CLOSE_RANGE = 5;
+const GameEngine::tfloat GameEngine::Ship::speed = 3;
+int GameEngine::Planet::id_generator = 0;

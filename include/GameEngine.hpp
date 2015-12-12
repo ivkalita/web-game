@@ -2,52 +2,86 @@
 #define GAME_ENGINE_HPP_INCLUDED
 
 #include <iostream>
+#include <sstream>
 #include <utility>
 #include <cmath>
 #include <vector>
+#include <list>
+#include <exception>
 
-namespace Engine {
+namespace GameEngine {
 
     typedef double tfloat;
     
     static const tfloat GLOBAL_EPS = 1e-6;
 
+    class EngineException : public std::exception {
+    private:
+        std::string message;
+    public:
+        EngineException(std::string _message) : message(_message) {};
+
+        virtual const char* what() const throw() {
+            return message.c_str();
+        }
+    };
 
     class Planet {
     private:
         tfloat x, y;
-        int ships_num;
         tfloat radius;
-        int owner;
+        int ships_num, owner, id;
+
         static const tfloat CLOSE_RANGE;
+        static int id_generator;
+        static int gen_id() {
+            return Planet::id_generator++;
+        }
     public:
-        Planet(int _ships_num, int _radius) : ships_num(_ships_num), radius(_radius) {}
+        Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner) :
+            x(_x), y(_y), ships_num(_ships_num), radius(_radius), owner(_owner) {
+            id = gen_id();
+        }
+
+        // СЏРІРЅС‹Рµ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ РґР»СЏ РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РїСЂРё СЂР°Р±РѕС‚Рµ СЃРѕ СЃСЃР»С‹РєР°РјРё
+        Planet(const Planet& a) {
+            x = a.x; y = a.y; radius = a.radius;
+            ships_num = a.ships_num; owner = a.owner; id = a.id;
+        }
+
+        Planet& operator = (const Planet& a) {
+            x = a.x; y = a.y; radius = a.radius;
+            ships_num = a.ships_num; owner = a.owner; id = a.id;
+        }
+
+        bool operator == (const Planet& a) {
+            return id == a.id;
+        }
         
-       /* void Receive(Fleet& fleet) {
-            if (fleet.GetOwner() != owner) {
-                ships_num -= fleet.GetShipsNum();
+        bool IsNear(tfloat _x, tfloat _y) {
+            return sqrt(pow(x - _x, 2) + pow(y - _y, 2)) < radius + CLOSE_RANGE;
+        }
+
+        bool IsInside(tfloat _x, tfloat _y) {
+            return sqrt(pow(x - _x, 2) + pow(y - _y, 2)) < radius;
+        }
+
+        int ReceiveShips(int count, int ships_owner) {
+            if (owner == ships_owner) {
+                ships_num += count;
+            }
+            else {
+                ships_num -= count;
                 if (ships_num < 0) {
-                    owner = fleet.GetOwner();
+                    owner = ships_owner;
                     ships_num = -ships_num;
                 }
             }
-            else {
-                ships_num += fleet.GetShipsNum();
-            }
-        }*/
-
-        bool isNear(tfloat _x, tfloat _y) {
-            return abs(x - _x) < CLOSE_RANGE && abs(y - _y) < CLOSE_RANGE;
+            return ships_num;
         }
 
-        bool OnTheLine(tfloat x1, tfloat y1, tfloat x2, tfloat y2) {
-            tfloat a = x2 - x1, b = y2 - y1;
-            tfloat A = a, B = -b, C = b * x1 - a * y1;
-
-            C = C - y + x * b / a;
-
-            return C * C <= radius * radius * (A * A + B * B);
-            //c*c > r*r*(a*a + b*b)
+        int RemoveShips(int count) {
+            return ships_num -= count;
         }
 
         tfloat GetX() {
@@ -62,68 +96,90 @@ namespace Engine {
             return owner;
         }
 
+        int ShipCount() {
+            return ships_num;
+        }
+
+        tfloat GetRadius() {
+            return radius;
+        }
+
+        int GetID() {
+            return id;
+        }
+
+        std::string GetInfo() {
+            std::stringstream s;
+            s << "X: " << x << " Y: " << y << " radius: " << radius
+                << " ships_num: " << ships_num << " owner: " << owner << " id: " << id;
+            return s.str();
+        }
         
     };
 
 
     class Ship {
     private:
-        tfloat x, y, vx, vy, dest_x, dest_y;
-        Planet& sender_planet, dest_planet;
+        tfloat x, y, vx, vy;
+        Planet& sender_planet, &dest_planet;
         int owner;
+        bool finished;
 
         void aim() {
-            tfloat dx = dest_x - x, dy = dest_y - y;
+            tfloat dx = dest_planet.GetX() - x, dy = dest_planet.GetY() - y;
             tfloat path_length = sqrt(pow(dx, 2) + pow(dy, 2));
             vx = speed * dx / path_length;
             vy = speed * dy / path_length;
         }
 
     public:
-        static const int speed;
+        static const tfloat speed;
 
-        Ship(Planet& _sender_planet, Planet& _dest_planet, int _owner): 
-                dest_planet(_dest_planet), sender_planet(_sender_planet), owner(_owner) {
+        Ship(Planet& _sender_planet, Planet& _dest_planet): 
+                dest_planet(_dest_planet), sender_planet(_sender_planet), finished(false) {
             
-            x = sender_planet.GetX();
+            x = sender_planet.GetX() + sender_planet.GetRadius();
             y = sender_planet.GetY();
+
+            owner = sender_planet.GetOwner();
 
             aim();
         }
 
-        void Step(std::vector<Planet>& planets) {
-            
-            bool was_near = false;
-            for (auto p : planets) {
-                if (p.isNear(x, y) && p.OnTheLine(x, y, dest_x, dest_y)) {
-                    tfloat cx = p.GetX() - x;
-                    tfloat cy = p.GetY() - y;
-                    /* косое произведение двух векторов положительно, 
-                    если поворот от первого вектора ко второму идет против часовой стрелки*/
-                    if (cx * vy - vx * cy >= 0) {
-                        //"слева" от планеты
-                        tfloat tmp_x = cx;
-                        cx = -cy;
-                        cy = tmp_x;
-                    }
-                    else {
-                        tfloat tmp_x = cx;
-                        cx = cy;
-                        cy = -tmp_x;
-                    }
+        void Step(std::list<Planet>& planets) {
 
-                    tfloat length = sqrt(pow(cx, 2) + pow(cy, 2));
-                    vx = cx / length * speed;
-                    vy = cy / length * speed;
+            aim();
+            for (auto& p : planets) {
+                if (p.IsNear(x, y)) {
+                     
+                    if (p.IsInside(x + vx, y + vy)) {
+                           if (p == dest_planet) {
+                            p.ReceiveShips(1, owner);
+                            finished = true;
+                        }
+                        tfloat cx = p.GetX() - x;
+                        tfloat cy = p.GetY() - y;
 
-                    was_near = true;
-                    break;
+                        if (cx * vy - vx * cy >= 0) {
+                            tfloat tmp_x = cx;
+                            cx = -cy;
+                            cy = tmp_x;
+                        }
+                        else {
+                            tfloat tmp_x = cx;
+                            cx = cy;
+                            cy = -tmp_x;
+                        }
+
+                        tfloat length = sqrt(pow(cx, 2) + pow(cy, 2));
+                        vx = cx / length * speed;
+                        vy = cy / length * speed;
+
+                        break;
+                    }
                 }   
             }
-
-            if (!was_near)
-                aim();
-            
+         
             x += vx;
             y += vy;
 
@@ -133,21 +189,89 @@ namespace Engine {
             return owner;
         }
 
+        tfloat GetX() {
+            return x;
+        }
+
+        tfloat GetY() {
+            return y;
+        }
+
+        bool Finished() const {
+            return finished;
+        }
+
+        std::string GetInfo() {
+            std::stringstream s;
+            s << " X: " << x << " Y: " << y << " VX: " << vx << " VY: " << vy
+                << " Sender: " << sender_planet.GetInfo() << " Dest: " << dest_planet.GetInfo()
+                << " owner: " << owner << " finished: " << finished;
+            return s.str();
+        }
+
     };
 
 
     class Engine {
     private:
-        std::vector<Ship> ships;
-        std::vector<Planet> planets;
+        std::list<Ship> ships;
+        std::list<Planet> planets;
 
+    private:
+        void RemoveFinishedFromFront() {
+            auto i = ships.cbegin();
+            while (i->Finished() && i != ships.end())
+                i++;
+            ships.erase(ships.cbegin(), i);
+        }
     public:
         Engine() {}
 
         void Step() {
             for (auto& i : ships) {
+                if (i.Finished())
+                    continue;
                 i.Step(planets);
+
+#if (_DEBUG)
+                const int MAX_X = 10000;
+                const int MAX_Y = 10000;
+                for (auto& i : ships) {
+                    for (auto& p : planets) {
+                        if (p.IsInside(i.GetX(), i.GetY()))
+                            throw EngineException("Ship is inside a planet\nShip info: "
+                                + i.GetInfo() + "\nPlanet info: " + p.GetInfo() + "\n");
+                    }
+                    if (abs(i.GetX()) > MAX_X || abs(i.GetY()) > MAX_Y)
+                        throw EngineException("Ship flew away\nShip info: " + i.GetInfo());
+                }
+#endif
             }
+            RemoveFinishedFromFront();
+        }
+
+        std::list<Ship>& GetShips() {
+            return ships;
+        }
+
+        std::list<Planet>& GetPlanets() {
+            return planets;
+        }
+
+        Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner) {
+            planets.emplace_back(x, y, radius, ships_num, owner);
+            return planets.back();
+        }
+        
+        void Launch(int count, Planet& sender_planet, Planet& dest_planet) {
+            for (int i = 0; i < count; i++) {
+                ships.emplace_back(sender_planet, dest_planet);
+            }
+            sender_planet.RemoveShips(count);
+        }
+
+        int ActiveShipsCount() {
+            return ships.size();
         }
     };
 

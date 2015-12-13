@@ -10,14 +10,13 @@
 #include <exception>
 #include <initializer_list>
 #include <memory>
-using namespace std;
 
 
-class ConnectionException : public exception {
+class ConnectionException : public std::exception {
 private:
-    string message;
+    std::string message;
 public:
-    ConnectionException(string _message) : message(_message) {}
+    ConnectionException(std::string _message) : message(_message) {}
 
     virtual const char* what() const throw() {
         return message.c_str();
@@ -35,7 +34,7 @@ private:
     }
 
     void check_errors(PGresult* result) {
-        string error_message = PQresultErrorMessage(result);
+        std::string error_message = PQresultErrorMessage(result);
         if (!error_message.empty()) {
             throw ConnectionException(error_message);
         }
@@ -49,7 +48,7 @@ private:
             throw ConnectionException("connection status is CONNECTION_BAD");
     }
 
-    char** prepare_values_array(initializer_list<string>& params) {
+    char** prepare_values_array(std::initializer_list<std::string>& params) {
         char** values = nullptr;
         if (params.size() > 0) {
             values = new char*[params.size()];
@@ -75,15 +74,15 @@ private:
     class PreparedStatement {
     private:
         DBConnection* parent;
-        string query, stmt_name;
-        shared_ptr<PGresult> res;
+        std::string query, stmt_name;
+        std::shared_ptr<PGresult> res;
 
     public:
-        PreparedStatement(DBConnection* _parent, string _query) : parent(_parent), query(_query) {
+        PreparedStatement(DBConnection* _parent, std::string _query) : parent(_parent), query(_query) {
             parent->check_connection();
-            stmt_name = "stmt" + to_string(parent->prepared_statement_counter++);
+            stmt_name = "stmt" + std::to_string(parent->prepared_statement_counter++);
 
-            res = shared_ptr<PGresult>(PQprepare(
+            res = std::shared_ptr<PGresult>(PQprepare(
                 parent->conn,
                 stmt_name.c_str(),
                 query.c_str(),
@@ -102,9 +101,10 @@ private:
             query = a.query;
             stmt_name = a.stmt_name;
             res = a.res;
+            return *this;
         }
 
-        QueryResult Exec(initializer_list<string> params) {
+        QueryResult Exec(std::initializer_list<std::string> params) {
             parent->check_connection();
 
             char** values = parent->prepare_values_array(params);
@@ -131,24 +131,24 @@ private:
 
     class QueryResult {
     private:
-        shared_ptr<PGresult> result;
+        std::shared_ptr<PGresult> result;
 
         ExecStatusType get_status_type() const {
-            PQresultStatus(result.get());
+            return PQresultStatus(result.get());
         }
 
         class Row {
         private:
-            int row_num;
             QueryResult& parent;
+            int row_num;
         public:
             Row(QueryResult& _parent, int _row_num) : parent(_parent), row_num(_row_num) {}
 
-            string field_by_name(string field_name) const {
+            std::string field_by_name(std::string field_name) const {
                 return parent.field_by_name(row_num, field_name);
             }
 
-            string get(int col) const {
+            std::string get(int col) const {
                 return parent.get(row_num, col);
             }
         };
@@ -197,6 +197,7 @@ private:
 
         QueryResult operator = (const QueryResult& a) {
             result = a.result;
+            return *this;
         }
 
         int row_count() const {
@@ -207,19 +208,19 @@ private:
             return PQnfields(result.get());
         }
 
-        string column_name(int column_number) const {
+        std::string column_name(int column_number) const {
             return PQfname(result.get(), column_number);
         }
 
-        string get(int row, int col) const {
+        std::string get(int row, int col) const {
             return PQgetvalue(result.get(), row, col);
         }
 
-        string get_status_string() const {
+        std::string get_status_string() const {
             return PQresStatus(get_status_type());
         }
     
-        string field_by_name(int row, string field_name) const {
+        std::string field_by_name(int row, std::string field_name) const {
             return get(row, PQfnumber(result.get(), field_name.c_str()));
         }
 
@@ -233,7 +234,7 @@ private:
     };
 
     DBConnection(const DBConnection&) {}
-    DBConnection& operator = (const DBConnection&) {}
+    DBConnection& operator = (const DBConnection&) { return *this; }
 
 public:
     DBConnection(): conn(nullptr), prepared_statement_counter(0) {}
@@ -254,17 +255,17 @@ public:
         return *sh.get();
     }
 
-    PreparedStatement Prepare(string query) {
+    PreparedStatement Prepare(std::string query) {
         return PreparedStatement(this, query);
     }
     
-    void Connect(string hostaddr, string port, string dbname, string user, string password) {
+    void Connect(std::string hostaddr, std::string port, std::string dbname, std::string user, std::string password) {
         const char* const keywords[] = { "hostaddr", "port", "dbname", "user", "password", nullptr};
         const char* const values[] = { hostaddr.c_str(), port.c_str(), dbname.c_str(), user.c_str(), password.c_str(), nullptr};
 
         conn = PQconnectdbParams(keywords, values, 0);
         if (PQstatus(conn) == CONNECTION_BAD) {
-            throw ConnectionException(string("Failed to connect to database. Message: '") + PQerrorMessage(conn) + "'");
+            throw ConnectionException(std::string("Failed to connect to database. Message: '") + PQerrorMessage(conn) + "'");
         }
 
 #if (_DEBUG)
@@ -280,7 +281,7 @@ public:
     *    initializer_list is { "1", "2", "abc" } 
     */
 
-    QueryResult ExecParams(string statement, initializer_list<string> params) {
+    QueryResult ExecParams(std::string statement, std::initializer_list<std::string> params) {
         check_connection();
 
         char** values = prepare_values_array(params);

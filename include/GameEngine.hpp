@@ -32,12 +32,13 @@ namespace GameEngine {
         tfloat radius;
         int ships_num, owner, id;
 
-        static const tfloat CLOSE_RANGE;
         static int id_generator;
         static int gen_id() {
             return Planet::id_generator++;
         }
     public:
+        static const tfloat CLOSE_RANGE;
+
         Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner) :
             x(_x), y(_y), ships_num(_ships_num), radius(_radius), owner(_owner) {
             id = gen_id();
@@ -153,7 +154,7 @@ namespace GameEngine {
                 if (p.IsNear(x, y)) {
                      
                     if (p.IsInside(x + vx, y + vy)) {
-                           if (p == dest_planet) {
+                        if (p == dest_planet) {
                             p.ReceiveShips(1, owner);
                             finished = true;
                         }
@@ -264,10 +265,14 @@ namespace GameEngine {
         }
         
         void Launch(int count, Planet& sender_planet, Planet& dest_planet) {
+            if (sender_planet.ShipCount() < count)
+                throw EngineException("There are no so many ships (" + std::to_string(count) 
+                    + " on a planet:\n" + sender_planet.GetInfo());
+
+            sender_planet.RemoveShips(count);
             for (int i = 0; i < count; i++) {
                 ships.emplace_back(sender_planet, dest_planet);
             }
-            sender_planet.RemoveShips(count);
         }
 
         int ActiveShipsCount() {

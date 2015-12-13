@@ -56,6 +56,8 @@ add_executable(runner
     src/AbstractRouter.cpp
     src/Router.cpp
     src/Pages.cpp
+	src/GameEngine.cpp
+	include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp
@@ -64,6 +66,8 @@ target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester
     src/AbstractRouter.cpp
+	src/GameEngine.cpp
+	tests/Engine/EngineTest1.cpp
     tests/test_1.cpp
     tests/DBConnector/test_1.cpp
     tests/Router/test_1.cpp

@@ -103,7 +103,7 @@
                 }
                 break;
           case "JoinToGame":
-            ws.send(JSON.stringify(GetLobby(user)) + '\0');
+            ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
             break;
           default:
             break;
@@ -221,7 +221,7 @@
         gameId = data[elem]["id"]
         $gamelist.append($("<span>").text(owner + " - "), $("<span>").text(curplayers),
           $("<button>").text("Connect").click(function(){
-              txt = JSON.stringify(JoinGame(gameId, user));
+              txt = JSON.stringify(JoinGame(gameId, accessT));
               ws.send(txt + '\0');
           }));
       }

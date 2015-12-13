@@ -208,7 +208,7 @@ Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
 		for (auto player : getPlayersList(gameId))
 		{
 			if (player != to_string(User(accessToken).getId()))
-				ConnectionsPoll::instance().sendMessage(message, User(player).getId());
+				ConnectionsPoll::instance().sendMessage(message, stoi(player));
 		}
 		return r;
 	}

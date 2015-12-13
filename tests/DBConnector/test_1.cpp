@@ -1,6 +1,7 @@
 #include "DBConnector.hpp"
 #include "WebgameServer.hpp"
 #include "Poco/Util/IniFileConfiguration.h"
+#include "Poco/Environment.h"
 #include <gtest/gtest.h>
 
 using Poco::AutoPtr;
@@ -11,10 +12,9 @@ public:
     AutoPtr<IniFileConfiguration> c;
 
     virtual void SetUp() {
-        //WebgameServer::instance().loadConfiguration();
-        //auto c = &WebgameServer::instance().config();
-        c = new IniFileConfiguration("bin/tester.ini");
-      
+        Poco::Environment env;
+        c = new IniFileConfiguration(env.get("WEBGAME_BIN_FOLDER", ".") + "/tester.ini");
+
         DBConnection::instance().Connect(
             c->getString("tester.hostaddr"),
             c->getString("tester.port"),
@@ -41,7 +41,7 @@ TEST_F(QueryTest, SelectInserted) {
     DBConnection::instance().ExecParams("INSERT INTO players (login, password) values ($1, $2)", { pl_name, "pswd" });
     auto res = DBConnection::instance().ExecParams("SELECT * FROM players where login=$1", { pl_name });
     for (auto i = res.begin(); i != res.end(); ++i) {
-        ASSERT_EQ((*i).field_by_name("login"), string(pl_name));
+        ASSERT_EQ((*i).field_by_name("login"), std::string(pl_name));
     }
 }
 
@@ -59,7 +59,7 @@ TEST_F(QueryTest, PreparedStmt) {
     auto res = DBConnection::instance().ExecParams("SELECT * FROM players ORDER BY login", {});
     int j = 0;
     for (auto i = res.begin(); i != res.end(); ++i) {
-        EXPECT_EQ((*i).field_by_name("login"), string(names[j++][0]));
+        EXPECT_EQ((*i).field_by_name("login"), std::string(names[j++][0]));
     }
 
 }

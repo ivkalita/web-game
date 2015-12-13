@@ -2,6 +2,22 @@
 
 ## Configuration
 
+Set environment variable WEBGAME_BIN_FOLDER as an absolute path to the application's bin folder **WITHOUT TRAILING SLASH**
+
+**Unix**
+
+For now:
+
+`export WEBGAME_BIN_FOLDER="/home/user/web-game/bin"`
+
+Permanent:
+
+`echo 'export WEBGAME_BIN_FOLDER="/home/web-game/bin"' >> ~/.profile`
+
+**Windows**
+
+Control Panel -> User accounts -> Environment Variables -> Create
+
 All config files located at `./bin` folder, and have extension `.ini`. First time you clonned repository,
  you will see files like `*.ini.dist` in `./bin` folder. Copy them with new names, without `.dist` suffix
  (for example, copy `./bin/runner.ini.dist` to `./bin/runner.ini`). Now you can setup your own configuration

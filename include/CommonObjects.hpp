@@ -46,13 +46,15 @@ public:
 	}
 };
 
-class Data :BaseObject {
+class Data :BaseObject
+{
 public:
 	virtual Object toJson() = 0;
 	Data() {};
 };
 
-class Response :BaseObject {
+class Response :BaseObject
+{
 public:
 	enum RESULT{
 		_OK,
@@ -77,7 +79,8 @@ private:
 	string mAction;
 };
 
-class UserInfo :BaseObject {
+class UserInfo :BaseObject
+{
 public:
 
 	static const string P_ID;
@@ -94,7 +97,8 @@ private:
 class Mode {}; //TBD
 class Map {}; //TBD
 
-class Game :BaseObject {
+class Game :BaseObject
+{
 public:
 
 	static const string P_NAME;
@@ -104,25 +108,38 @@ public:
 	static const string P_THIS;
 
 	Game();
+	Game(
+		string name,
+		int maxNumPlyers,
+		Mode mode,
+		Map map
+	)
+	:
+		mName(name),
+		mMaxNumPlayers(maxNumPlyers),
+		mMode(mode),
+		mMap(map)
+	{};
 	Game(Object game);
 	virtual  Object toJson();
 	string getName();
 	int getMaxNumPlayers();
 
-private:
-	string name;
-	int maxNumPlayers;
-	Mode mode;
-	Map map;
+protected:
+	string mName;
+	int mMaxNumPlayers;
+	Mode mMode;
+	Map mMap;
 };
 
 
-class AccessToken :BaseObject {
+class AccessToken :BaseObject
+{
 public:
-	static const string P_THIS;
-	AccessToken(Object token){};
-	int getPlayerId();
-	virtual Object toJson();
+    static const string P_THIS;
+    AccessToken(Object token){};
+    int getPlayerId();
+    virtual Object toJson();
 
 #ifdef MATCHMAKING_DEBUG
 	AccessToken(int playerId) { mPlayerId = playerId; };
@@ -133,7 +150,8 @@ private:
 };
 
 
-class GameInfo : Game {
+class GameInfo : Game
+{
 private:
 	static const string P_ID;
 	static const string P_CURNUMPLAYERS;
@@ -145,22 +163,33 @@ private:
 	int mCurNumPlayers;
 	std::vector<string> mPlayerNames;
 public:
-	GameInfo(int id, UserInfo& owner, int curNumPlayers, vector<string> players = {});
+	GameInfo(
+		string name,
+		int maxNumPlyers,
+		Mode mode,
+		Map map,
+		int id, 
+		UserInfo& owner, 
+		int curNumPlayers, 
+		vector<string> players = {}
+	);
 	virtual Object toJson();
 };
 
 
 
-class GameInfoData : public Data {
-	static const string P_GAME;
+class GameInfoData : public Data
+{
 private:
 	std::vector<GameInfo> games;
 public:
+    static const string P_GAME;
 	void addGame(GameInfo& info);
 	virtual Object toJson();
 };
 
-class UserInfoData : public Data {
+class UserInfoData : public Data
+{
 public:
 	UserInfo user;
 };

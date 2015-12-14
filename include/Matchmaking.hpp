@@ -42,7 +42,8 @@ public:
 static class Actions
 {
 public:
-	static enum ACTIONS{
+	static enum ACTIONS
+    {
 		CREATE_GAME,
 		GET_GAMES,
 		LEAVE_GAME,
@@ -51,7 +52,8 @@ public:
 		GET_LOBBY
 	};
 
-	static const int getActionByName(const string name) {
+	static const int getActionByName(const string name)
+    {
 		return actions.at(name);
 	}
 	static const string getActionText(const int id)
@@ -63,29 +65,29 @@ public:
 				return it->first;
 			}
 		}
-		return NULL;
-	}
+        return NULL;
+    }
 
 private:
-	static const std::map<string, ACTIONS> actions;
+    static const std::map<string, ACTIONS> actions;
 };
 
 
 static void MatchmakingActionHandler(string& action, ostringstream& stream)
 {
-	Response r = Matchmaking::HandleAction(action);
-	r.toJson().stringify(stream);
+    Response r = Matchmaking::HandleAction(action);
+    r.toJson().stringify(stream);
 }
 
 
-class MatchMakingException : std::exception
+class MatchmakingException : std::exception
 {
 private:
-	string msg;
+    string msg;
 public:
-	MatchMakingException(const string m) :msg(m) {}
-	virtual const char* what() const throw()
-	{
-		return msg.c_str();
-	};
+    MatchmakingException(const string m) :msg(m) {}
+    virtual const char* what() const throw()
+    {
+        return msg.c_str();
+    };
 };

@@ -56,6 +56,10 @@ static void websocket_example(const RouteMatch& m) {
     }
 }
 
+static void game(const RouteMatch& m) {
+    m.response().redirect("/game.html");
+}
+
 class Pages {
 public:
     Pages() {
@@ -63,6 +67,7 @@ public:
         router.registerRoute("/", index1);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
+        router.registerRoute("/game", game);
     }
 };
 

@@ -1,3 +1,4 @@
+#include <iostream>
 #include "WebgameServer.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"

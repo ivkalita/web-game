@@ -80,13 +80,8 @@ static void lobby(const RouteMatch& m) {
 	auto temp = m.request().HTTP_GET;
 	auto params = m.captures();
 	string accessToken = params.at("accessToken");
-	try
-	{
-		User user(accessToken);
-		Matchmaking::CreateConnection(user, WebSocket(m.request(), m.response()));
-	}
-	catch(...)
-	{ }
+	User user(accessToken);
+	Matchmaking::CreateConnection(user, WebSocket(m.request(), m.response()));
 }
 
 

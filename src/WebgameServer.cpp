@@ -6,8 +6,11 @@
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/NetException.h"
+#include "Poco/Util/IniFileConfiguration.h"
+#include "Poco/AutoPtr.h"
 
 using namespace std;
+using Poco::Util::IniFileConfiguration;
 
 void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     try {
@@ -99,15 +102,15 @@ int WebgameServer::main(const std::vector<std::string>& args) {
     }
 
     else {
-        
+        Poco::AutoPtr<IniFileConfiguration> c = new IniFileConfiguration("bin/runner.ini");
         try {
+           
             DBConnection::instance().Connect(
-                config().getString("database.hostaddr", "127.0.0.1"),
-                config().getString("database.port", "5432"),
-                config().getString("database.dbname", "web-game"),
-                config().getString("database.user", "web-game"),
-                config().getString("database.password", "web-game")
-                );
+                c->getString("database.hostaddr"),
+                c->getString("database.port"),
+                c->getString("database.dbname"),
+                c->getString("database.user"),
+                c->getString("database.password"));
         }
         catch (const ConnectionException& e) {
             logger().fatal(e.what());
@@ -115,8 +118,8 @@ int WebgameServer::main(const std::vector<std::string>& args) {
         }
         
         Poco::Net::SocketAddress addr(
-            config().getString("application.hostaddr", "127.0.0.1"),
-            config().getUInt("application.port", 1337)
+            config().getString("application.hostaddr", c->getString("application.hostaddr")),
+            config().getUInt("application.port", c->getInt("application.port"))
         );
         Poco::Net::ServerSocket svs(addr);
         Poco::Net::HTTPServer srv(new RequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);

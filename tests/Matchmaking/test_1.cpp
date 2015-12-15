@@ -1,6 +1,7 @@
 #include "CommonObjects.hpp"
 #include "Matchmaking.hpp"
 #include "DBConnector.hpp"
+#include "User.hpp"
 #include <gtest/gtest.h>
 #include "Poco/JSON/JSON.h"
 
@@ -10,8 +11,8 @@ string PLAYERS[2];
 TEST(Matchmaking, init)
 {
 	BaseConnection::connect(DBConnection::instance());
-	PLAYERS[0] = DBConnection::instance().ExecParams("INSERT INTO PLAYERS (login, password) values ($1, $2) RETURNING id", { "__SAMPLE__LOGIN__", "___SAMPLE__PASSWOD__"}).field_by_name(0, "id");
-	PLAYERS[1] = DBConnection::instance().ExecParams("INSERT INTO PLAYERS (login, password) values ($1, $2) RETURNING id", { "__SAMPLE__LOGIN2__", "___SAMPLE__PASSWOD__" }).field_by_name(0, "id");
+	PLAYERS[0] = DBConnection::instance().ExecParams("INSERT INTO USERS(login, name, password, token) VALUES ($1, $2, $3, $4) RETURNING id", { "__SAMPLE__LOGIN__","__SAMPLE__NAME__", "___SAMPLE__PASSWOD__",""}).field_by_name(0, "id");
+	PLAYERS[1] = DBConnection::instance().ExecParams("INSERT INTO USERS(login, name, password, token) VALUES ($1, $2, $3, $4) RETURNING id", { "__SAMPLE__LOGIN2__", "__SAMPLE__NAME2__", "___SAMPLE__PASSWOD__", ""}).field_by_name(0, "id");
 
 }
 
@@ -86,6 +87,6 @@ TEST(Matchmaking, JoinToGame)
 
 TEST(Matchmaking, finalize)
 {
-	DBConnection::instance().ExecParams("DELETE FROM PLAYERS WHERE id=$1 or id=$2", {PLAYERS[0], PLAYERS[1]});
+	DBConnection::instance().ExecParams("DELETE FROM USERS WHERE id=$1 or id=$2", {PLAYERS[0], PLAYERS[1]});
 	DBConnection::instance().Disconnect();
 }

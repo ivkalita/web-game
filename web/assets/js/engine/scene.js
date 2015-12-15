@@ -20,9 +20,9 @@ function Scene(canvas) {
     };
 
     Object.defineProperties(this, {
-        "gameObjects": { get: function() { return _gameObjects; }, set: function(gameObjects) { _gameObjects = gameObjects; } },
-        "canvas": { get: function() { return _canvas; }, set: function(canvas) { _canvas = canvas; } },
-        "needUpdate": { get: function() { return _needUpdate; }, set: function(needUpdate) { _needUpdate = needUpdate; } }
+        "gameObjects": { value: _gameObjects, writable: true },
+        "canvas": { value: _canvas, writable: true },
+        "needUpdate": { value: _needUpdate, writable: true }
     });
 }
 
@@ -40,6 +40,7 @@ function updateObjects(scene) {
         //some testing code here
         s = new Ship(0.0, 0.0, [3.0, 1.0]);
         s.x = 1.0;
+        alert(s.x);
         scene.addObject(s);
 
         p = new Planet(2.0, 0.0);

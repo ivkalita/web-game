@@ -48,6 +48,7 @@
       };
 
       ws.onmessage = function(evt) { 
+        console.log(evt.data);
         jsobj = JSON.parse(evt.data);
         if( jsobj["result"] == "ERROR")
         {
@@ -90,11 +91,13 @@
             }
             break;
           case "JoinToGame":
-            ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
+            if (curentAction === "JoinToGame")
+              ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
             break;
           default:
             break;
         }
+        curentAction = null;
       };
 
       ws.onclose = function() { 
@@ -163,7 +166,7 @@
     });
 
     $("#lobby_btn").click(function(){
-      curentAction = "LeaveGame";
+      curentAction = "GetLobby";
       ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
     });
 
@@ -219,6 +222,7 @@
         $table.append($("<tr>").append($("<td>").append($("<span>").text(gamename + " - "), $("<span>").text(curplayers + '/' + maxNumPlayers),
           $("<button>").text("Connect").click(function()
           {
+            curentAction = "JoinToGame";
             txt = JSON.stringify(JoinGame(gameId, accessT));
             ws.send(txt + '\0');
           }))));

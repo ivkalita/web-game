@@ -44,13 +44,13 @@ class GameConnecton;
 class ConnectionsPoll
 {
 private:
-    map<int, GameConnecton&> connections;
+    map<int, vector<GameConnecton*>> connections;
 public:
     void addThread(int id, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah);
     void removeConnection(int id);
     void CloseConnection(int id);
     void sendMessage(string message, int id);
-    GameConnecton& getConnection(int id);
+  //  GameConnecton& getConnection(int id);
 
     ~ConnectionsPoll();
 
@@ -77,18 +77,14 @@ public:
     ~WebSocketHandler();
 
     void onSocketReadable(const AutoPtr<ReadableNotification>& pNf);
-    void onSocketWritable(const AutoPtr<WritableNotification>& pNf);
-    void onFIFOOutReadable(bool& b);
-    void onFIFOInWritable(bool& b);
     void sendMessage(string message);
 
 private:
     const int BUFFER_SIZE = 1024;
     WebSocket& mSocket;
     SocketReactor& mReactor;
-    FIFOBuffer    mFifoIn;
+    FIFOBuffer mFifoIn;
     int mId;
-    FIFOBuffer    mFifoOut;
 };
 
 class GameConnecton
@@ -98,7 +94,6 @@ private:
     Thread* thread;
     WebSocketHandler connection;
     onCloseConnectionHandler mOnCloseHandler;
-    onCloseConnectionHandler mOnCloseConnection;
     int mId;
 
 public:
@@ -106,16 +101,15 @@ public:
         connection.sendMessage(message);
     }
 
-    void start()
+    void start(int index)
     {
         thread->start(reactor);
         thread->join();
     }
 
-    GameConnecton(WebSocket& ws, int id, onCloseConnectionHandler h, ActionHandler ah, onCloseConnectionHandler clscn):
+    GameConnecton(WebSocket& ws, int id, onCloseConnectionHandler h, ActionHandler ah):
         connection(ws, reactor, id, ah, this),
         mOnCloseHandler(h),
-        mOnCloseConnection(clscn),
         mId(id)
     {
         thread = new Thread();
@@ -128,6 +122,7 @@ public:
     void onCloseConnection()
     {
         mOnCloseHandler(mId);
+        reactor.stop();
         thread->yield();
         ConnectionsPoll::instance().removeConnection(mId);
     }

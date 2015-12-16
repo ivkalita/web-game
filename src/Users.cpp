@@ -102,8 +102,8 @@ static void Login(JsonRequest & rq, JsonResponse & rs) {
         return rs.send("BadCredentials");
     std::string token = genRandomString();
     DBConnection::instance().ExecParams("UPDATE users SET token = $1 WHERE login = $2", { token, login });
-
-    rs.set("name", (*user.begin()).field_by_name("name"));
+    string name = (*user.begin()).field_by_name("name");
+    rs.set("name", name);
     rs.set("accessToken", token);
     rs.send("Ok");
 }

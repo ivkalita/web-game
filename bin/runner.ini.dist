@@ -6,3 +6,4 @@ port=5432
 [application]
 hostaddr=127.0.0.1
 port=1337
+rootpath=/Users/dev/Documents/funcode/web-game/

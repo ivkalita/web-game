@@ -2,8 +2,17 @@
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
-static void index1(const RouteMatch& m) {
-    m.response().redirect("/index.html");
+#include "Poco/JSON/Template.h"
+#include "Poco/JSON/Object.h"
+
+using Poco::Util::Application;
+
+static void root(const RouteMatch& m) {
+    Poco::JSON::Template tpl(Application::instance().config().getString("application.rootpath") + "views/index.html");
+    tpl.parse();
+    std::ostream& st = m.response().send();
+    tpl.render(Poco::JSON::Object(), st);
+    st.flush();
 }
 
 static void http_example(const RouteMatch& m) {
@@ -64,7 +73,7 @@ class Pages {
 public:
     Pages() {
         auto & router = Router::instance();
-        router.registerRoute("/", index1);
+        router.registerRoute("/", root);
         router.registerRoute("/hw", http_example);
         router.registerRoute("/ws", websocket_example);
         router.registerRoute("/game", game);

@@ -22,6 +22,7 @@ All config files located at `./bin` folder, and have extension `.ini`. First tim
  you will see files like `*.ini.dist` in `./bin` folder. Copy them with new names, without `.dist` suffix
  (for example, copy `./bin/runner.ini.dist` to `./bin/runner.ini`). Now you can setup your own configuration
  in `./bin/*.ini` files (for example, database username).
+ It is important to setup `rootpath` property in configuration - it is full path to your project directory.
 
 ## Installation
 

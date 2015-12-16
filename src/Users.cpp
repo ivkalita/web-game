@@ -17,7 +17,7 @@
 
 User::User(std::string field, std::string value) {
     auto user = DBConnection::instance().ExecParams("SELECT id, name FROM users WHERE " + field + "=$1", { value });
-    if (user.row_count() != 1) throw std::exception("User does not exist");
+    if (user.row_count() != 1) throw std::exception();
     id = stoi((*user.begin()).field_by_name("id"));
     name = (*user.begin()).field_by_name("name");
 }

@@ -12,20 +12,14 @@
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Util/IniFileConfiguration.h"
 
-using namespace std;
-using namespace Poco::JSON;
-
 #define MATCHMAKING_DEBUG
-
-using Poco::AutoPtr;
-using Poco::Util::IniFileConfiguration;
 
 class BaseConnection
 {
 public:
     static void connect(DBConnection &conn)
     {
-        AutoPtr<IniFileConfiguration> c = new IniFileConfiguration("bin/runner.ini");
+        Poco::AutoPtr<Poco::Util::IniFileConfiguration> c = new Poco::Util::IniFileConfiguration("bin/runner.ini");
         conn.Connect(
             c->getString("database.hostaddr"),
             c->getString("database.port"),
@@ -38,7 +32,7 @@ public:
 class BaseObject
 {
 public:
-    virtual  Object toJson() = 0;
+    virtual  Poco::JSON::Object toJson() = 0;
     virtual string  toJsonString(){
         ostringstream ostr;
         this->toJson().stringify(ostr);
@@ -49,7 +43,7 @@ public:
 class Data :BaseObject
 {
 public:
-    virtual Object toJson() = 0;
+    virtual  Poco::JSON::Object toJson() = 0;
     Data() {};
 };
 
@@ -71,7 +65,7 @@ public:
     void setData(Data *data);
     void setResult(RESULT result);
     void setAction(string action);
-    Object toJson();
+    Poco::JSON::Object toJson();
 private:
     static const map<RESULT, string> mResultText;
     RESULT mResult;
@@ -86,7 +80,7 @@ public:
     static const string P_ID;
     static const string P_LOGIN;
 
-    virtual  Object toJson();
+    virtual Poco::JSON::Object toJson();
     UserInfo(int id, string login);
 private:
     int mId;
@@ -120,8 +114,8 @@ public:
         mMode(mode),
         mMap(map)
     {};
-    Game(Object game);
-    virtual  Object toJson();
+    Game(Poco::JSON::Object game);
+    virtual Poco::JSON::Object toJson();
     string getName();
     int getMaxNumPlayers();
 
@@ -137,14 +131,9 @@ class AccessToken :BaseObject
 {
 public:
     static const string P_THIS;
-    AccessToken(Object token){};
+    AccessToken(Poco::JSON::Object token){};
     int getPlayerId();
-    virtual Object toJson();
-
-#ifdef MATCHMAKING_DEBUG
-    AccessToken(int playerId) { mPlayerId = playerId; };
-#endif
-
+    virtual Poco::JSON::Object toJson();
 private:
     int mPlayerId;
 };
@@ -161,7 +150,7 @@ private:
     int mId;
     UserInfo mOwner;
     int mCurNumPlayers;
-    std::vector<string> mPlayerNames;
+
 public:
     GameInfo(
         string name,
@@ -170,12 +159,35 @@ public:
         Map map,
         int id, 
         UserInfo& owner, 
-        int curNumPlayers, 
-        vector<string> players = {}
+        int curNumPlayers 
     );
-    virtual Object toJson();
+    virtual  Poco::JSON::Object toJson();
 };
 
+class LobbyInfo : public GameInfo, public Data
+{
+public:
+    static const string P_PLAYERS;
+
+    LobbyInfo(
+        string name,
+        int maxNumPlyers,
+        Mode mode,
+        Map map,
+        int id,
+        UserInfo& owner,
+        int curNumPlayers,
+        vector<string> players = {}
+    )
+    :
+    GameInfo(name, maxNumPlyers, mode, map, id, owner, curNumPlayers),
+    mPlayerNames(players)
+    { };
+    virtual  Poco::JSON::Object toJson();
+private:
+    std::vector<string> mPlayerNames;
+
+};
 
 
 class GameInfoData : public Data
@@ -185,7 +197,7 @@ private:
 public:
     static const string P_GAME;
     void addGame(GameInfo& info);
-    virtual Object toJson();
+    virtual Poco::JSON::Object toJson();
 };
 
 class UserInfoData : public Data

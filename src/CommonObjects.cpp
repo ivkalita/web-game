@@ -25,7 +25,7 @@ const string UserInfo::P_LOGIN = "login";
 const string GameInfo::P_ID = "id";
 const string GameInfo::P_CURNUMPLAYERS = "curNumPlayers";
 const string GameInfo::P_OWNER ="owner";
-const string GameInfo::P_PLAYERS = "players";
+const string LobbyInfo::P_PLAYERS = "players";
 
 
 const map<Response::RESULT, string> Response::mResultText =
@@ -42,6 +42,7 @@ Object AccessToken::toJson()
 { 
     return Object();  //TBD
 };
+
 GameInfo::GameInfo(
     string name,
     int maxNumPlyers,
@@ -49,15 +50,13 @@ GameInfo::GameInfo(
     Map map,
     int id,
     UserInfo& owner,
-    int curNumPlayers, 
-    vector<string> players
+    int curNumPlayers
 )
     : 
     Game(name, maxNumPlyers, mode,map),
     mId(id),
     mOwner(owner),
-    mCurNumPlayers(curNumPlayers),
-    mPlayerNames(players)
+    mCurNumPlayers(curNumPlayers)
 {};
 
 UserInfo::UserInfo(int id, string login)
@@ -161,6 +160,11 @@ Object GameInfo::toJson()
     obj.set(P_CURNUMPLAYERS, mCurNumPlayers);
     obj.set(P_MAXNUMPLAYERS, mMaxNumPlayers);
     obj.set(P_NAME, mName);
+    return obj;
+}
+Object LobbyInfo::toJson()
+{
+    Object obj = GameInfo::toJson();
 
     Array array = Array();
     for (auto name : mPlayerNames)
@@ -170,3 +174,5 @@ Object GameInfo::toJson()
     obj.set(P_PLAYERS, array);
     return obj;
 }
+
+

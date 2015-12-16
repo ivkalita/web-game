@@ -47,7 +47,8 @@
         alert("Connected");
       };
 
-      ws.onmessage = function(evt) { 
+      ws.onmessage = function(evt)
+      { 
         console.log(evt.data);
         jsobj = JSON.parse(evt.data);
         if( jsobj["result"] == "ERROR")
@@ -57,12 +58,14 @@
         switch(jsobj["action"])
         {
           case "GetGames":
+            $("#BodyConetent").children().remove();
             showGames(jsobj["data"]["game"]);
             break;
           case "CreateGame":
             ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
             break;
           case "LeaveGame":
+            $("#BodyConetent").children().remove();
             switch(jsobj["result"])
             {
               case "Ok":
@@ -78,10 +81,11 @@
             }
             break;
           case "GetLobby":
+           $("#BodyConetent").children().remove();
            switch(jsobj["result"])
             {
               case "Ok":
-              LobbyInfo(jsobj["data"]["game"][0]);
+              LobbyInfo(jsobj["data"]);
               break;
               case "ERROR":
                 $("#BodyConetent").children().remove();
@@ -91,6 +95,7 @@
             }
             break;
           case "JoinToGame":
+            $("#BodyConetent").children().remove();
             if (curentAction === "JoinToGame")
               ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
             break;
@@ -171,6 +176,7 @@
     });
 
     $("#close_btn").click(function(){
+      $("#BodyConetent").children().remove();
       ws.close();
     });
 
@@ -195,7 +201,6 @@
     {
 
       $lobby = $("#BodyConetent");
-      $lobby.children().remove();
       $lobby.append( $("<span>").text("Players: " + data["curNumPlayers"] + '/' + data["maxNumPlayers"]));
       $lobby.append($("<br>"));
       $lobby.append( $("<span>").text("GameName: " + data["name"]));

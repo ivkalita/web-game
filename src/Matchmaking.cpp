@@ -150,7 +150,7 @@ Response Matchmaking::GetLobby(int  playerId)
     {
         playersNames.push_back((*player).field_by_name("name"));
     }
-    GameInfo gameInfo = GameInfo(
+    LobbyInfo* lobbyInfo = new LobbyInfo(
         game.field_by_name(0, "name"),
         stoi(game.field_by_name(0,"maxNumPlayers")),
         Mode(),
@@ -163,8 +163,7 @@ Response Matchmaking::GetLobby(int  playerId)
         stoi(game.field_by_name(0, "curNumPlayers")),
         playersNames
     );
-    gameInfoData->addGame(gameInfo);
-    response.setData(gameInfoData);
+    response.setData(lobbyInfo);
     response.setResult(Response::_OK);
     response.setAction(Actions::getActionText(Actions::GET_LOBBY));
     return response;

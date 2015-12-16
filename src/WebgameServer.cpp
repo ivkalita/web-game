@@ -7,6 +7,8 @@
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/NetException.h"
 
+#include <iostream>
+
 using namespace std;
 
 void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {

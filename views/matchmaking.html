@@ -80,7 +80,7 @@
                 break;
             }
             break;
-          case "GetLobby":
+          case "GetLobbyInfo":
            $("#BodyConetent").children().remove();
            switch(jsobj["result"])
             {
@@ -146,7 +146,7 @@
     function GetLobby(accessT)
     {
       return { 
-        "action": "GetLobby",
+        "action": "GetLobbyInfo",
         "params": [accessT]
       }
     }

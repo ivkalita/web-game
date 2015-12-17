@@ -23,14 +23,14 @@ public:
     static Response CreateGame(Game game, int playerId);
     static Response StartGame(int playerId);
     static Response LeaveGame(int playerId);
-    static Response GetLobby(int playerId);
+    static Response GetLobbyInfo(int playerId);
 
     static Response HandleAction(string text);
 
     static Response onJoinGame(Poco::JSON::Array::Ptr params);
     static Response onCreateGame(Poco::JSON::Array::Ptr params);
     static Response onLeaveGame(Poco::JSON::Array::Ptr params);
-    static Response onGetLobby(Poco::JSON::Array::Ptr params);
+    static Response onGetLobbyInfo(Poco::JSON::Array::Ptr params);
 
     static vector<string> getPlayersList(int game_id);
     static void DeleteGame(int gameId);
@@ -49,7 +49,7 @@ public:
         LEAVE_GAME,
         JOIN_TO_GAME,
         START_GAME,
-        GET_LOBBY
+        GET_LOBBY_INFO
     };
 
     static const int getActionByName(const string name)

@@ -13,12 +13,12 @@ using namespace Poco::JSON;
 
 const map<string, Actions::ACTIONS> Actions::actions =
 {
-    { "CreateGame", CREATE_GAME  },
-    { "GetGames",   GET_GAMES    },
-    { "LeaveGame",  LEAVE_GAME   },
-    { "JoinToGame", JOIN_TO_GAME },
-    { "StartGame",  START_GAME   },
-    { "GetLobby",   GET_LOBBY    }
+    { "CreateGame",    CREATE_GAME    },
+    { "GetGames",      GET_GAMES      },
+    { "LeaveGame",     LEAVE_GAME     },
+    { "JoinToGame",    JOIN_TO_GAME   },
+    { "StartGame",     START_GAME     },
+    { "GetLobbyInfo",  GET_LOBBY_INFO }
 };
 
 Response Matchmaking::GetGames()
@@ -119,7 +119,7 @@ Response Matchmaking::LeaveGame(int playerId)
     {
         DBConnection::instance().ExecParams("DELETE FROM connections WHERE player_id=$1", { player_ID });
         DBConnection::instance().ExecParams("UPDATE games SET curnumplayers = curnumplayers - 1 WHERE id=$1", { game_id });
-        GetLobby(stoi(ownerid)).toJson().stringify(stream);
+        GetLobbyInfo(stoi(ownerid)).toJson().stringify(stream);
     }
     #ifndef MATCHMAKING_TEST
         for (auto iter = players.begin(); iter != players.end(); ++iter)
@@ -132,7 +132,7 @@ Response Matchmaking::LeaveGame(int playerId)
     return response;
 }
 
-Response Matchmaking::GetLobby(int  playerId)
+Response Matchmaking::GetLobbyInfo(int  playerId)
 {
     Response response = Response();
     GameInfoData *gameInfoData = new GameInfoData();
@@ -165,7 +165,7 @@ Response Matchmaking::GetLobby(int  playerId)
     );
     response.setData(lobbyInfo);
     response.setResult(Response::_OK);
-    response.setAction(Actions::getActionText(Actions::GET_LOBBY));
+    response.setAction(Actions::getActionText(Actions::GET_LOBBY_INFO));
     return response;
 }
 
@@ -204,8 +204,8 @@ Response Matchmaking::HandleAction(string text)
         case Actions::LEAVE_GAME:
             return onLeaveGame(params);
             break;
-        case Actions::GET_LOBBY:
-            return onGetLobby(params);
+        case Actions::GET_LOBBY_INFO:
+            return onGetLobbyInfo(params);
             break;
         }
     }
@@ -226,7 +226,7 @@ Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
         int gameId = params->getElement<int>(1);
         Response r = Matchmaking::JoinToGame(gameId, User(accessToken).getId());
         ostringstream ostr;
-        GetLobby(User(accessToken).getId()).toJson().stringify(ostr);
+        GetLobbyInfo(User(accessToken).getId()).toJson().stringify(ostr);
         string message = ostr.str();
         for (auto player : getPlayersList(gameId))
         {
@@ -262,17 +262,17 @@ Response Matchmaking::onLeaveGame(Poco::JSON::Array::Ptr params)
     }
 }
 
-Response Matchmaking::onGetLobby(Poco::JSON::Array::Ptr params)
+Response Matchmaking::onGetLobbyInfo(Poco::JSON::Array::Ptr params)
 {
     try {
         string acessToken = params->getElement<string>(0);
-        return Matchmaking::GetLobby(User(acessToken).getId());
+        return Matchmaking::GetLobbyInfo(User(acessToken).getId());
     }
     catch (MatchmakingException &e)
     {
         cout << "Error: " << e.what() << endl;
         Response r;
-        r.setAction(Actions::getActionText(Actions::GET_LOBBY));
+        r.setAction(Actions::getActionText(Actions::GET_LOBBY_INFO));
         r.setResult(Response::_ERROR);
         return r;
     }

@@ -36,7 +36,7 @@ public:
     static void DeleteGame(int gameId);
     static void onCloseConnection(int playerId);
     static bool isInGame(int player_id);
-    static void CreateConnection(User user, WebSocket& ws);
+    static void CreateConnection(User user, Poco::Net::WebSocket& ws);
 };
 
 static class Actions
@@ -54,7 +54,12 @@ public:
 
     static const int getActionByName(const string name)
     {
-        return actions.at(name);
+        try {
+            return actions.at(name);
+        }
+        catch (...) {
+            return -1;
+        }
     }
     static const string getActionText(const int id)
     {
@@ -83,11 +88,12 @@ static void MatchmakingActionHandler(string& action, ostringstream& stream)
 class MatchmakingException : std::exception
 {
 private:
-    string msg;
+    Response::RESULT mId;
 public:
-    MatchmakingException(const string m) :msg(m) {}
+    MatchmakingException(const  Response::RESULT id) :mId(id) {}
+    Response::RESULT getResult() { return mId;  }
     virtual const char* what() const throw()
     {
-        return msg.c_str();
+        return Actions::getActionText(mId).c_str();
     };
 };

@@ -41,7 +41,7 @@ Response Matchmaking::GetGames()
         gameInfoData->addGame(gameInfo);
     }
     response.setData(gameInfoData);
-    response.setResult(Response::_OK);
+    response.setResult(Response::OK);
     response.setAction(Actions::getActionText(Actions::GET_GAMES));
     return response;
 }
@@ -55,7 +55,7 @@ Response Matchmaking::JoinToGame(int gameId, int playerId)
     auto res = DBConnection::instance().ExecParams("SELECT * FROM GAMES WHERE id=$1", { to_string(gameId) });
     if (res.row_count() == 0)
     {
-        throw MatchmakingException("There is no game");
+        throw MatchmakingException(Response::NOT_FOUND);
     }
     curNumPlayers = stoi(res.field_by_name(0, "curnumplayers"));
     maxNumPlayers = stoi(res.field_by_name(0, "maxnumplayers"));
@@ -63,17 +63,17 @@ Response Matchmaking::JoinToGame(int gameId, int playerId)
     host = playerId;
     if (curNumPlayers == maxNumPlayers)
     {
-        response.setResult(Response::_ERROR);
+        response.setResult(Response::LOBBY_IS_FULL);
         return response;
     }
     if (DBConnection::instance().ExecParams("SELECT * FROM CONNECTIONS WHERE game_id=$1 and player_id=$2", { to_string(gameId), to_string(host) }).row_count() != 0)
-        throw MatchmakingException("almost connected");
+        throw MatchmakingException(Response::ALREADY_CONNECTED);
 
     DBConnection::instance().ExecParams("INSERT INTO connections (game_id, player_id) VALUES($1, $2)", { to_string(gameId), to_string(host) });
     curNumPlayers++;
     DBConnection::instance().ExecParams("UPDATE games SET curnumplayers = curnumplayers + 1 WHERE id=$1", { to_string(gameId) });
     response.setAction(Actions::getActionText(Actions::JOIN_TO_GAME));
-    response.setResult(Response::_OK);
+    response.setResult(Response::OK);
     return response;
 }
 
@@ -86,7 +86,7 @@ Response Matchmaking::CreateGame(Game game, int playerId)
     id = res.field_by_name(0, "id");
     DBConnection::instance().ExecParams("INSERT INTO connections(game_id, player_id) VALUES($1, $2)", { id, to_string(host) });
     response.setAction(Actions::getActionText(Actions::CREATE_GAME));
-    response.setResult(Response::_OK);
+    response.setResult(Response::OK);
     return response;
 }
 
@@ -104,7 +104,7 @@ Response Matchmaking::LeaveGame(int playerId)
     string player_ID = to_string(playerId);
     auto res = DBConnection::instance().ExecParams("SELECT * FROM CONNECTIONS JOIN GAMES ON CONNECTIONS.game_id=GAMES.id WHERE player_id=$1", { player_ID });
     if (res.row_count() == 0)
-        throw MatchmakingException("game not found");
+        throw MatchmakingException(Response::NOT_FOUND);
         
     string game_id = res.field_by_name(0, "game_id");
     string ownerid = res.field_by_name(0, "owner_id");
@@ -113,7 +113,7 @@ Response Matchmaking::LeaveGame(int playerId)
     if (stoi(ownerid) == playerId)
     {
         DBConnection::instance().ExecParams("DELETE FROM games WHERE id=$1", { game_id });
-        Response(NULL, Response::_HOST_LEAVE_LOBBY, Actions::getActionText(Actions::LEAVE_GAME)).toJson().stringify(stream);
+        Response(NULL, Response::HOST_LEAVE_LOBBY, Actions::getActionText(Actions::LEAVE_GAME)).toJson().stringify(stream);
     }
     else
     {
@@ -128,7 +128,7 @@ Response Matchmaking::LeaveGame(int playerId)
                 ConnectionsPoll::instance().sendMessage(stream.str(), stoi((*iter).get(0)));
         }
     #endif
-    response.setResult(Response::_OK);
+    response.setResult(Response::OK);
     return response;
 }
 
@@ -142,7 +142,7 @@ Response Matchmaking::GetLobbyInfo(int  playerId)
 
     auto game = DBConnection::instance().ExecParams("SELECT * FROM GAMES JOIN USERS on GAMES.owner_id=USERS.id WHERE GAMES.id=(SELECT game_id FROM CONNECTIONS WHERE player_id=$1)", { to_string(playerId) });
     if (game.row_count() == 0)
-        throw MatchmakingException("Have no lobbies");
+        throw MatchmakingException(Response::HAVE_NO_LOBBY);
     game_id = game.field_by_name(0, "id");
     auto players = DBConnection::instance().ExecParams("SELECT name FROM CONNECTIONS JOIN USERS ON CONNECTIONS.player_id=USERS.id WHERE game_id=$1;", { game_id });
 
@@ -164,7 +164,7 @@ Response Matchmaking::GetLobbyInfo(int  playerId)
         playersNames
     );
     response.setData(lobbyInfo);
-    response.setResult(Response::_OK);
+    response.setResult(Response::OK);
     response.setAction(Actions::getActionText(Actions::GET_LOBBY_INFO));
     return response;
 }
@@ -178,19 +178,18 @@ void Matchmaking::DeleteGame(int gameId)
     }
     catch (ConnectionException &e)
     {
-        cout << e.what() << endl;
+        cout << "Error: " << e.what() << endl;
     }
 }
 
 Response Matchmaking::HandleAction(string text)
 {
-    Parser parser;
-    Poco::Dynamic::Var result = parser.parse(text);
-    Object::Ptr object = result.extract<Object::Ptr>();
-    std::string action = object->get("action").convert<std::string>();
-    auto params = object->getArray("params");
-    try 
-    {
+    try {
+        Parser parser;
+        Poco::Dynamic::Var result = parser.parse(text);
+        Object::Ptr object = result.extract<Object::Ptr>();
+        std::string action = object->get("action").convert<std::string>();
+        auto params = object->getArray("params");
         switch (Actions::getActionByName(action))
         {
         case Actions::GET_GAMES:
@@ -207,15 +206,18 @@ Response Matchmaking::HandleAction(string text)
         case Actions::GET_LOBBY_INFO:
             return onGetLobbyInfo(params);
             break;
+        default:
+            return Response(NULL, Response::BADREQUEST, action);
         }
     }
-    catch (ConnectionException &e)
+    catch (Poco::JSON::JSONException &e)
     {
-        cout << e.what() << endl;
+        return Response(NULL, Response::BADREQUEST, "");
     }
-    Response r;
-    r.setResult(Response::_ERROR);
-    return r;
+    catch (...)
+    {
+        return Response(NULL, Response::INTERNALLERROR, "");
+    }
 }
 
 Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
@@ -225,6 +227,8 @@ Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
         string accessToken = params->getElement<string>(0);
         int gameId = params->getElement<int>(1);
         Response r = Matchmaking::JoinToGame(gameId, User(accessToken).getId());
+        if (r.getResult() != Response::OK)
+            return r;
         ostringstream ostr;
         GetLobbyInfo(User(accessToken).getId()).toJson().stringify(ostr);
         string message = ostr.str();
@@ -240,7 +244,7 @@ Response Matchmaking::onJoinGame(Poco::JSON::Array::Ptr params)
         cout << "Error: " << e.what() << endl;
         Response r;
         r.setAction(Actions::getActionText(Actions::JOIN_TO_GAME));
-        r.setResult(Response::_ERROR);
+        r.setResult(e.getResult());
         return r;
     }
 }
@@ -257,7 +261,7 @@ Response Matchmaking::onLeaveGame(Poco::JSON::Array::Ptr params)
         cout << "Error: " << e.what() << endl;
         Response r;
         r.setAction(Actions::getActionText(Actions::LEAVE_GAME));
-        r.setResult(Response::_ERROR);
+        r.setResult(e.getResult());
         return r;
     }
 }
@@ -273,7 +277,7 @@ Response Matchmaking::onGetLobbyInfo(Poco::JSON::Array::Ptr params)
         cout << "Error: " << e.what() << endl;
         Response r;
         r.setAction(Actions::getActionText(Actions::GET_LOBBY_INFO));
-        r.setResult(Response::_ERROR);
+        r.setResult(e.getResult());
         return r;
     }
 }
@@ -292,7 +296,7 @@ vector<string> Matchmaking::getPlayersList(int game_id)
     }
     catch (ConnectionException &e)
     {
-        cout << e.what() << endl;
+        cout << "Error: " << e.what() << endl;
     }
     return playerList;
 }
@@ -307,9 +311,9 @@ Response Matchmaking::onCreateGame(Poco::JSON::Array::Ptr params) {
     }
     catch (exception &e)
     {
-        cout << e.what() << endl;
+        cout << "Error: " << e.what() << endl;
         Response r;
-        r.setResult(Response::_ERROR);
+        r.setResult(Response::NOT_CREATED);
         return r;
     }
 }
@@ -326,7 +330,7 @@ void Matchmaking::onCloseConnection(int id)
         LeaveGame(id);
 }
 
-void Matchmaking::CreateConnection(User user, WebSocket& ws)
+void Matchmaking::CreateConnection(User user, Poco::Net::WebSocket& ws)
 {
     ConnectionsPoll::instance().addThread(
         user.getId(),

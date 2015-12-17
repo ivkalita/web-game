@@ -51,9 +51,19 @@ class Response :BaseObject
 {
 public:
     enum RESULT{
-        _OK,
-        _ERROR,
-        _HOST_LEAVE_LOBBY
+        OK,
+        BADREQUEST,
+        INTERNALLERROR,
+        NOT_FOUND,
+        OUT_OF_GAMES,
+        HOST_LEAVE_LOBBY,
+        HAVE_NO_LOBBY,
+        LOBBY_IS_FULL,
+        NOT_STARTED,
+        NOT_CREATED,
+        GAME_STARTED,
+        ALREADY_STARTED,
+        ALREADY_CONNECTED
     };
     
     static const string P_DATA;
@@ -65,6 +75,7 @@ public:
     void setData(Data *data);
     void setResult(RESULT result);
     void setAction(string action);
+    RESULT getResult();
     Poco::JSON::Object toJson();
 private:
     static const map<RESULT, string> mResultText;

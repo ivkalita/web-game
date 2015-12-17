@@ -30,9 +30,20 @@ const string LobbyInfo::P_PLAYERS = "players";
 
 const map<Response::RESULT, string> Response::mResultText =
 {
-    { _OK,    "Ok"    },
-    { _ERROR, "ERROR" },
-    { _HOST_LEAVE_LOBBY, "HOST_LEAVE_LOBBY"}
+    { OK,                "Ok"               },
+    { BADREQUEST,        "BadRequest"       },
+    { INTERNALLERROR,    "InternalError"    },
+    { HOST_LEAVE_LOBBY,  "HostLeaveLobby"   },
+    { HAVE_NO_LOBBY,     "HaveNoLobby"      },
+    { OUT_OF_GAMES,      "OutOfGames"       },
+    { ALREADY_STARTED,   "AlreadyStarted"   },
+    { NOT_STARTED,       "NotStarted"       },
+    { NOT_CREATED,       "NotCreated"       },
+    { NOT_FOUND,         "NotFound"         },
+    { GAME_STARTED,      "GameStarted"      },
+    { ALREADY_CONNECTED, "AlreadyConnected" },
+    { LOBBY_IS_FULL,     "LobbyIsFull "     }
+    
 };
 
 
@@ -142,6 +153,11 @@ void Response::setAction(string action)
 {
     mAction = action;
 }
+
+Response::RESULT Response::getResult()
+{ 
+    return mResult; 
+};
 
 Object UserInfo::toJson()
 {

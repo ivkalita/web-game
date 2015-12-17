@@ -124,6 +124,7 @@ int WebgameServer::main(const std::vector<std::string>& args) {
         Poco::Net::ServerSocket svs(addr);
         Poco::Net::HTTPServer srv(new RequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
         srv.start();
+        DBConnection::instance().ExecParams("DELETE FROM GAMES", {});
         logger().information("Web-game server listening on http://" + addr.toString());
         waitForTerminationRequest();
         srv.stop();

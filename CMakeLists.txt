@@ -3,7 +3,9 @@ set(PostgreSQL_ADDITIONAL_SEARCH_PATHS "/usr/include/postgresql/9.4/server" "/us
 cmake_minimum_required(VERSION 2.8)
 project(web_game)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+if (CMAKE_COMPILER_IS_GNUCC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 include_directories(include)
 
@@ -32,7 +34,7 @@ if (MSVC)
 endif()
 
 #external libraries
-set(gtest_force_shared_crt ON CACHE BOOL "Use shared (DLL) run-time lib even when Google Test is built as static lib.")
+set(gtest_force_shared_crt ON CACHE BOOL "Use shared (DLL) run-time lib even when Google Test is built as static lib." FORCE)
 add_subdirectory(lib/gtest/googletest)
 include_directories(${gtest_SOURCE_DIR}/include)
 set(GTEST_LIBS
@@ -58,9 +60,9 @@ add_executable(runner
     src/AbstractRouter.cpp
     src/Router.cpp
     src/Pages.cpp
-	src/GameEngine.cpp
+    src/GameEngine.cpp
     src/Users.cpp
-	include/GameEngine.hpp
+    include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp
@@ -70,8 +72,8 @@ target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
 add_executable(tester
     src/AbstractRouter.cpp
-	src/GameEngine.cpp
-	tests/Engine/EngineTest1.cpp
+    src/GameEngine.cpp
+    tests/Engine/EngineTest1.cpp
     tests/test_1.cpp
     tests/DBConnector/test_1.cpp
     tests/Router/test_1.cpp

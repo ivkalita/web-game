@@ -157,6 +157,7 @@ struct GameInfoData: Data {
 ```c++
 struct Response {
     string result;
+    string action;
     Data data;
 }
 ```
@@ -237,6 +238,7 @@ Type, which describes the mode of the game. Enum. **(TBD)**
 Type, which describes the map of the game. Enum. **(TBD)**
 
 # Methods
+**[Response](#Response)::action** is the name of the Method, which return it.
 
 ## Access control
 This section describes access control methods, such as authorization, registration and logging out.
@@ -311,6 +313,7 @@ int gameId - id of connected game.
  * "Ok" - user is successfully connected to the game.
  * "NotFound" - this game is not exist.
  * "GameStarted" - this game already started.
+ * "LobbyIsFull" - this game lobby is full.
 
 
 #### CreateGame

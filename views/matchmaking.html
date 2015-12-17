@@ -31,7 +31,7 @@
 <input type="button" id="close_btn" value="Disconnect" class="btn btn-default">
 <button id="connect" class="btn btn-default">Connect</button>
 <div id="BodyConetent"></div>
-
+<button type="button" id="badAction-btn" class="btn btn-primary">Bad Action</button>
 <? include "footer.html" ?>
 
 <script>
@@ -51,57 +51,32 @@
       { 
         console.log(evt.data);
         jsobj = JSON.parse(evt.data);
-        if( jsobj["result"] == "ERROR")
+        $("#BodyConetent").children().remove();
+        if( !(jsobj["result"] === "Ok"))
         {
-          alert("Error");
-        }
-        switch(jsobj["action"])
-        {
-          case "GetGames":
-            $("#BodyConetent").children().remove();
-            showGames(jsobj["data"]["game"]);
-            break;
-          case "CreateGame":
-            ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
-            break;
-          case "LeaveGame":
-            $("#BodyConetent").children().remove();
-            switch(jsobj["result"])
-            {
-              case "Ok":
-                alert("Вы покинули игру");
-                $("#BodyConetent").children().remove();
-                break;
-              case "HOST_LEAVE_LOBBY":
-                alert("Создатель игры покинул игру");
-                $("#BodyConetent").children().remove();
-                break;
-              default:
-                break;
-            }
-            break;
-          case "GetLobbyInfo":
-           $("#BodyConetent").children().remove();
-           switch(jsobj["result"])
-            {
-              case "Ok":
+          alert(jsobj["result"]);
+        }else
+          switch(jsobj["action"])
+          {
+            case "GetGames":
+              showGames(jsobj["data"]["game"]);
+              break;
+            case "CreateGame":
+              ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
+              break;
+            case "LeaveGame":
+              alert("Вы покинули игру");
+                  break;
+            case "GetLobbyInfo":
               LobbyInfo(jsobj["data"]);
               break;
-              case "ERROR":
-                $("#BodyConetent").children().remove();
-                break;
-              default:
-                break;
-            }
-            break;
-          case "JoinToGame":
-            $("#BodyConetent").children().remove();
-            if (curentAction === "JoinToGame")
-              ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
-            break;
-          default:
-            break;
-        }
+            case "JoinToGame":
+              if (curentAction === "JoinToGame")
+                ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
+              break;
+            default:
+              break;
+          }
         curentAction = null;
       };
 
@@ -159,6 +134,10 @@
         "map": map
       }
     }
+     $("#badAction-btn").click(function(){
+      curentAction = "WTF";
+      ws.send(JSON.stringify({"action": "WTF"}) + '\0');
+    });
 
     $("#echo_btn").click(function(){
       curentAction = "GetGames";
@@ -236,4 +215,10 @@
     } 
   }
   $("#connect").click(connect);
+
+
+  window.onbeforeunload = function(){
+    ws.close();
+  };
+
 </script>

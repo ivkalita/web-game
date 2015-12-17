@@ -19,39 +19,22 @@
 #include <iostream>
 #include <sstream>
 
-using namespace std;
 
-using Poco::Net::HTTPRequest;
-using Poco::Net::HTTPResponse;
-using Poco::Net::WebSocket;
-using Poco::Net::SocketReactor;
-using Poco::Net::ReadableNotification;
-using Poco::Net::WritableNotification;
-using Poco::Net::ShutdownNotification;
-using Poco::Net::ErrorNotification;
-using Poco::NObserver;
 
-using Poco::Thread;
-using Poco::FIFOBuffer;
-using Poco::delegate;
-using Poco::AutoPtr;
-
-typedef void(*ActionHandler)(string& action, ostringstream& stream);
+typedef void(*ActionHandler)(std::string& action, std::ostringstream& stream);
 typedef void(*onCloseConnectionHandler)(int id);
 
-class GameConnecton;
+class GameConnection;
 
 class ConnectionsPoll
 {
 private:
-    map<int, vector<GameConnecton*>> connections;
+    std::map<int, std::vector<GameConnection*>> connections;
 public:
-    void addThread(int id, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah);
+    void addThread(int id, Poco::Net::WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah);
     void removeConnection(int id);
     void CloseConnection(int id);
-    void sendMessage(string message, int id);
-  //  GameConnecton& getConnection(int id);
-
+    void sendMessage(std::string message, int id);
     ~ConnectionsPoll();
 
     static ConnectionsPoll& instance() {
@@ -64,68 +47,44 @@ class WebSocketHandler
 {
 public:
     ActionHandler mHandler;
-    GameConnecton* mConnection;
-    void onSocketShutdown(const AutoPtr<ShutdownNotification>& pNf);
+    GameConnection* mConnection;
+    void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
     WebSocketHandler(
         Poco::Net::WebSocket& socket, 
-        SocketReactor& reactor, 
+        Poco::Net::SocketReactor& reactor,
         int id, 
         ActionHandler handler, 
-        GameConnecton* connection
+        GameConnection* connection
     );
 
     ~WebSocketHandler();
 
-    void onSocketReadable(const AutoPtr<ReadableNotification>& pNf);
-    void sendMessage(string message);
+    void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
+    void sendMessage(std::string message);
 
 private:
     const int BUFFER_SIZE = 1024;
-    WebSocket& mSocket;
-    SocketReactor& mReactor;
-    FIFOBuffer mFifoIn;
+    Poco::Net::WebSocket& mSocket;
+    Poco::Net::SocketReactor& mReactor;
+    Poco::FIFOBuffer mFifoIn;
     int mId;
 };
 
-class GameConnecton
+class GameConnection
 {
 private:
-    SocketReactor reactor;
-    Thread* thread;
+    Poco::Net::SocketReactor reactor;
+    Poco::Thread* thread;
     WebSocketHandler connection;
     onCloseConnectionHandler mOnCloseHandler;
     int mId;
 
 public:
-    void sendMessage(string message){
-        connection.sendMessage(message);
-    }
-
-    void start(int index)
-    {
-        thread->start(reactor);
-        thread->join();
-    }
-
-    GameConnecton(WebSocket& ws, int id, onCloseConnectionHandler h, ActionHandler ah):
-        connection(ws, reactor, id, ah, this),
-        mOnCloseHandler(h),
-        mId(id)
-    {
-        thread = new Thread();
-    };
-
-    ~GameConnecton() {
-        delete thread;
-    }
-
-    void onCloseConnection()
-    {
-        mOnCloseHandler(mId);
-        reactor.stop();
-        thread->yield();
-        ConnectionsPoll::instance().removeConnection(mId);
-    }
+    void sendMessage(std::string message);
+    void start();
+    GameConnection(Poco::Net::WebSocket& ws, int id, onCloseConnectionHandler h, ActionHandler ah);
+    ~GameConnection();
+    void onCloseConnection();
 };
 
 

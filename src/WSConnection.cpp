@@ -1,13 +1,28 @@
 #include "WSConnection.hpp"
 
-void ConnectionsPoll::addThread(int id, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah)
+using namespace std;
+
+using Poco::Net::HTTPResponse;
+using Poco::Net::WebSocket;
+using Poco::Net::SocketReactor;
+using Poco::Net::ReadableNotification;
+using Poco::Net::WritableNotification;
+using Poco::Net::ShutdownNotification;
+using Poco::Net::ErrorNotification;
+using Poco::NObserver;
+
+using Poco::Thread;
+using Poco::FIFOBuffer;
+using Poco::delegate;
+using Poco::AutoPtr;
+
+void GameConnection::start()
 {
-    GameConnecton* gc = new GameConnecton(ws, id, h, ah);
-    if (connections.find(id) == connections.end())
-        connections.insert(pair<int, vector<GameConnecton*>>(id, vector<GameConnecton*>()));
-    connections.at(id).push_back(gc);
-    gc->start(connections.at(id).size()-1);
+    thread->start(reactor);
+    thread->join();
 }
+
+
 
 void ConnectionsPoll::sendMessage(string message, int id)
 {
@@ -37,7 +52,7 @@ void WebSocketHandler::onSocketShutdown(const AutoPtr<ShutdownNotification>& pNf
     mConnection->onCloseConnection();
 }
 
-WebSocketHandler::WebSocketHandler(Poco::Net::WebSocket& socket, SocketReactor& reactor, int id, ActionHandler handler, GameConnecton* connection)
+WebSocketHandler::WebSocketHandler(Poco::Net::WebSocket& socket, SocketReactor& reactor, int id, ActionHandler handler, GameConnection* connection)
     :
     mSocket(socket),
     mReactor(reactor),
@@ -78,8 +93,6 @@ void WebSocketHandler::onSocketReadable(const AutoPtr<ReadableNotification>& pNf
     catch (exception &e)
     {
         cout << "Error: " << e.what() << endl;
-        mSocket.shutdownSend();
-        mConnection->onCloseConnection();
     }
     mFifoIn.drain();
 }
@@ -87,4 +100,39 @@ void WebSocketHandler::onSocketReadable(const AutoPtr<ReadableNotification>& pNf
 void WebSocketHandler::sendMessage(string message)
 {
     mSocket.sendFrame(message.c_str(), message.size());
+}
+
+void ConnectionsPoll::addThread(int id, WebSocket &ws, onCloseConnectionHandler h, ActionHandler ah)
+{
+    GameConnection* gc = new GameConnection(ws, id, h, ah);
+    if (connections.find(id) == connections.end())
+        connections.insert(pair<int, vector<GameConnection*>>(id, vector<GameConnection*>()));
+    connections.at(id).push_back(gc);
+    gc->start();
+}
+
+void GameConnection::sendMessage(string message)
+{
+    connection.sendMessage(message);
+}
+
+GameConnection::GameConnection(WebSocket& ws, int id, onCloseConnectionHandler h, ActionHandler ah) :
+    connection(ws, reactor, id, ah, this),
+    mOnCloseHandler(h),
+    mId(id)
+{
+    thread = new Thread();
+};
+
+GameConnection::~GameConnection()
+{
+    delete thread;
+}
+
+void GameConnection::onCloseConnection()
+{
+    mOnCloseHandler(mId);
+    reactor.stop();
+    thread->yield();
+    ConnectionsPoll::instance().removeConnection(mId);
 }

@@ -81,7 +81,7 @@ static void lobby(const RouteMatch& m) {
 	auto params = m.captures();
 	string accessToken = params.at("accessToken");
 	User user(accessToken);
-	Matchmaking::CreateConnection(user, WebSocket(m.request(), m.response()));
+	Matchmaking::CreateConnection(user, Poco::Net::WebSocket(m.request(), m.response()));
 }
 
 

@@ -23,6 +23,7 @@
     - [Game connection](#game-connection)
         - [Game](#game)
         - [GameInfo](#gameinfo)
+        - [LobbyInfo](#lobbyinfo)
         - [Mode](#mode)
         - [Map](#map)
 - [Methods](#methods)
@@ -39,6 +40,7 @@
         - [CreateGame](#creategame)
         - [StartGame](#startgame)
         - [LeaveGame](#leavegame)
+        - [GetLobbyInfo](#getlobbyinfo)
 
 *****
 
@@ -220,6 +222,13 @@ struct GameInfo: GameInfo {
     int curNumPlayers;
 }
 ```
+### LobbyInfo
+This type inherits [GameInfo](#gameinfo) and [Data](#data).
+```c++
+struct GameInfo: GameInfo, Data {
+	string[] players;
+}
+```
 
 ### Mode
 Type, which describes the mode of the game. Enum. **(TBD)**
@@ -309,7 +318,6 @@ This method should be used for creating new game. Its signature is shown below.
 ```c++
 Response CreateGame(Game game, AccessToken accessToken)
 ```
-
 ##### Arguments
 [Game](#Game) game - object with information about created game.
 
@@ -318,7 +326,6 @@ Response CreateGame(Game game, AccessToken accessToken)
 [Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
  * "Ok" - game successfully created.
  * "NotCreated" - failed to create game.
-
 
 #### StartGame
 This method allows the owner to start the game. Its signature is shown below.
@@ -345,3 +352,15 @@ Response LeaveGame(AccessToken accessToken)
 **[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - Quit the game there was a successfully.
  * "OutOfGame" - Player out of any games.
+ 
+
+#### GetLobbyInfo
+This method should be used for getting lobby information. Its signature is shown below.
+```c++
+Response GetLobbyInfo(AccessToken accessToken)
+```
+##### Result
+**[Response](#Response)::data** contains object type of **[LobbyInfo](#lobbyinfo)** (In case fail contains **NULL**).
+[Response](#Response)::result may be one of follows or one of default [response results](#Response.result):
+ * "Ok" - lobby information successfully obtained.
+ * "HaveNoLobby" - failed to get lobby information.

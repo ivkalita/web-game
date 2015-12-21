@@ -268,8 +268,8 @@ public:
             throw ConnectionException(std::string("Failed to connect to database. Message: '") + PQerrorMessage(conn) + "'");
         }
 
-#if (_DEBUG)
-        cout << "Connected to DB" << endl;
+#if _DEBUG
+        std::cout << "Connected to DB" << std::endl;
 #endif
     }
 

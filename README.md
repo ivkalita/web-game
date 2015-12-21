@@ -6,15 +6,21 @@ Set environment variable WEBGAME_BIN_FOLDER as an absolute path to the applicati
 
 **Unix**
 
-For now:
+For shell session:
 
 `export WEBGAME_BIN_FOLDER="/home/user/web-game/bin"`
 
 Permanent:
 
-`echo 'export WEBGAME_BIN_FOLDER="/home/web-game/bin"' >> ~/.profile`
+`echo 'export WEBGAME_BIN_FOLDER="/home/user/web-game/bin"' >> ~/.profile`
 
 **Windows**
+
+For shell session:
+
+`set WEBGAME_BIN_FOLDER=D:/web-game/bin`
+
+Permanent:
 
 Control Panel -> User accounts -> Environment Variables -> Create
 

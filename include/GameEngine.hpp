@@ -234,7 +234,7 @@ namespace GameEngine {
                     continue;
                 i.Step(planets);
 
-#if (_DEBUG)
+#if _DEBUG
                 const int MAX_X = 10000;
                 const int MAX_Y = 10000;
                 for (auto& i : ships) {
@@ -283,3 +283,4 @@ namespace GameEngine {
 };
 
 #endif
+

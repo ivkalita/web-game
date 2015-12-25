@@ -147,9 +147,9 @@ function Shader(gl, id) {
     var _shader = this.prepareShader();
 
     Object.defineProperties(this, {
-        "shaderType": { get: function() { return _shaderType; }, set: function(shaderType) { _shaderType = shaderType; } },
-        "shaderText": { get: function() { return _shaderText; }, set: function(shaderText) { _shaderText = shaderText; } },
-        "shader": { get: function() { return _shader; }, set: function(shader) { _shader = shader; } }
+        "shaderType": { value: _shaderType, writable: true },
+        "shaderText": { value: _shaderText, writable: true },
+        "shader": { value: _shader, writable: true }
     });
 }
 

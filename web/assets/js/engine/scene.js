@@ -56,8 +56,10 @@ Scene.prototype.initGl = function() {
             alert("Could not initialize WebGL");
         }
     }
-    this._gl.clearColor(0.2, 0.2, 0.2, 1);
+    this._gl.clearColor(0, 0, 0, 1);
     this._gl.enable(this._gl.DEPTH_TEST);
+    this._gl.enable(this._gl.BLEND);
+    this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
     requestAnimationFrame(this.render.bind(this));
     this.draw();
 }
@@ -65,11 +67,13 @@ Scene.prototype.initGl = function() {
 function startGame() {
     scene = new Scene($("#game-screen")[0]);
     
+    scene.addObject(new Planet(-1, 0, [1, 0, 0]));
+    scene.addObject(new Planet(1, -1, [0, 1, 0]));
+    scene.addObject(new Planet(0, -1, [1, 0, 0], 1));
+    scene.addObject(new Planet(-1, 1, [0, 1, 0], 2));
+    
     scene.addObject(new Ship(0, 0, [1, 0, 0], 0));
     scene.addObject(new Ship(0, 1, [0, 1, 0], 0));
-    
-    scene.addObject(new Planet(1, 0));
-    scene.addObject(new Planet(1, 1));
     scene.addObject(new Ship(1, 0.5, [0, 0, 1], 0));
     
     scene.invalidate();

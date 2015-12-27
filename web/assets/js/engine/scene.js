@@ -12,7 +12,7 @@ function Scene(canvas) {
         this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
         //this._gl.viewport(0, 0, this._gl.viewportHeight, this._gl.viewportWidth);
         var perspectMat = [];
-        mat4.perspective(perspectMat, 90, this._gl.viewportWidth / this._gl.viewportHeight, 0.1, 100.0);
+        mat4.perspective(perspectMat, 90, this._gl.viewportWidth / this._gl.viewportHeight, 0.1, 100);
         for (var i = 0; i < this._gameObjects.length; i++) {
             this._gameObjects[i].draw(this._gl, perspectMat);
         }
@@ -56,7 +56,7 @@ Scene.prototype.initGl = function() {
             alert("Could not initialize WebGL");
         }
     }
-    this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this._gl.clearColor(0.2, 0.2, 0.2, 1);
     this._gl.enable(this._gl.DEPTH_TEST);
     requestAnimationFrame(this.render.bind(this));
     this.draw();
@@ -65,11 +65,12 @@ Scene.prototype.initGl = function() {
 function startGame() {
     scene = new Scene($("#game-screen")[0]);
     
-    scene.addObject(new Ship(0.0, 0.0, 0));
-    scene.addObject(new Ship(0.0, 1.0, 0));
+    scene.addObject(new Ship(0, 0, 0, [1, 0, 0]));
+    scene.addObject(new Ship(0, 1, 0, [0, 1, 0]));
+    scene.addObject(new Ship(1, 1, 0, [0, 0, 1]));
     
-    scene.addObject(new Planet(1.0, 0.0));
-    scene.addObject(new Planet(1.0, 1.0));
+    scene.addObject(new Planet(1, 0));
+    scene.addObject(new Planet(1, 1));
     
     scene.invalidate();
     scene.render();

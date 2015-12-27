@@ -21,10 +21,11 @@ function linkShaderProgram(gl, shaders) {
     return program;
 }
 
-function Ship(x, y, angle) {
+function Ship(x, y, angle, color) {
     var _scale = 0.1;
     this._x = x;
     this._y = y;
+    this._color = color;
     this._angle = angle;
     this._transMat = [];
     this._verticles = [];
@@ -32,12 +33,17 @@ function Ship(x, y, angle) {
         attribute vec2 aVertexPosition;\
         uniform mat4 uMVMatrix;\
         uniform mat4 uPMatrix;\
+        uniform vec3 uVertexColor;\
+        varying vec3 vVertexColor;\
         void main(void) {\
+            vVertexColor = uVertexColor;\
             gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 0.0, 1.0);\
         }';
     this._fragmentShader = '\
+        precision mediump float;\
+        varying vec3 vVertexColor;\
         void main(void) {\
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\
+            gl_FragColor = vec4(vVertexColor, 1.0);\
         }';
     this.program = null;
     
@@ -60,6 +66,7 @@ function Ship(x, y, angle) {
         
         gl.uniformMatrix4fv(gl.getUniformLocation(this._program, 'uPMatrix'), false, perspectMat);
         gl.uniformMatrix4fv(gl.getUniformLocation(this._program, 'uMVMatrix'), false, this._transMat);
+        gl.uniform3fv(gl.getUniformLocation(this._program, 'uVertexColor'), this._color);
         
         gl.drawArrays(gl.TRIANGLE_FAN, 0, this._verticles.length / 2);
     };

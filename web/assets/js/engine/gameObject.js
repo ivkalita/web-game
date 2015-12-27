@@ -21,8 +21,8 @@ function linkShaderProgram(gl, shaders) {
     return program;
 }
 
-function Ship(x, y, angle, color) {
-    var _scale = 0.1;
+function Ship(x, y, color, angle) {
+    var _scale = 0.02;
     this._x = x;
     this._y = y;
     this._color = color;
@@ -33,17 +33,14 @@ function Ship(x, y, angle, color) {
         attribute vec2 aVertexPosition;\
         uniform mat4 uMVMatrix;\
         uniform mat4 uPMatrix;\
-        uniform vec3 uVertexColor;\
-        varying vec3 vVertexColor;\
         void main(void) {\
-            vVertexColor = uVertexColor;\
             gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 0.0, 1.0);\
         }';
     this._fragmentShader = '\
         precision mediump float;\
-        varying vec3 vVertexColor;\
+        uniform vec3 uVertexColor;\
         void main(void) {\
-            gl_FragColor = vec4(vVertexColor, 1.0);\
+            gl_FragColor = vec4(uVertexColor, 1.0);\
         }';
     this.program = null;
     

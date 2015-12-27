@@ -65,12 +65,12 @@ Scene.prototype.initGl = function() {
 function startGame() {
     scene = new Scene($("#game-screen")[0]);
     
-    scene.addObject(new Ship(0, 0, 0, [1, 0, 0]));
-    scene.addObject(new Ship(0, 1, 0, [0, 1, 0]));
-    scene.addObject(new Ship(1, 1, 0, [0, 0, 1]));
+    scene.addObject(new Ship(0, 0, [1, 0, 0], 0));
+    scene.addObject(new Ship(0, 1, [0, 1, 0], 0));
     
     scene.addObject(new Planet(1, 0));
     scene.addObject(new Planet(1, 1));
+    scene.addObject(new Ship(1, 0.5, [0, 0, 1], 0));
     
     scene.invalidate();
     scene.render();

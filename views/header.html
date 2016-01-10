@@ -30,7 +30,7 @@
             <a class="navbar-brand" href="/">Web-game</a>
             </div>
             <div id="navbar" class="collapse navbar-collapse">
-<? include "users.html" ?>
+                <? if isAuthorized ?><? include "menu.html" ?><? else ?><? include "users.html" ?><? endif ?>
             </div>
         </div>
     </nav>

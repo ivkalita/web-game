@@ -9,7 +9,7 @@
         <meta name="author" content="">
         <!--<link rel="icon" href="favicon.ico">-->
 
-        <title>Web-game<? ifexist title ?> — <? echo title ?><? endif ?></title>
+        <title><? if title ?><? echo title ?> - Web-game<? else ?>Web-game<? endif ?></title>
 
         <script type="text/javascript" src="/assets/js/jquery-2.1.4.min.js"></script>
         <script type="text/javascript" src="/assets/js/bootstrap.min.js"></script>
@@ -30,7 +30,7 @@
             <a class="navbar-brand" href="/">Web-game</a>
             </div>
             <div id="navbar" class="collapse navbar-collapse">
-<? include "users.html" ?>
+                <? if isAuthorized ?><? include "menu.html" ?><? else ?><? include "users.html" ?><? endif ?>
             </div>
         </div>
     </nav>

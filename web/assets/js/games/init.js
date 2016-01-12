@@ -7,7 +7,7 @@ requirejs.config({
     },
 
     shim: {
-        'unserscore': {
+        'underscore': {
             exports: '_'
         },
 

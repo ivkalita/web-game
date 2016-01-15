@@ -4,10 +4,12 @@ define([
     'routers/router', 
     'views/game_view', 
     'views/games_view', 
-    'views/form_view', 
+    'views/form_view',
+    'views/room_view',
     'models/game', 
-    'models/games'
-    ], function($, Backbone, Router, GameView, GamesView, FormView, Game, Games) {
+    'models/games',
+    'models/messages'
+    ], function($, Backbone, Router, GameView, GamesView, FormView, RoomView, Game, Games, Messages) {
 
     var Application = (function() {
         var router, views = {}, models = {}, event;
@@ -32,9 +34,11 @@ define([
             initView: function() {
                 views.games = new GamesView({collection: models.games});
                 views.form = new FormView({collection: models.games, router: router});
+                views.room = new RoomView();
 
                 views.games.render();
                 views.form.render();
+                views.room.render();
             },
 
             initModel: function() {

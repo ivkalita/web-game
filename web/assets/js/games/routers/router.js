@@ -6,7 +6,8 @@ define(['backbone', 'jquery', 'events/event'], function(Backbone, $, event) {
 
             this.blocks = {
                 gameList: $('#cont-game-list'),
-                newGame: $('#cont-new-game')
+                newGame: $('#cont-new-game'),
+                room: $('#cont-room')
             };
 
             event.on('newGameAdded', this.lazyNavigateTo(''), this);
@@ -14,7 +15,8 @@ define(['backbone', 'jquery', 'events/event'], function(Backbone, $, event) {
 
         routes: {
             '': 'mainPage',
-            'new-game': 'newGame'
+            'new-game': 'newGame',
+            'room': 'room'
         },
 
         mainPage: function() {
@@ -29,6 +31,10 @@ define(['backbone', 'jquery', 'events/event'], function(Backbone, $, event) {
             this.activeNav('new-game');
         },
 
+        room: function() {
+            this.showBlock(this.blocks.room)
+        },
+
         lazyNavigateTo: function(to) {
             return function() {
                 this.navigate(to, {trigger: true});
@@ -38,7 +44,7 @@ define(['backbone', 'jquery', 'events/event'], function(Backbone, $, event) {
         showBlock: function(block) {
             for (elem in this.blocks) this.blocks[elem].hide();
 
-            block.show()        
+            block.show();
         },
 
         activeNav: function(routeName) {

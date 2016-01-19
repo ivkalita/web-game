@@ -8,11 +8,16 @@ define(['backbone', 'models/messages', 'models/message', 'views/messages_view', 
         initialize: function() {
             this.collection = new Messages();
             this.messagesView = new MessagesView({collection: this.collection});
+
             event.on('invalidMessage', this.invalid, this);
+
+            this.pressedKeys = new Object();
         },
 
         events: {
-            'click #room-send-message': 'submit'
+            'click #room-send-message': 'submit',
+            'keydown #room-message-text': 'keydown',
+            'keyup #room-message-text': 'keyup'
         },
 
         render: function() {
@@ -26,6 +31,21 @@ define(['backbone', 'models/messages', 'models/message', 'views/messages_view', 
             $('#room-message-text', this.el).parent().addClass('has-error');
 
             $('.error p', this.el).text(msg);
+        },
+
+        keydown: function(e) {
+            this.pressedKeys[e.keyCode] = true;
+
+            if (this.pressedKeys[17] && this.pressedKeys[13]) {
+                this.submit();
+
+                delete this.pressedKeys[17];
+                delete this.pressedKeys[13];
+            }
+        },
+
+        keyup: function(e) {
+            delete this.pressedKeys[e.keyCode];
         },
 
         submit: function() {
@@ -46,6 +66,8 @@ define(['backbone', 'models/messages', 'models/message', 'views/messages_view', 
                 this.collection.trigger('change');
                 this.render();
             }
+
+            $('#room-message-text').focus();
         },
 
         removeErrors: function() {

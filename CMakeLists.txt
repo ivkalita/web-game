@@ -62,6 +62,10 @@ add_executable(runner
     src/Pages.cpp
     src/GameEngine.cpp
     src/Users.cpp
+    src/GameHandler.cpp
+    src/MyUtils.cpp
+    include/MyUtils.hpp
+    include/GameHandler.hpp
     include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp

@@ -6,25 +6,17 @@
 #include <utility>
 #include <cmath>
 #include <vector>
+#include <map>
 #include <list>
 #include <exception>
+
+#include "Poco/Exception.h"
 
 namespace GameEngine {
 
     typedef double tfloat;
     
     static const tfloat GLOBAL_EPS = 1e-6;
-
-    class EngineException : public std::exception {
-    private:
-        std::string message;
-    public:
-        EngineException(std::string _message) : message(_message) {};
-
-        virtual const char* what() const throw() {
-            return message.c_str();
-        }
-    };
 
     class Planet {
     private:
@@ -217,6 +209,7 @@ namespace GameEngine {
     private:
         std::list<Ship> ships;
         std::list<Planet> planets;
+        std::map<int, Planet*> planets_map;
 
     private:
         void RemoveFinishedFromFront() {
@@ -240,11 +233,11 @@ namespace GameEngine {
                 for (auto& i : ships) {
                     for (auto& p : planets) {
                         if (p.IsInside(i.GetX(), i.GetY()))
-                            throw EngineException("Ship is inside a planet\nShip info: "
+                            throw Poco::Exception("Ship is inside a planet\nShip info: "
                                 + i.GetInfo() + "\nPlanet info: " + p.GetInfo() + "\n");
                     }
                     if (abs(i.GetX()) > MAX_X || abs(i.GetY()) > MAX_Y)
-                        throw EngineException("Ship flew away\nShip info: " + i.GetInfo());
+                        throw Poco::Exception("Ship flew away\nShip info: " + i.GetInfo());
                 }
 #endif
             }
@@ -259,14 +252,20 @@ namespace GameEngine {
             return planets;
         }
 
+        std::map<int, Planet*>& GetPlanetsMap() {
+            return planets_map;
+        }
+
         Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner) {
             planets.emplace_back(x, y, radius, ships_num, owner);
-            return planets.back();
+            Planet& p = planets.back();
+            planets_map[p.GetID()] = &p;
+            return p;
         }
         
         void Launch(int count, Planet& sender_planet, Planet& dest_planet) {
             if (sender_planet.ShipCount() < count)
-                throw EngineException("There are no so many ships (" + std::to_string(count) 
+                throw Poco::Exception("There aren't so many ships (" + std::to_string(count) 
                     + " on a planet:\n" + sender_planet.GetInfo());
 
             sender_planet.RemoveShips(count);

@@ -14,10 +14,17 @@
 #include "Poco/NObserver.h"
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/SocketNotification.h"
+#include "Poco/Exception.h"
+#include "Poco/Net/NetException.h"
+#include "Poco/Buffer.h"
 
 using namespace GameHandler;
 using namespace Poco::Net;
 
+static Poco::LogStream& GetLogger() {
+    static Poco::LogStream logger(WebgameServer::instance().logger());
+        return logger;
+}
 
 EventHandler::EventHandler(Poco::Mutex* _send_mutex, Poco::Mutex* _recv_mutex, WebSocket* _socket, SocketReactor* _reactor,
     int _player_id) :
@@ -62,21 +69,35 @@ void EventHandler::Unregister() {
 
 }
 
-void EventHandler::HandleReadable(const Poco::AutoPtr<ReadableNotification>& n) {
-    char buf[1024];
-    int flags, received;
+static int WebsocketReceive(WebSocket& s, Poco::Buffer<char>& buf, int& flags) {
+    try {
+        return s.receiveFrame(buf, flags);
+    }
+    catch (const Poco::TimeoutException& e) {
+        GetLogger() << "Socket receiveFrame timeout exceeded." << e.displayText() << std::endl;
+    }
+    catch (const NetException& e) {
+        GetLogger() << "Socket receiveFrame exception." << e.displayText() << std::endl;
+    }
 
-    received = static_cast<WebSocket>(n->socket()).receiveFrame(buf, 1024, flags);
+    return -1;
+}
+
+void EventHandler::HandleReadable(const Poco::AutoPtr<ReadableNotification>& n) {
+    int flags, received;
+    Poco::Buffer<char> buf(100 * 1024);
+
+    received = WebsocketReceive(static_cast<WebSocket>(n->socket()), buf, flags);
 
     if (received == 0 || (flags & WebSocket::FRAME_OP_BITMASK) == WebSocket::FRAME_OP_CLOSE) {
-        WebgameServer::instance().logger().information("closed socket: " + n->socket().address().toString());
+        GetLogger() << "closed socket: " << n->socket().address().toString() << std::endl;
 
         Unregister();
     }
     else {
         Poco::Mutex::ScopedLock lock(*recv_mutex);
 
-        recv_buffer = std::string(buf, received);
+        recv_buffer = std::string(buf.begin(), received);
     }
 }
 
@@ -187,7 +208,6 @@ void Game::run() {
         Poco::Thread::current()->sleep(500);
         {
             Poco::Mutex::ScopedLock lock(recv_mutex);
-            Poco::LogStream logger(WebgameServer::instance().logger());
 
             for (auto& player : players) {
                 std::string& buf = player.second->GetRecvBuf();
@@ -215,13 +235,13 @@ void Game::run() {
                     engine.Launch(num, *sender, *dest);
                 }
                 catch (JSONException& e) {
-                    logger << "Poco json exception: " << e.what() << std::endl << "buf=" << buf << std::endl;
+                    GetLogger() << "Poco json exception: " << e.what() << std::endl << "buf=" << buf << std::endl;
                 }
                 catch (Poco::Exception& e) {
-                    logger << "Poco exc:" << e.what() << std::endl;
+                    GetLogger() << "Poco exc:" << e.what() << std::endl;
                 }
                 catch (std::exception& e) {
-                    logger << "std exc: " << e.what() << std::endl;
+                    GetLogger() << "std exc: " << e.what() << std::endl;
                 }
 
                 player.second->ClearRecvBuf();

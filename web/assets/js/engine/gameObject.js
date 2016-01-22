@@ -2,6 +2,7 @@
 function GameObject(x, y, vertices, vertSize, vertCount, attribs, uniforms, boundingBox) {
     this._x = x;
     this._y = y;
+    var _id = null;
     var _vertices = vertices;
     var _vertSize = vertSize;
     var _vertCount = vertCount;
@@ -10,6 +11,7 @@ function GameObject(x, y, vertices, vertSize, vertCount, attribs, uniforms, boun
     var _boundingBox = boundingBox;
 
     Object.defineProperties(this, {
+        "id": { value: _id, writable: true },
         "vertices": { value: _vertices, writable: true },
         "vertSize": { value: _vertSize, writable: true },
         "vertCount": { value: _vertCount, writable: true },
@@ -27,23 +29,47 @@ function Ship(x, y, speedVector) {
 
     this.calcShipVertices = function (x, y, l) {
         return [
-            x - l / 2, y - Math.sqrt(3) / 6 * l, 0.0,
-            x,         y + Math.sqrt(3) / 3 * l, 0.0,
-            x + l / 2, y - Math.sqrt(3) / 6 * l, 0.0
+            x - l / 2, y - Math.sqrt(3) / 6 * l,
+            x,         y + Math.sqrt(3) / 3 * l,
+            x + l / 2, y - Math.sqrt(3) / 6 * l
         ];
     };
-
-    GameObject.apply(this, [
-        x, y, this.calcShipVertices(x, y, _board), 3, 3, {"aVertexPosition": 0}, {"uPMatrix": [], "uMVMatrix": []},
-        null]);
 
     this.calcDirection = function(v) {
         if (v[0] == 0) return 0;
         var rad = Math.acos(v[0] / Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2)));
-        return 180.0 / Math.PI * rad;
+
+        return rad;
     };
 
     var _direction = this.calcDirection(speedVector);
+
+    this.calcModelMatrix = function() {
+        modelMat = [];
+        mat4.identity(modelMat);
+        mat4.translate(modelMat, modelMat, [0.0, 0.0, -1.0]);
+        mat4.rotateZ(modelMat, modelMat, _direction);
+
+
+        return modelMat;
+    };
+
+    GameObject.apply(this, [
+        x, y, this.calcShipVertices(x, y, _board), 2, 3, {"aVertexPosition": 2},
+        {"uPMatrix": [], "uMVMatrix": this.calcModelMatrix()}, null]);
+
+    this.moveTo = function(x, y) {
+        mat4.translate(this.uniforms["uMVMatrix"], this.uniforms["uMVMatrix"], [x, y, 1.0]);
+        //this._x = x;
+        //this._y = y;
+
+        //this.vertices = this.calcShipVertices(x, y, _board);
+
+    };
+
+    this.rotate = function(angle) {
+        mat4.rotateZ(modelMat, modelMat, angle * Math.PI / 180.0);
+    };
 
     Object.defineProperties(this, {
         "x": {
@@ -71,19 +97,18 @@ function Planet(x, y) {
 
     this.calcPlanetVertices = function(x, y, r) {
         var vertices = [
-            x,     y, 0.0,
-            x + r, y, 0.0
+            x,     y,
+            x + r, y
         ];
         var polyNum = 100;
         var degPerPoly = (2 * Math.PI) / polyNum;
 
         for (var i = 0; i <= polyNum; i++) {
-            var index = 2 * 3 + i * 3;
+            var index = 2 * 2 + i * 2;
             var angle = degPerPoly * (i + 1);
 
             vertices[index] = x + r * Math.cos(angle);
             vertices[index + 1] = y + r * Math.sin(angle);
-            vertices[index + 2] = 0;
         }
 
         return vertices;
@@ -93,9 +118,17 @@ function Planet(x, y) {
         return {"x": x - r, "y": y + r, "width": 2 * r, "height": 2 * r };
     };
 
+    this.calcModelMatrix = function() {
+        modelMat = [];
+        mat4.identity(modelMat);
+        mat4.translate(modelMat, modelMat, [0.0, 0.0, -1.0]);
+
+        return modelMat;
+    };
+
     GameObject.apply(this, [
-        x, y, this.calcPlanetVertices(x, y, _radius), 3, 103, {"aVertexPosition": 0, "aColor": [1.0, 1.0, 1.0, 1.0]},
-        {"uPMatrix": [], "uMVMatrix": []}, this.calcBoundingBox(x, y, _radius)]);
+        x, y, this.calcPlanetVertices(x, y, _radius), 2, 103, {"aVertexPosition": 2},
+        {"uPMatrix": [], "uMVMatrix": this.calcModelMatrix()}, this.calcBoundingBox(x, y, _radius)]);
 
     Object.defineProperties(this, {
         "x": {

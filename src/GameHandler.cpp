@@ -23,7 +23,7 @@ using namespace Poco::Net;
 
 static Poco::LogStream& GetLogger() {
     static Poco::LogStream logger(WebgameServer::instance().logger());
-        return logger;
+    return logger;
 }
 
 EventHandler::EventHandler(Poco::Mutex* _send_mutex, Poco::Mutex* _recv_mutex, WebSocket* _socket, SocketReactor* _reactor,
@@ -97,7 +97,7 @@ void EventHandler::HandleReadable(const Poco::AutoPtr<ReadableNotification>& n) 
     else {
         Poco::Mutex::ScopedLock lock(*recv_mutex);
 
-        recv_buffer = std::string(buf.begin(), received);
+        recv_buffer.emplace_back(buf.begin(), received);
     }
 }
 
@@ -107,7 +107,9 @@ void EventHandler::HandleWritable(const Poco::AutoPtr<WritableNotification>& n) 
 
     Poco::Mutex::ScopedLock lock(*send_mutex);
 
-    static_cast<Poco::Net::WebSocket>(n->socket()).sendFrame(send_buffer.c_str(), send_buffer.size());
+    WebSocket& s = static_cast<Poco::Net::WebSocket>(n->socket());
+    for (const auto& i: send_buffer)
+        s.sendFrame(i.c_str(), i.size());
 
     send_buffer.clear();
 }
@@ -124,7 +126,7 @@ void EventHandler::Idle(const Poco::AutoPtr<IdleNotification>& n) {
     std::cout << "socket idle notofication" << std::endl;
 }
 
-std::string& EventHandler::GetRecvBuf() {
+StrList& EventHandler::GetRecvBuf() {
     return recv_buffer;
 }
 
@@ -132,8 +134,8 @@ void EventHandler::ClearRecvBuf() {
     recv_buffer.clear();
 }
 
-void EventHandler::SetSendBuffer(std::string& s) {
-    send_buffer = s;
+void EventHandler::SendBufferPushBack(std::string& s) {
+    send_buffer.push_back(s);
 }
 
 bool EventHandler::IsDisconnected() {
@@ -210,38 +212,40 @@ void Game::run() {
             Poco::Mutex::ScopedLock lock(recv_mutex);
 
             for (auto& player : players) {
-                std::string& buf = player.second->GetRecvBuf();
+                StrList& buf = player.second->GetRecvBuf();
                 if (buf.size() == 0 || player.second->IsDisconnected())
                     continue;
 
-                try {
-                    auto json = parser.parse(buf);
-                    Object::Ptr obj = json.extract<Object::Ptr>();
-                    Var sender_id = obj->get("sender_id");
-                    Var dest_id = obj->get("dest_id");
-                    Var num = obj->get("num");
+                for (std::string& buf_elem : buf) {
+                    try {
+                        auto json = parser.parse(buf_elem);
+                        Object::Ptr obj = json.extract<Object::Ptr>();
+                        Var sender_id = obj->get("sender_id");
+                        Var dest_id = obj->get("dest_id");
+                        Var num = obj->get("num");
 
-                    if (sender_id == dest_id)
-                        throw Poco::Exception("sender_id = dest_id");
+                        if (sender_id == dest_id)
+                            throw Poco::Exception("sender_id = dest_id");
 
-                    GameEngine::Planet* sender = engine.GetPlanetsMap()[sender_id];
-                    GameEngine::Planet* dest = engine.GetPlanetsMap()[dest_id];
-                    if (sender == nullptr || dest == nullptr)
-                        throw Poco::Exception("There isn't planet with id: " + (sender == nullptr ? sender_id.toString() : dest_id.toString()));
+                        GameEngine::Planet* sender = engine.GetPlanetsMap()[sender_id];
+                        GameEngine::Planet* dest = engine.GetPlanetsMap()[dest_id];
+                        if (sender == nullptr || dest == nullptr)
+                            throw Poco::Exception("There isn't planet with id: " + (sender == nullptr ? sender_id.toString() : dest_id.toString()));
 
-                    if (engine.GetPlanetsMap()[sender_id]->GetOwner() != player.first)
-                        throw Poco::Exception("Planet id: " + sender_id.toString() + " doesn't belong to player id: " + std::to_string(player.first));
+                        if (engine.GetPlanetsMap()[sender_id]->GetOwner() != player.first)
+                            throw Poco::Exception("Planet id: " + sender_id.toString() + " doesn't belong to player id: " + std::to_string(player.first));
 
-                    engine.Launch(num, *sender, *dest);
-                }
-                catch (JSONException& e) {
-                    GetLogger() << "Poco json exception: " << e.what() << std::endl << "buf=" << buf << std::endl;
-                }
-                catch (Poco::Exception& e) {
-                    GetLogger() << "Poco exc:" << e.what() << std::endl;
-                }
-                catch (std::exception& e) {
-                    GetLogger() << "std exc: " << e.what() << std::endl;
+                        engine.Launch(num, *sender, *dest);
+                    }
+                    catch (JSONException& e) {
+                        GetLogger() << "Poco json exception: " << e.what() << std::endl << "buf=" << buf_elem << std::endl;
+                    }
+                    catch (Poco::Exception& e) {
+                        GetLogger() << "Poco exc:" << e.what() << std::endl;
+                    }
+                    catch (std::exception& e) {
+                        GetLogger() << "std exc: " << e.what() << std::endl;
+                    }
                 }
 
                 player.second->ClearRecvBuf();
@@ -283,7 +287,8 @@ void Game::run() {
             for (auto& player : players) {
                 if (player.second->IsDisconnected())
                     continue;
-                player.second->SetSendBuffer(s);
+
+                player.second->SendBufferPushBack(s);
             }
         }
     }

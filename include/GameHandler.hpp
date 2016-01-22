@@ -11,12 +11,15 @@
 #include "Poco/Thread.h"
 #include "Poco/AutoPtr.h"
 #include "Poco/Random.h"
+#include <string>
+#include <list>
 
 namespace GameHandler {
+    typedef std::list<std::string> StrList;
 
     class EventHandler {
     private:
-        std::string send_buffer, recv_buffer;
+        StrList send_buffer, recv_buffer;
         Poco::Mutex* send_mutex, *recv_mutex;
         Poco::Net::WebSocket* socket;
         Poco::Net::SocketReactor* reactor;
@@ -38,11 +41,11 @@ namespace GameHandler {
 
         void Idle(const Poco::AutoPtr<Poco::Net::IdleNotification>& n);
 
-        std::string& GetRecvBuf();
+        StrList& GetRecvBuf();
 
         void ClearRecvBuf();
 
-        void SetSendBuffer(std::string& s);
+        void SendBufferPushBack(std::string& s);
 
         bool IsDisconnected();
 

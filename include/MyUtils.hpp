@@ -1,5 +1,5 @@
-#ifndef MY_UTILS_HPP_DEFINED
-#define MY_UTILS_HPP_DEFINED
+#ifndef MY_UTILS_HPP_INCLUDED
+#define MY_UTILS_HPP_INCLUDED
 
 #include <string>
 #include <initializer_list>

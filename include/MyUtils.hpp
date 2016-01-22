@@ -4,11 +4,9 @@
 #include <string>
 #include <initializer_list>
 
-#include "Poco/JSON/JSON.h"
-#include "Poco/JSON/Object.h"
-
 namespace MyUtils {
     std::string SimpleJSON(std::initializer_list<std::string> values);
+    std::string genRandomString(int len = 64);
 }
 
 #endif

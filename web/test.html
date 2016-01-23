@@ -61,7 +61,7 @@
             var ws = new WebSocket("ws://localhost:1337/api/join/" + $("#game_id").val() + "/token");
 
             $("#launch").click(function() {
-                ws.send(JSON.stringify({sender_id: $("#src").val(), dest_id: $("#dst").val(), num: $("#num").val()}));
+                ws.send(JSON.stringify({command: "SendShips", data : {sender_id: $("#src").val(), dest_id: $("#dst").val(), num: $("#num").val()}}));
             });
             
             ws.onmessage = function(evt) {

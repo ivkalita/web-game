@@ -3,6 +3,7 @@
 
 #include "GameEngine.hpp"
 #include "Router.hpp"
+#include "JSONCommandHandler.hpp"
 
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/WebSocket.h"
@@ -58,6 +59,7 @@ namespace GameHandler {
     class Game : public Poco::Runnable {
     private:
         GameEngine::Engine engine;
+        JSONCommandHandler command_handler;
 
         Poco::Random randomGen;
         Poco::Net::SocketReactor reactor;
@@ -69,6 +71,10 @@ namespace GameHandler {
         int id;
 
         double x, y;
+        void ProcessPlayerCommand(Poco::JSON::Object::Ptr, const void*);
+        void ProcessMessages();
+        void SendState();
+
     public:
         Game(int _id);
 

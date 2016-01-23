@@ -69,9 +69,9 @@ void EventHandler::Unregister() {
 
 }
 
-static int WebsocketReceive(WebSocket& s, Poco::Buffer<char>& buf, int& flags) {
+static int WebsocketReceive(WebSocket& s, char* buf, int max_length, int& flags) {
     try {
-        return s.receiveFrame(buf, flags);
+        return s.receiveFrame(buf, max_length, flags);
     }
     catch (const Poco::TimeoutException& e) {
         GetLogger() << "Socket receiveFrame timeout exceeded." << e.displayText() << std::endl;
@@ -85,9 +85,10 @@ static int WebsocketReceive(WebSocket& s, Poco::Buffer<char>& buf, int& flags) {
 
 void EventHandler::HandleReadable(const Poco::AutoPtr<ReadableNotification>& n) {
     int flags, received;
-    Poco::Buffer<char> buf(100 * 1024);
+    static const int buf_max_length = 100 * 1024;
+    char buf[buf_max_length];
 
-    received = WebsocketReceive(static_cast<WebSocket>(n->socket()), buf, flags);
+    received = WebsocketReceive(static_cast<WebSocket>(n->socket()), buf, buf_max_length, flags);
 
     if (received == 0 || (flags & WebSocket::FRAME_OP_BITMASK) == WebSocket::FRAME_OP_CLOSE) {
         GetLogger() << "closed socket: " << n->socket().address().toString() << std::endl;
@@ -97,7 +98,7 @@ void EventHandler::HandleReadable(const Poco::AutoPtr<ReadableNotification>& n) 
     else {
         Poco::Mutex::ScopedLock lock(*recv_mutex);
 
-        recv_buffer.emplace_back(buf.begin(), received);
+        recv_buffer.emplace_back(buf, received);
     }
 }
 
@@ -151,7 +152,10 @@ WebSocket* EventHandler::GetSocket() {
 }
 
 
-Game::Game(int _id) : id(_id), x(.0), y(.0) {}
+Game::Game(int _id) : id(_id), x(.0), y(.0) {
+    using namespace std::placeholders;
+    command_handler.RegisterCommand("SendShips", std::bind(&Game::ProcessPlayerCommand, this, _1, _2));
+}
 
 void Game::RemovePlayer(int id) {
     players.erase(id);
@@ -198,99 +202,121 @@ std::map<int, EventHandler*>& Game::GetPlayers() {
     return players;
 }
 
+void Game::ProcessPlayerCommand(Poco::JSON::Object::Ptr data, const void* player_id_ptr) {
+    int player_id = *((int*)player_id_ptr);
+    int sender_id, dest_id, num;
+
+    GameEngine::Planet* sender = nullptr, *dest = nullptr;
+    try {
+        sender_id = data->get("sender_id");
+        dest_id = data->get("dest_id");
+        num = data->get("num");
+
+        if (sender_id == dest_id)
+            throw Poco::Exception("sender_id = dest_id");
+
+        sender = engine.GetPlanetsMap().at(sender_id);
+        dest = engine.GetPlanetsMap().at(dest_id);
+
+        if (sender->GetOwner() != player_id)
+            throw Poco::Exception("Planet id: " + std::to_string(sender_id) + " doesn't belong to player id: " + std::to_string(player_id));
+
+        engine.Launch(num, *sender, *dest);
+    }
+    catch (const std::out_of_range& e) {
+        GetLogger() << "There isn't planet with id: " << std::to_string(sender == nullptr ? sender_id : dest_id) << std::endl;
+    }
+    catch (const Poco::JSON::JSONException& e) {
+        throw;
+    }
+    catch (const Poco::Exception& e) {
+        GetLogger() << "Poco exception: " << e.displayText() << std::endl;
+    }
+    catch (const std::exception& e) {
+        GetLogger() << "std::exception: " << e.what() << std::endl;
+    }
+}
+
+void Game::SendState() {
+    using namespace Poco::JSON;
+    Poco::Mutex::ScopedLock lock(send_mutex);
+
+    Object json;
+    Poco::JSON::Array ships_array;
+    for (auto& ship : engine.GetShips()) {
+        Object s;
+        s.set("x", ship.GetX());
+        s.set("y", ship.GetY());
+        s.set("owner", ship.GetOwner());
+        ships_array.add(s);
+    }
+    json.set("ships", ships_array);
+
+    Poco::JSON::Array planets_array;
+    for (auto& p : engine.GetPlanets()) {
+        Object s;
+        s.set("x", p.GetX());
+        s.set("y", p.GetY());
+        s.set("id", p.GetID());
+        s.set("owner", p.GetOwner());
+        s.set("radius", p.GetRadius());
+        s.set("ships_sum", p.ShipCount());
+        planets_array.add(s);
+    }
+    json.set("planets", planets_array);
+
+    std::stringstream str;
+    json.stringify(str);
+    std::string s = str.str();
+    for (auto& player : players) {
+        if (player.second->IsDisconnected())
+            continue;
+
+        player.second->SendBufferPushBack(s);
+    }
+}
+
+void HandleJSONExceptionWebsocket(std::function<void()> F, WebSocket& socket, bool close = false) {
+    try {
+        F();
+    }
+    catch (JsonException& e) {
+        socket.sendFrame(e.what(), strlen(e.what()));
+        if (close)
+            socket.close();
+    }
+}
+
+void Game::ProcessMessages() {
+    Poco::Mutex::ScopedLock lock(recv_mutex);
+
+    for (auto& player : players) {
+        StrList& buf = player.second->GetRecvBuf();
+        if (buf.size() == 0 || player.second->IsDisconnected())
+            continue;
+
+        for (std::string& buf_elem : buf) {
+            int player_id = player.first;
+            auto f = std::bind(&JSONCommandHandler::Handle, &command_handler, buf_elem, (void*)&player_id);
+            HandleJSONExceptionWebsocket(f, *player.second->GetSocket());
+        }
+
+        player.second->ClearRecvBuf();
+    }
+}
+
 void Game::run() {
     reactor_thread.setName("Game thread - socket reactor");
     reactor_thread.start(reactor);
 
     while (1) {
-        using namespace Poco::JSON;
-        using namespace Poco::Dynamic;
-
-        Parser parser;
         Poco::Thread::current()->sleep(500);
-        {
-            Poco::Mutex::ScopedLock lock(recv_mutex);
 
-            for (auto& player : players) {
-                StrList& buf = player.second->GetRecvBuf();
-                if (buf.size() == 0 || player.second->IsDisconnected())
-                    continue;
-
-                for (std::string& buf_elem : buf) {
-                    try {
-                        auto json = parser.parse(buf_elem);
-                        Object::Ptr obj = json.extract<Object::Ptr>();
-                        Var sender_id = obj->get("sender_id");
-                        Var dest_id = obj->get("dest_id");
-                        Var num = obj->get("num");
-
-                        if (sender_id == dest_id)
-                            throw Poco::Exception("sender_id = dest_id");
-
-                        GameEngine::Planet* sender = engine.GetPlanetsMap()[sender_id];
-                        GameEngine::Planet* dest = engine.GetPlanetsMap()[dest_id];
-                        if (sender == nullptr || dest == nullptr)
-                            throw Poco::Exception("There isn't planet with id: " + (sender == nullptr ? sender_id.toString() : dest_id.toString()));
-
-                        if (engine.GetPlanetsMap()[sender_id]->GetOwner() != player.first)
-                            throw Poco::Exception("Planet id: " + sender_id.toString() + " doesn't belong to player id: " + std::to_string(player.first));
-
-                        engine.Launch(num, *sender, *dest);
-                    }
-                    catch (JSONException& e) {
-                        GetLogger() << "Poco json exception: " << e.what() << std::endl << "buf=" << buf_elem << std::endl;
-                    }
-                    catch (Poco::Exception& e) {
-                        GetLogger() << "Poco exc:" << e.what() << std::endl;
-                    }
-                    catch (std::exception& e) {
-                        GetLogger() << "std exc: " << e.what() << std::endl;
-                    }
-                }
-
-                player.second->ClearRecvBuf();
-            }
-        }
+        ProcessMessages();
 
         engine.Step();
 
-        {
-            Poco::Mutex::ScopedLock lock(send_mutex);
-
-            Object json;
-            Poco::JSON::Array ships_array;
-            for (auto& ship : engine.GetShips()) {
-                Object s;
-                s.set("x", ship.GetX());
-                s.set("y", ship.GetY());
-                s.set("owner", ship.GetOwner());
-                ships_array.add(s);
-            }
-            json.set("ships", ships_array);
-
-            Poco::JSON::Array planets_array;
-            for (auto& p : engine.GetPlanets()) {
-                Object s;
-                s.set("x", p.GetX());
-                s.set("y", p.GetY());
-                s.set("id", p.GetID());
-                s.set("owner", p.GetOwner());
-                s.set("radius", p.GetRadius());
-                s.set("ships_sum", p.ShipCount());
-                planets_array.add(s);
-            }
-            json.set("planets", planets_array);
-
-            std::stringstream str;
-            json.stringify(str);
-            std::string s = str.str();
-            for (auto& player : players) {
-                if (player.second->IsDisconnected())
-                    continue;
-
-                player.second->SendBufferPushBack(s);
-            }
-        }
+        SendState();
     }
 }
 

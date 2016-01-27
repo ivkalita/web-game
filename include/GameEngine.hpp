@@ -17,7 +17,8 @@ namespace GameEngine {
         static int gen_id() { return Planet::id_generator++; }
     public:
         static const tfloat CLOSE_RANGE;
-        Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner) : x(_x), y(_y), ships_num(_ships_num), radius(_radius), owner(_owner) {
+        Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner) :
+            x(_x), y(_y), radius(_radius), ships_num(_ships_num), owner(_owner) {
             id = gen_id();
         }
         // явные конструкторы для отслеживания копирования при работе со сслыками

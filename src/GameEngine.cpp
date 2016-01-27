@@ -34,7 +34,7 @@ namespace GameEngine {
     }
 
     Ship::Ship(Planet& _sender_planet, Planet& _dest_planet) :
-        dest_planet(_dest_planet), sender_planet(_sender_planet), finished(false) {
+        sender_planet(_sender_planet), dest_planet(_dest_planet), finished(false) {
         x = sender_planet.GetX() + sender_planet.GetRadius();
         y = sender_planet.GetY();
         owner = sender_planet.GetOwner();

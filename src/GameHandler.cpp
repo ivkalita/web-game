@@ -30,7 +30,7 @@ namespace {
         void HandleWritable(const Poco::AutoPtr<WritableNotification>& n);
         void HandleShutdown(const Poco::AutoPtr<ShutdownNotification>& n);
         void HandleError(const Poco::AutoPtr<ErrorNotification>& n);
-        void Idle(const Poco::AutoPtr<IdleNotification>& n);
+        void HandleIdle(const Poco::AutoPtr<IdleNotification>& n);
 
         std::string& GetRecvBuf() { return recv_buffer; }
         void ClearRecvBuf() { recv_buffer.clear(); }
@@ -86,7 +86,7 @@ namespace {
         reactor->addEventHandler(*socket, Poco::NObserver<EventHandler, ErrorNotification>
             (*this, &EventHandler::HandleError));
         reactor->addEventHandler(*socket, Poco::NObserver<EventHandler, IdleNotification>
-            (*this, &EventHandler::Idle));
+            (*this, &EventHandler::HandleIdle));
     }
 
     void EventHandler::Unregister() {
@@ -100,7 +100,7 @@ namespace {
         reactor->removeEventHandler(*socket, Poco::NObserver<EventHandler, ErrorNotification>
             (*this, &EventHandler::HandleError));
         reactor->removeEventHandler(*socket, Poco::NObserver<EventHandler, IdleNotification>
-            (*this, &EventHandler::Idle));
+            (*this, &EventHandler::HandleIdle));
     }
 
     void EventHandler::HandleReadable(const Poco::AutoPtr<ReadableNotification>& n) {
@@ -132,7 +132,7 @@ namespace {
         std::cout << "socket error notofication" << std::endl;
     }
 
-    void EventHandler::Idle(const Poco::AutoPtr<IdleNotification>& n) {
+    void EventHandler::HandleIdle(const Poco::AutoPtr<IdleNotification>& n) {
         std::cout << "socket idle notofication" << std::endl;
     }
 

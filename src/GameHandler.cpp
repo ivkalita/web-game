@@ -7,15 +7,9 @@
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Random.h"
 #include "Poco/NObserver.h"
-#include "Poco/AutoPtr.h"
 #include "Poco/Net/SocketNotification.h"
-#include "Poco/JSON/JSON.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
-#include "Poco/Mutex.h"
-#include <list>
-#include <sstream>
-#include <string>
 
 namespace {
     using namespace Poco::Net;

@@ -6,8 +6,6 @@
 #include "WebgameServer.hpp"
 
 #include "Poco/LogStream.h"
-#include "Poco/Util/Application.h"
-#include "Poco/JSON/Template.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Random.h"

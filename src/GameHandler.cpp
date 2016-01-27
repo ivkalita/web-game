@@ -242,22 +242,12 @@ namespace GameHandler {
         //g->run();
     }
 
-    static void test_game(const RouteMatch& m) {
-        using Poco::Util::Application;
-        Poco::JSON::Template tpl(Application::instance().config().getString("application.rootpath") + "web/test.html");
-        tpl.parse();
-        std::ostream& st = m.response().send();
-        tpl.render(Poco::JSON::Object(), st);
-        st.flush();
-    }
-
     Games::Games() {
         using namespace std::placeholders;
         Router& r = Router::instance();
         r.registerRoute("/api/join/{game_id}/{access_token}", std::bind(&Games::Join, this, _1));
         r.registerRoute("/api/run/{game_id}/{access_token}", std::bind(&Games::Run, this, _1));
         r.registerRoute("/api/create/{access_token}", std::bind(&Games::Create, this, _1));
-        r.registerRoute("/test_game", test_game);
     }
 
 }

@@ -124,7 +124,7 @@ namespace GameEngine {
 
     void Engine::RemoveFinishedFromFront() {
         auto i = ships.begin();
-        while (i->Finished() && i != ships.end())
+        while (i != ships.end() && i->Finished())
             i++;
         ships.erase(ships.begin(), i);
     }

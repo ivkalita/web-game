@@ -68,19 +68,4 @@ namespace GameHandler {
         std::map<int, EventHandler*>& GetPlayers() { return players; }
         void run() override;
     };
-
-    class Games {
-    private:
-        std::map<int, Game*> games;
-        static int id_generator;
-        static int gen_id() { return Games::id_generator++; }
-    public:
-        void Create(const RouteMatch& m);
-        Game* GetGame(int id) { return games[id]; }
-        void Join(const RouteMatch& m);
-        void Run(const RouteMatch& m);
-        Games();
-    };
-
-    static Games games;
 };

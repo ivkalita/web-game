@@ -189,16 +189,17 @@ namespace GameHandler {
         }
     }
 
-    int Games::id_generator = 0;
+    static int id_generator = 0;
+    static std::map<int, Game*> games;
 
-    void Games::Create(const RouteMatch& m) {
-        int new_id = gen_id();
+    static void create(const RouteMatch& m) {
+        int new_id = id_generator++;
         Game* g = new Game(new_id);
         games[new_id] = g;
         m.response().send() << MyUtils::SimpleJSON({ "action", "new_game_id", "game_id", std::to_string(new_id) });
     }
 
-    void Games::Join(const RouteMatch& m) {
+    static void join(const RouteMatch& m) {
         const std::string& game_id = m.captures().at(std::string("game_id"));
         const std::string& access_token = m.captures().at(std::string("access_token"));
 
@@ -206,7 +207,7 @@ namespace GameHandler {
 
         std::string msg;
 
-        Game* game = GetGame(std::stoi(game_id));
+        Game* game = games[std::stoi(game_id)];
         if (game == nullptr) {
             msg = MyUtils::SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
             s->sendFrame(msg.c_str(), msg.size());
@@ -220,12 +221,12 @@ namespace GameHandler {
         s->sendFrame(msg.c_str(), msg.size());
     }
 
-    void Games::Run(const RouteMatch& m) {
+    void run(const RouteMatch& m) {
         const std::string& game_id = m.captures().at(std::string("game_id"));
         const std::string& access_token = m.captures().at(std::string("access_token"));
 
         std::string msg;
-        Game* game = GetGame(std::stoi(game_id));
+        Game* game = games[std::stoi(game_id)];
         if (game == nullptr) {
             m.response().send() << MyUtils::SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
             return;
@@ -242,12 +243,16 @@ namespace GameHandler {
         //g->run();
     }
 
-    Games::Games() {
-        using namespace std::placeholders;
-        Router& r = Router::instance();
-        r.registerRoute("/api/join/{game_id}/{access_token}", std::bind(&Games::Join, this, _1));
-        r.registerRoute("/api/run/{game_id}/{access_token}", std::bind(&Games::Run, this, _1));
-        r.registerRoute("/api/create/{access_token}", std::bind(&Games::Create, this, _1));
-    }
+    class Pages {
+    public:
+        Pages() {
+            auto & router = Router::instance();
+            router.registerRoute("/api/join/{game_id}/{access_token}", join);
+            router.registerRoute("/api/run/{game_id}/{access_token}", run);
+            router.registerRoute("/api/create/{access_token}", create);
+        }
+    };
+
+    static Pages pages;
 
 }

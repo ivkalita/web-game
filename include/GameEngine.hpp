@@ -69,7 +69,7 @@ namespace GameEngine {
         std::list<Ship>& GetShips() { return ships; }
         std::list<Planet>& GetPlanets() { return planets; }
         std::map<int, Planet*>& GetPlanetsMap() { return planets_map; }
-        int ActiveShipsCount() { return ships.size(); }
+        int ActiveShipsCount() { return (int)ships.size(); }
     };
 
 };

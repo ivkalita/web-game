@@ -127,7 +127,7 @@ namespace {
         if (send_buffer.size() == 0)
             return;
         Poco::Mutex::ScopedLock lock(*send_mutex);
-        static_cast<Poco::Net::WebSocket>(n->socket()).sendFrame(send_buffer.c_str(), send_buffer.size());
+        static_cast<Poco::Net::WebSocket>(n->socket()).sendFrame(send_buffer.c_str(), (int)send_buffer.size());
         send_buffer.clear();
     }
 
@@ -287,7 +287,7 @@ namespace {
         Game* game = games[std::stoi(game_id)];
         if (game == nullptr) {
             msg = SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
-            s->sendFrame(msg.c_str(), msg.size());
+            s->sendFrame(msg.c_str(), (int)msg.size());
             s->close();
             return;
         }
@@ -295,7 +295,7 @@ namespace {
         int new_id = game->AddPlayer(s);
 
         msg = SimpleJSON({ "action", "player_id", "player_id", std::to_string(new_id) });
-        s->sendFrame(msg.c_str(), msg.size());
+        s->sendFrame(msg.c_str(), (int)msg.size());
     }
 
     void run(const RouteMatch& m) {
@@ -312,7 +312,7 @@ namespace {
         auto json = SimpleJSON({ "action", "game_run" });
         m.response().send() << json;
         for (auto& i : game->GetPlayers()) {
-            i.second->GetSocket()->sendFrame(json.c_str(), json.size());
+            i.second->GetSocket()->sendFrame(json.c_str(), (int)json.size());
         }
         Poco::Thread& th = game->GetOwnThread();
         th.setName("game thread");

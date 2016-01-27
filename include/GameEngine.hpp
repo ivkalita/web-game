@@ -23,7 +23,10 @@ namespace GameEngine {
         }
         // явные конструкторы для отслеживания копирования при работе со сслыками
         Planet(const Planet& a): x(a.x), y(a.y), radius(a.radius), ships_num(a.ships_num), owner(a.owner), id(a.id) { }
-        Planet& operator = (const Planet& a) { x = a.x; y = a.y; radius = a.radius; ships_num = a.ships_num; owner = a.owner; id = a.id; }
+        const Planet& operator = (const Planet& a) {
+            x = a.x; y = a.y; radius = a.radius; ships_num = a.ships_num; owner = a.owner; id = a.id;
+            return a;
+        }
         bool operator == (const Planet& a) { return id == a.id; }
         bool IsNear(tfloat _x, tfloat _y) { return sqrt(pow(x - _x, 2) + pow(y - _y, 2)) < radius + CLOSE_RANGE; }
         bool IsInside(tfloat _x, tfloat _y) { return sqrt(pow(x - _x, 2) + pow(y - _y, 2)) < radius; }

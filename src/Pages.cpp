@@ -66,10 +66,6 @@ namespace {
         }
     }
 
-    void game(const RouteMatch& m) {
-        m.response().redirect("/game.html");
-    }
-
     void games(const RouteMatch& m) {
         Poco::JSON::Template tpl(Application::instance().config().getString("application.rootpath") + "views/games.html");
         tpl.parse();
@@ -90,7 +86,6 @@ namespace {
             router.registerRoute("/", root);
             router.registerRoute("/hw", http_example);
             router.registerRoute("/ws", websocket_example);
-            router.registerRoute("/game", game);
             router.registerRoute("/games", games);
         }
     };

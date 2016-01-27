@@ -49,9 +49,8 @@ namespace {
         Poco::Thread reactor_thread, own_thread;
         std::map<int, EventHandler*> players;
         int id;
-        double x, y;
     public:
-        Game(int _id) : id(_id), x(.0), y(.0) {}
+        Game(int _id) : id(_id) { }
         void RemovePlayer(int id) { players.erase(id); }
         int AddPlayer(WebSocket* _socket);
         Poco::Thread& GetOwnThread() { return own_thread; }
@@ -149,6 +148,7 @@ namespace {
 
         const double radius = 10;
         bool valid = true;
+        double x, y;
         do {
             x = randomGen.nextDouble() * 1000;
             y = randomGen.nextDouble() * 1000;

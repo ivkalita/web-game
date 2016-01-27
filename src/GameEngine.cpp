@@ -123,10 +123,10 @@ namespace GameEngine {
     }
 
     void Engine::RemoveFinishedFromFront() {
-        auto i = ships.cbegin();
+        auto i = ships.begin();
         while (i->Finished() && i != ships.end())
             i++;
-        ships.erase(ships.cbegin(), i);
+        ships.erase(ships.begin(), i);
     }
 
     const tfloat Planet::CLOSE_RANGE = 5;

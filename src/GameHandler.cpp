@@ -65,9 +65,19 @@ namespace GameHandler {
         std::map<int, EventHandler*>& GetPlayers() { return players; }
         void run() override;
     };
-};
 
-namespace GameHandler {
+    std::string SimpleJSON(std::initializer_list<std::string> values) {
+        Poco::JSON::Object json;
+        if (values.size() % 2 != 0)
+            throw Poco::Exception("SimpleJSON: initializer list length must be even");
+    
+        for (auto i = values.begin(); i != values.end(); i += 2) {
+            json.set(*i, *(i + 1));
+        }
+        std::stringstream o;
+        json.stringify(o);
+        return o.str();
+    }
 
     EventHandler::EventHandler(Poco::Mutex* _send_mutex, Poco::Mutex* _recv_mutex, WebSocket* _socket, SocketReactor* _reactor,
         int _player_id) :
@@ -263,7 +273,7 @@ namespace GameHandler {
         int new_id = id_generator++;
         Game* g = new Game(new_id);
         games[new_id] = g;
-        m.response().send() << MyUtils::SimpleJSON({ "action", "new_game_id", "game_id", std::to_string(new_id) });
+        m.response().send() << SimpleJSON({ "action", "new_game_id", "game_id", std::to_string(new_id) });
     }
 
     static void join(const RouteMatch& m) {
@@ -276,7 +286,7 @@ namespace GameHandler {
 
         Game* game = games[std::stoi(game_id)];
         if (game == nullptr) {
-            msg = MyUtils::SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
+            msg = SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
             s->sendFrame(msg.c_str(), msg.size());
             s->close();
             return;
@@ -284,7 +294,7 @@ namespace GameHandler {
 
         int new_id = game->AddPlayer(s);
 
-        msg = MyUtils::SimpleJSON({ "action", "player_id", "player_id", std::to_string(new_id) });
+        msg = SimpleJSON({ "action", "player_id", "player_id", std::to_string(new_id) });
         s->sendFrame(msg.c_str(), msg.size());
     }
 
@@ -295,11 +305,11 @@ namespace GameHandler {
         std::string msg;
         Game* game = games[std::stoi(game_id)];
         if (game == nullptr) {
-            m.response().send() << MyUtils::SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
+            m.response().send() << SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
             return;
         }
 
-        auto json = MyUtils::SimpleJSON({ "action", "game_run" });
+        auto json = SimpleJSON({ "action", "game_run" });
         m.response().send() << json;
         for (auto& i : game->GetPlayers()) {
             i.second->GetSocket()->sendFrame(json.c_str(), json.size());

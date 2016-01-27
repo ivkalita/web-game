@@ -17,7 +17,7 @@
 #include <sstream>
 #include <string>
 
-namespace GameHandler {
+namespace {
     using namespace Poco::Net;
 
     class EventHandler {
@@ -266,17 +266,17 @@ namespace GameHandler {
         }
     }
 
-    static int id_generator = 0;
-    static std::map<int, Game*> games;
+    int id_generator = 0;
+    std::map<int, Game*> games;
 
-    static void create(const RouteMatch& m) {
+    void create(const RouteMatch& m) {
         int new_id = id_generator++;
         Game* g = new Game(new_id);
         games[new_id] = g;
         m.response().send() << SimpleJSON({ "action", "new_game_id", "game_id", std::to_string(new_id) });
     }
 
-    static void join(const RouteMatch& m) {
+    void join(const RouteMatch& m) {
         const std::string& game_id = m.captures().at(std::string("game_id"));
         const std::string& access_token = m.captures().at(std::string("access_token"));
 
@@ -330,6 +330,5 @@ namespace GameHandler {
         }
     };
 
-    static Pages pages;
-
+    Pages pages;
 }

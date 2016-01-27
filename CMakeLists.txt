@@ -1,5 +1,3 @@
-set(PostgreSQL_ADDITIONAL_VERSIONS "9.4" "9.3")
-set(PostgreSQL_ADDITIONAL_SEARCH_PATHS "/usr/include/postgresql/9.4/server" "/usr/include/postgresql/9.3/server")
 cmake_minimum_required(VERSION 2.8)
 project(web_game)
 

@@ -88,8 +88,8 @@ namespace GameEngine {
             i.Step(planets);
 
 #if _DEBUG
-            const int MAX_X = 10000;
-            const int MAX_Y = 10000;
+            const int MAX_X = 250;
+            const int MAX_Y = 250;
             for (auto& i : ships) {
                 for (auto& p : planets) {
                     if (p.IsInside(i.GetX(), i.GetY()))

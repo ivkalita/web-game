@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script type="text/javascript" src="assets/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="assets/js/pixi/pixi.js"></script>
     
     <title>Websocket test page</title>
 </head>
@@ -34,11 +35,181 @@
     <input id="run" type="button" value="Run game">
 </div>
 
+<div id="render"></div>
 <div id="test-block" style="width: 1000px;"></div>
 
 <script>
-    var host_game_id;
-    
+    function ownerColor(owner) {
+        if (!ownerColor.colors[owner])
+            ownerColor.colors[owner] = Math.random() * 0xFFFFFF;
+        return ownerColor.colors[owner];
+    }
+    ownerColor.colors = {};
+
+    var planets = {};
+
+    function Planet(id, x, y, radius, count, owner) {
+        PIXI.Container.apply(this, []);
+        this.id = id;
+        this.addChild(new PIXI.Graphics());
+        var text = new PIXI.Text('', {fill: '#fff'});
+        text.anchor.set(0.5);
+        this.addChild(text);
+        this.update(x, y, radius, count, owner);
+        this
+                .on('mousedown', this.onDragStart)
+                .on('touchstart', this.onDragStart)
+
+                .on('mouseup', this.onDragEnd)
+                .on('mouseupoutside', this.onDragEnd)
+                .on('touchend', this.onDragEnd)
+                .on('touchendoutside', this.onDragEnd)
+
+                .on('mousemove', this.onDragMove)
+                .on('touchmove', this.onDragMove)
+
+                .on('mouseover', this.onMouseOver)
+                .on('mouseout', this.onMouseOut);
+    }
+
+    Planet.prototype = Object.create(PIXI.Container.prototype);
+    Planet.prototype.constructor = Planet;
+
+    Planet.prototype.update = function(x, y, radius, count, owner){
+        this.interactive = this.buttonMode = owner == player_id;
+        this.x = x;
+        this.y = y;
+        if (this.radius != radius || this.owner != owner) {
+            this.owner = owner;
+            this.radius = radius;
+            this.draw();
+        }
+        this.children[1].text = count;
+        if (this.dragging && !this.interactive) this.onDragEnd();
+    };
+
+    Planet.prototype.draw = function() {
+        var f = this.mouseOver || this.dragging;
+        var borderWidth = f ? 3 : 2;
+        var borderColor = f ? 0xFFFFFF : 0x888888;
+        this.children[0].clear();
+        this.children[0].beginFill(ownerColor(this.owner));
+        this.children[0].lineStyle(borderWidth, borderColor);
+        this.children[0].drawCircle(0, 0, this.radius);
+        this.children[0].endFill();
+    };
+
+    Planet.prototype.onDragStart = function(event){
+        this.dragging = true;
+        this.data = event.data;
+        this.addChild(new PIXI.Graphics());
+    };
+
+    Planet.prototype.onDragMove = function(){
+        if (this.dragging) {
+            var p = this.data.getLocalPosition(this.parent);
+
+            var pl;
+            Object.keys(planets).forEach(function(key){
+                if (key != this.id && planets[key].getBounds().contains(p.x, p.y))
+                    pl = planets[key];
+            }, this);
+
+            if ((this.lastOverPl || pl) && this.lastOverPl != pl) {
+                if (this.lastOverPl) {
+                    this.lastOverPl.onMouseOut();
+                    this.lastOverPl = null;
+                }
+                if (pl) {
+                    this.lastOverPl = pl;
+                    pl.onMouseOver();
+                }
+            }
+
+            var dest = new PIXI.Point((pl ? pl.x : p.x) - this.x, (pl ? pl.y : p.y) - this.y);
+            var len = Math.sqrt(dest.x * dest.x + dest.y * dest.y);
+            var norm = new PIXI.Point(dest.x / len, dest.y / len);
+
+            this.children[2].clear();
+            this.children[2].lineStyle(3, 0xFFFFFF);
+            this.children[2].moveTo(norm.x * this.radius, norm.y * this.radius);
+            if (pl) dest.set(dest.x - norm.x * pl.radius, dest.y - norm.y * pl.radius);
+            if (len > (this.radius + (pl ? pl.radius : 0))) this.children[2].lineTo(dest.x, dest.y);
+        }
+    };
+
+    Planet.prototype.onDragEnd = function(){
+        if (this.dragging) {
+            this.dragging = false;
+            this.draw();
+            this.removeChildAt(2);
+            if (this.lastOverPl) {
+                if (!this.lastOverPl.buttonMode) this.lastOverPl.onMouseOut();
+                if (this.interactive)
+                    ws.send(JSON.stringify({
+                        sender_id: this.id,
+                        dest_id: this.lastOverPl.id,
+                        num: Math.ceil(this.children[1].text / 2)
+                    }));
+                this.lastOverPl = null;
+            }
+        }
+    };
+
+    Planet.prototype.onMouseOver = function(){
+        this.mouseOver = true;
+        this.draw();
+    };
+
+    Planet.prototype.onMouseOut = function() {
+        this.mouseOver = false;
+        this.draw();
+    };
+
+
+    function Ship(x, y, owner){
+        PIXI.Graphics.apply(this, []);
+        this.beginFill(ownerColor(owner));
+        this.drawRect(-3, -3, 3, 3);
+        this.endFill();
+        this.x = x;
+        this.y = y;
+    }
+
+    Ship.prototype = Object.create(PIXI.Graphics.prototype);
+    Ship.prototype.constructor = Ship;
+
+
+    var stage = new PIXI.Container();
+    var renderer = PIXI.autoDetectRenderer(500, 500, { antialias: true });
+    $('#render').replaceWith(renderer.view);
+
+    var dinamic = new PIXI.Container();
+    stage.addChild(dinamic);
+
+    requestAnimationFrame(animate);
+    function animate() {
+        renderer.render(stage);
+        requestAnimationFrame(animate);
+    }
+
+    function updateStage(msg) {
+        msg.planets.forEach(function(pl){
+            if (!planets[pl.id]) {
+                planets[pl.id] = new Planet(pl.id, pl.x * 2, pl.y * 2, pl.radius * 2, pl.ships_sum, pl.owner);
+                stage.addChild(planets[pl.id]);
+            } else
+                planets[pl.id].update(pl.x * 2, pl.y * 2, pl.radius * 2, pl.ships_sum, pl.owner);
+        });
+        dinamic.removeChildren();
+        msg.ships.forEach(function(sh){
+            dinamic.addChild(new Ship(sh.x * 2, sh.y * 2, sh.owner));
+        });
+    }
+
+
+    var host_game_id, player_id, ws;
+
     $("#create").click(function() {
         $.ajax("/api/create/token").done(function(data) {
             $("#host-info").html(data);
@@ -54,11 +225,8 @@
     });
 
     function WebSocketTest() {
-        
-        var player_id;
-        
         if ("WebSocket" in window) {
-            var ws = new WebSocket("ws://" + location.hostname + ":1337/api/join/" + $("#game_id").val() + "/token");
+            ws = new WebSocket("ws://" + location.hostname + ":1337/api/join/" + $("#game_id").val() + "/token");
 
             $("#launch").click(function() {
                 ws.send(JSON.stringify({sender_id: $("#src").val(), dest_id: $("#dst").val(), num: $("#num").val()}));
@@ -70,9 +238,10 @@
                     player_id = msg.player_id;
                     $("#player-info").html("player_id: " + player_id);
                 }
-                    
+                if (typeof msg.planets != 'undefined')
+                    updateStage(msg);
                 var d = $("#test-block");
-                d.html(evt.data + "<br>" + d.html());
+                d.html(evt.data);
             };
 
             ws.onclose = function() {

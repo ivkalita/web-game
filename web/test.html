@@ -46,7 +46,7 @@
     }
     ownerColor.colors = {};
 
-    var planets = {};
+    var planets = {}, ships = [];
 
     function Planet(id, x, y, radius, count, owner) {
         PIXI.Container.apply(this, []);
@@ -169,23 +169,29 @@
 
     function Ship(x, y, owner){
         PIXI.Graphics.apply(this, []);
-        this.beginFill(ownerColor(owner));
-        this.drawRect(-3, -3, 3, 3);
-        this.endFill();
-        this.x = x;
-        this.y = y;
+        this.update(x, y, owner);
     }
 
     Ship.prototype = Object.create(PIXI.Graphics.prototype);
     Ship.prototype.constructor = Ship;
 
+    Ship.prototype.update = function(x, y, owner){
+        this.x = x;
+        this.y = y;
+        this.visible = true;
+        if (this.owner != owner) {
+            this.clear();
+            this.beginFill(ownerColor(owner));
+            this.drawRect(-3, -3, 3, 3);
+            this.endFill();
+            this.owner = owner;
+        }
+    };
+
 
     var stage = new PIXI.Container();
     var renderer = PIXI.autoDetectRenderer(500, 500, { antialias: true });
     $('#render').replaceWith(renderer.view);
-
-    var dinamic = new PIXI.Container();
-    stage.addChild(dinamic);
 
     requestAnimationFrame(animate);
     function animate() {
@@ -201,9 +207,16 @@
             } else
                 planets[pl.id].update(pl.x * 2, pl.y * 2, pl.radius * 2, pl.ships_sum, pl.owner);
         });
-        dinamic.removeChildren();
-        msg.ships.forEach(function(sh){
-            dinamic.addChild(new Ship(sh.x * 2, sh.y * 2, sh.owner));
+        msg.ships.forEach(function(sh, i){
+            if (i < ships.length)
+                ships[i].update(sh.x * 2, sh.y * 2, sh.owner);
+            else {
+                ships.push(new Ship(sh.x * 2, sh.y * 2, sh.owner));
+                stage.addChild(ships[ships.length - 1]);
+            }
+        });
+        ships.slice(msg.ships.length).forEach(function(sh){
+            sh.visible = false;
         });
     }
 

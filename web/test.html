@@ -58,7 +58,7 @@
         var player_id;
         
         if ("WebSocket" in window) {
-            var ws = new WebSocket("ws://localhost:1337/api/join/" + $("#game_id").val() + "/token");
+            var ws = new WebSocket("ws://" + location.hostname + ":1337/api/join/" + $("#game_id").val() + "/token");
 
             $("#launch").click(function() {
                 ws.send(JSON.stringify({sender_id: $("#src").val(), dest_id: $("#dst").val(), num: $("#num").val()}));

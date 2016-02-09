@@ -66,7 +66,11 @@ static void websocket_example(const RouteMatch& m) {
 }
 
 static void game(const RouteMatch& m) {
-    m.response().redirect("/game.html");
+	Poco::JSON::Template tpl(Application::instance().config().getString("application.rootpath") + "web/views/game.html");
+	tpl.parse();
+	std::ostream& st = m.response().send();
+	tpl.render(Poco::JSON::Object(), st);
+	st.flush();
 }
 
 static void games(const RouteMatch& m) {

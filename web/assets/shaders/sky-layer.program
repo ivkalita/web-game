@@ -1,0 +1,4 @@
+{
+	"vs": "/assets/shaders/sky-layer.vs.glsl",
+	"fs": "/assets/shaders/sky-layer.fs.glsl"
+}

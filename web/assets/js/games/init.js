@@ -1,34 +1,11 @@
-requirejs.config({
-    paths: {
-        'bootstrap': '../bootstrap.min',
-        'jquery': '../jquery-2.1.4.min',
-        'backbone': '../backbone-min',
-        'underscore': '../underscore-min'
-    },
+require(['../requirejs-config'], function() {
+	require(['jquery', 'application'], function($, Application) {
 
-    shim: {
-        'underscore': {
-            exports: '_'
-        },
+		$(document).ready(function() {
+			var myApplication = new Application();
 
-        'backbone': {
-            deps: ['underscore', 'jquery'],
-            exports: 'Backbone'
-        },
+			myApplication.init();
+		})
 
-        'bootstrap': {
-            deps: ['jquery']
-        }
-    }
-})
-
-
-require(['jquery', 'application'], function($, Application) {
-
-    $(document).ready(function() {
-        var myApplication = new Application();
-
-        myApplication.init();
-    })
-
+	});
 });

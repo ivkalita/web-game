@@ -1,4 +1,5 @@
-#pragma once
+#ifndef USER_HPP_INCLUDED
+#define USER_HPP_INCLUDED
 
 #include <string>
 
@@ -12,3 +13,5 @@ public:
     int getId() { return id; }
     std::string getName() { return name; }
 };
+
+#endif

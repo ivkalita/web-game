@@ -1,14 +1,12 @@
-#ifndef MY_UTILS_HPP_DEFINED
-#define MY_UTILS_HPP_DEFINED
+#ifndef MY_UTILS_HPP_INCLUDED
+#define MY_UTILS_HPP_INCLUDED
 
 #include <string>
 #include <initializer_list>
 
-#include "Poco/JSON/JSON.h"
-#include "Poco/JSON/Object.h"
-
 namespace MyUtils {
     std::string SimpleJSON(std::initializer_list<std::string> values);
+    std::string genRandomString(int len = 64);
 }
 
 #endif

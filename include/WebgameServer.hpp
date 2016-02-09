@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WEBGAME_SERVER_HPP_INCLUDED
+#define WEBGAME_SERVER_HPP_INCLUDED
 
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
@@ -33,3 +34,5 @@ public:
 	WebgameServer();
 	~WebgameServer();
 };
+
+#endif

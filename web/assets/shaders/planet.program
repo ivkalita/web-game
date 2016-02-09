@@ -1,0 +1,4 @@
+{
+	"vs": "/assets/shaders/planet.vs.glsl",
+	"fs": "/assets/shaders/planet.fs.glsl"
+}

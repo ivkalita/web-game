@@ -112,13 +112,13 @@ private:
             PGresult* result = PQexecPrepared(
                 parent->conn,
                 stmt_name.c_str(),
-                params.size(),
+                (int)params.size(),
                 values,
                 nullptr,
                 nullptr,
                 0);
 
-            parent->free_values_array(values, params.size());
+            parent->free_values_array(values, (int)params.size());
 
             parent->check_errors(result);
 
@@ -289,14 +289,14 @@ public:
         PGresult* res = PQexecParams(
             conn,
             statement.c_str(),
-            params.size(),
+            (int)params.size(),
             nullptr,
             values,
             nullptr,
             nullptr,
             0);
 
-        free_values_array(values, params.size());
+        free_values_array(values, (int)params.size());
 
         check_errors(res);
         return QueryResult(res);

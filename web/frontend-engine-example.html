@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="assets/js/require.js"></script>
+    <script type="text/javascript" src="assets/js/require-config.js"></script>
+    <title>Example of engine.js</title>
+</head>
+<body>
+
+<a id="disable-webgl" href="#"></a> <a id="hide-objects" href="#"></a><br>
+<div id="render"></div>
+<div id="info"></div>
+
+<script>
+    require(
+            ['engine', 'jquery'],
+            function(Engine, $) {
+                var pageParams = {
+                    noWebGL: window.location.hash.indexOf('canvas') != -1,
+                    showObjects: window.location.hash.indexOf('hideObjects') == -1
+                };
+
+                function reloadPage(param) {
+                    return function() {
+                        pageParams[param] = !pageParams[param];
+                        window.location.hash = '#' + (pageParams.noWebGL ? 'canvas' : '') + (pageParams.showObjects ? '' : 'hideObjects');
+                        window.location.reload(true);
+                        return false;
+                    }
+                }
+
+                var $disableWebgl = $('#disable-webgl');
+                $disableWebgl.text('Use ' + (pageParams.noWebGL ? 'autodetect' : 'canvas') + ' renderer');
+                $disableWebgl.click(reloadPage('noWebGL'));
+
+                var $hideObjects = $('#hide-objects');
+                $hideObjects.text((pageParams.showObjects ? 'Hide' : 'Show') + ' objects');
+                $hideObjects.click(reloadPage('showObjects'));
+
+                var engine = new Engine(500, 500, sendShips, pageParams.noWebGL);
+                $('#render').replaceWith(engine.view);
+
+                var testMessage = [{
+                    "planets":[
+                        {"id":0,"owner":1169134346,"radius":20,"ships_sum":10,"x":480,"y":440},
+                        {"id":1,"owner":1917001962,"radius":20,"ships_sum":10,"x":350,"y":100},
+                        {"id":2,"owner":688867418,"radius":20,"ships_sum":10,"x":160,"y":460},
+                        {"id":3,"owner":1917001962,"radius":30,"ships_sum":45,"x":360,"y":310},
+                        {"id":4,"owner":142422765,"radius":20,"ships_sum":10,"x":250,"y":260},
+                        {"id":5,"owner":683793437,"radius":20,"ships_sum":10,"x":160,"y":240},
+                        {"id":6,"owner":1917001962,"radius":40,"ships_sum":123,"x":160,"y":320},
+                        {"id":10,"owner":16711680,"radius":20,"ships_sum":10,"x":100,"y":100},
+                        {"id":11,"owner":65280,"radius":20,"ships_sum":10,"x":160,"y":100},
+                        {"id":12,"owner":255,"radius":20,"ships_sum":10,"x":220,"y":100}
+                    ],"ships":[]
+                }, 1917001962];
+
+                var emptyMessage = [{"planets":[],"ships":[]}, 0];
+
+                engine.update.apply(engine, pageParams.showObjects ? testMessage : emptyMessage);
+
+                var hideHr = false;
+                function sendShips(from, to, count) {
+                    var $info = $('#info');
+                    if (!hideHr) {
+                        if ($info.html()) $info.html('<hr>' + $info.html());
+                        hideHr = setTimeout(function(){ hideHr = false; }, 50);
+                    }
+                    $info.html('From: ' + from + ' to: ' + to + ' count: ' + count + '<br>' + $info.html());
+                }
+            }
+    );
+</script>
+</body>
+</html>

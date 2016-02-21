@@ -157,28 +157,6 @@
     };
 
 
-    function Ship(x, y, owner){
-        PIXI.Graphics.apply(this, []);
-        this.update(x, y, owner);
-    }
-
-    Ship.prototype = Object.create(PIXI.Graphics.prototype);
-    Ship.prototype.constructor = Ship;
-
-    Ship.prototype.update = function(x, y, owner){
-        this.x = x;
-        this.y = y;
-        this.visible = true;
-        if (this.owner != owner) {
-            this.clear();
-            this.beginFill(ownerColor(owner));
-            this.drawRect(-3, -3, 3, 3);
-            this.endFill();
-            this.owner = owner;
-        }
-    };
-
-
     var host_game_id, player_id, ws;
 
     $("#create").click(function() {

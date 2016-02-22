@@ -8,6 +8,7 @@ requirejs.config({
             name: 'pixi',
             location: 'pixi',
             main: 'pixi.min'
-        }
+        },
+        'engine'
     ]
 });

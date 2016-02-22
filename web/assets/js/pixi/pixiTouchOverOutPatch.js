@@ -16,8 +16,8 @@ define(
             function extendMethod(method, extFn) {
                 var old = proto[method];
                 proto[method] = function () {
-                    old.call(this, ...arguments);
-                    extFn.call(this, ...arguments);
+                    old.apply(this, arguments);
+                    extFn.apply(this, arguments);
                 };
             }
 

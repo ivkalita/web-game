@@ -1,6 +1,6 @@
 define(
-    ['pixi', './objects/planet', './objects/ship', './selection', 'pixi/pixiTouchOverOutPatch'],
-    function(PIXI, Planet, Ship, Selection) {
+    ['pixi', './objects/planet', './objects/ship', './selection', './tools', 'pixi/pixiTouchOverOutPatch'],
+    function(PIXI, Planet, Ship, Selection, Tools) {
         function Engine(width, height, sendShipsHandler, noWebGL) {
             this._renderer = PIXI.autoDetectRenderer(width, height, { antialias: true }, noWebGL);
             this.view = this._renderer.view;
@@ -36,6 +36,8 @@ define(
 
             this._selectDraw = new Selection();
             this._stage.addChild(this._selectDraw);
+
+            this._stage.addChild(new Tools(this));
 
             this._animate();
 

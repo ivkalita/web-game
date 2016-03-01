@@ -24,3 +24,5 @@ gtestresults.xml
 runner.dir/*
 tester.dir/*
 x64/*
+Win32/*
+

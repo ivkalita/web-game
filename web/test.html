@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <script type="text/javascript" src="assets/js/jquery-2.1.4.min.js"></script>
-    <script type="text/javascript" src="assets/js/pixi/pixi.js"></script>
     
     <title>Websocket test page</title>
 </head>
@@ -39,15 +38,6 @@
 <div id="test-block" style="width: 1000px;"></div>
 
 <script>
-    function ownerColor(owner) {
-        if (!ownerColor.colors[owner])
-            ownerColor.colors[owner] = Math.random() * 0xFFFFFF;
-        return ownerColor.colors[owner];
-    }
-    ownerColor.colors = {};
-
-    var planets = {}, ships = [];
-
     function Planet(id, x, y, radius, count, owner) {
         PIXI.Container.apply(this, []);
         this.id = id;
@@ -189,38 +179,6 @@
     };
 
 
-    var stage = new PIXI.Container();
-    var renderer = PIXI.autoDetectRenderer(500, 500, { antialias: true });
-    $('#render').replaceWith(renderer.view);
-
-    requestAnimationFrame(animate);
-    function animate() {
-        renderer.render(stage);
-        requestAnimationFrame(animate);
-    }
-
-    function updateStage(msg) {
-        msg.planets.forEach(function(pl){
-            if (!planets[pl.id]) {
-                planets[pl.id] = new Planet(pl.id, pl.x * 2, pl.y * 2, pl.radius * 2, pl.ships_sum, pl.owner);
-                stage.addChild(planets[pl.id]);
-            } else
-                planets[pl.id].update(pl.x * 2, pl.y * 2, pl.radius * 2, pl.ships_sum, pl.owner);
-        });
-        msg.ships.forEach(function(sh, i){
-            if (i < ships.length)
-                ships[i].update(sh.x * 2, sh.y * 2, sh.owner);
-            else {
-                ships.push(new Ship(sh.x * 2, sh.y * 2, sh.owner));
-                stage.addChild(ships[ships.length - 1]);
-            }
-        });
-        ships.slice(msg.ships.length).forEach(function(sh){
-            sh.visible = false;
-        });
-    }
-
-
     var host_game_id, player_id, ws;
 
     $("#create").click(function() {
@@ -251,8 +209,6 @@
                     player_id = msg.player_id;
                     $("#player-info").html("player_id: " + player_id);
                 }
-                if (typeof msg.planets != 'undefined')
-                    updateStage(msg);
                 var d = $("#test-block");
                 d.html(evt.data);
             };

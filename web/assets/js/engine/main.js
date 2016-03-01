@@ -1,6 +1,6 @@
 define(
-    ['pixi', './objects/planet', './objects/ship', 'pixi/pixiTouchOverOutPatch'],
-    function(PIXI, Planet, Ship) {
+    ['pixi', './objects/planet', './objects/ship', './selection', 'pixi/pixiTouchOverOutPatch'],
+    function(PIXI, Planet, Ship, Selection) {
         function Engine(width, height, sendShipsHandler, noWebGL) {
             this._renderer = PIXI.autoDetectRenderer(width, height, { antialias: true }, noWebGL);
             this.view = this._renderer.view;
@@ -34,7 +34,7 @@ define(
             this._objectsLayer.interactive = true;
             this._stage.addChild(this._objectsLayer);
 
-            this._selectDraw = new PIXI.Graphics();
+            this._selectDraw = new Selection();
             this._stage.addChild(this._selectDraw);
 
             this._animate();
@@ -105,36 +105,18 @@ define(
         };
 
         Engine.prototype._drawSelection = function(p1, p2) {
-            var borderWidth = 4;
-            var offset = 6;
             this._selectDraw.clear();
-            this._selectDraw.lineStyle(borderWidth, 0xFFFFFF, 0.5);
-            this._planetsSelected.forEach(function(pl){
-                this._selectDraw.drawCircle(pl.x, pl.y, pl.radius + offset);
-            }, this);
+            this._planetsSelected.forEach(this._selectDraw.drawPlanet.bind(this._selectDraw));
             if (this._target) {
-                var lOffset = offset + borderWidth / 2;
-                var pt = this._target;
-
                 this._planetsSelected.forEach(function(pl){
-                    if (pl == pt) return;
-                    var dest = new PIXI.Point(pt.x - pl.x, pt.y - pl.y);
-                    var len = Math.sqrt(dest.x * dest.x + dest.y * dest.y);
-                    var n = new PIXI.Point(dest.x / len, dest.y / len);
-
-                    this._selectDraw.moveTo(pl.x + n.x * (pl.radius + lOffset), pl.y + n.y * (pl.radius + lOffset));
-                    if (pt.radius)
-                        this._selectDraw.lineTo(pt.x - n.x * (pt.radius + lOffset), pt.y - n.y * (pt.radius + lOffset));
-                    else
-                        this._selectDraw.lineTo(pt.x, pt.y);
+                    if (pl == this._target) return;
+                    this._selectDraw.drawLine(pl, this._target);
                 }, this);
-                if (pt.radius && !this._planetsSelected.has(pt))
-                    this._selectDraw.drawCircle(pt.x, pt.y, pt.radius + offset);
+                if (this._target.radius && !this._planetsSelected.has(this._target))
+                    this._selectDraw.drawPlanet(this._target);
             }
-            if (p1 && p2) {
-                this._selectDraw.lineStyle(2, 0xFFFFFF, 0.5);
-                this._selectDraw.drawRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-            }
+            if (p1 && p2)
+                this._selectDraw.drawSelection(p1, p2);
         };
 
         Engine.prototype._updatePlanetsInteractive = function() {

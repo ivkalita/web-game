@@ -40,9 +40,20 @@
 
 <script>
     require(
-            ['jquery'],
-            function($) {
+            ['engine', 'jquery'],
+            function(Engine, $) {
                 var host_game_id, player_id, ws;
+
+                var engine = new Engine(250, 250, sendShips);
+                $('#render').replaceWith(engine.view);
+
+                function sendShips(from, to, count) {
+                    ws.send(JSON.stringify({
+                        sender_id: from,
+                        dest_id: to,
+                        num: Math.ceil(count)
+                    }));
+                }
 
                 $("#create").click(function() {
                     $.ajax("/api/create/token").done(function(data) {
@@ -72,6 +83,8 @@
                                 player_id = msg.player_id;
                                 $("#player-info").html("player_id: " + player_id);
                             }
+                            if (typeof msg.planets != 'undefined')
+                                engine.update(msg, player_id);
                             var d = $("#test-block");
                             d.html(evt.data);
                         };

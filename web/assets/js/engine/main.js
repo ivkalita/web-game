@@ -167,12 +167,8 @@ define(
 
         Engine.prototype._selectionUpdate = function(p1, p2) {
             this._planetsSelected.clear();
-            var min = new PIXI.Point(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y));
-            var max = new PIXI.Point(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
             Object.keys(this._planets).forEach(function (id) {
-                var p = this._planets[id].position;
-                var f = min.x <= p.x && min.y <= p.y && p.x <= max.x && p.y <= max.y;
-                if (f && this._planetsOwned.has(this._planets[id]))
+                if (this._planetsOwned.has(this._planets[id]) && this._planets[id].intersects(p1, p2))
                     this._planetsSelected.add(this._planets[id]);
             }, this);
             this._target = null;

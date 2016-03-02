@@ -71,6 +71,16 @@ define(
             this._draw();
         };
 
+        Planet.prototype.intersects = function(p1, p2) {
+            var recSizeH = new PIXI.Point(Math.abs(p1.x - p2.x) / 2, Math.abs(p1.y - p2.y) / 2);
+            var recCenter = new PIXI.Point(Math.min(p1.x, p2.x) + recSizeH.x, Math.min(p1.y, p2.y) + recSizeH.y);
+            var dis = new PIXI.Point(Math.abs(this.x - recCenter.x), Math.abs(this.y - recCenter.y));
+
+            if (dis.x > recSizeH.x + this.radius || dis.y > recSizeH.y + this.radius) return false;
+            if (dis.x <= recSizeH.x || dis.y <= recSizeH.y) return true;
+            return Math.pow(dis.x - recSizeH.x, 2) + Math.pow(dis.y - recSizeH.y, 2) <= Math.pow(this.radius, 2);
+        };
+
         return Planet;
     }
 );

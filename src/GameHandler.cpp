@@ -226,13 +226,6 @@ namespace {
 
                 Object json;
                 Poco::JSON::Array ships_array;
-                /*for (auto& ship : engine.GetShips()) {
-                    Object s;
-                    s.set("x", ship.GetX());
-                    s.set("y", ship.GetY());
-                    s.set("owner", ship.GetOwner());
-                    ships_array.add(s);
-                }*/
                 for (auto &group : engine.GetGroups()) {
                     for (auto &ship : group.GetShips()) {
                         Object s;

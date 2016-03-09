@@ -23,17 +23,27 @@ define(
                 );
             }
 
-            PIXI.Sprite.call(this, PIXI.Texture.fromCanvas(this._c));
+            PIXI.Container.call(this);
+            this.addChild(new PIXI.Sprite(PIXI.Texture.fromCanvas(this._c)));
 
             var twistFilter = new PIXI.filters.TwistFilter();
             twistFilter.angle = (Math.random() - .5) * Math.PI;
             twistFilter.radius = 0.5;
             this.filters = [twistFilter];
 
+            var img = 'assets/js/engine/displacement_map.png';
+            PIXI.loader.add(img, function(){
+                var displacementSprite = new PIXI.Sprite.fromImage(img);
+                this.addChild(displacementSprite);
+                var displacementFilter = new PIXI.filters.DisplacementFilter(displacementSprite, 100);
+                this.filters = [displacementFilter, twistFilter];
+                this.cacheAsBitmap = true;
+            }.bind(this)).load();
+
             this._c = null;
         }
 
-        Clouds.prototype = Object.create(PIXI.Sprite.prototype);
+        Clouds.prototype = Object.create(PIXI.Container.prototype);
         Clouds.prototype.constructor = Clouds;
 
         Clouds.prototype._isEnoughClouds = function() {

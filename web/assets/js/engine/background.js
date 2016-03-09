@@ -22,7 +22,6 @@ define(
                 this._static.addChild(new Star(width, height));
             }
 
-            this._static.cacheAsBitmap = true;
             this.addChild(this._static);
         }
 

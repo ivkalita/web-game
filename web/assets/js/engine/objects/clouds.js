@@ -29,16 +29,31 @@ define(
             var twistFilter = new PIXI.filters.TwistFilter();
             twistFilter.angle = (Math.random() - .5) * Math.PI;
             twistFilter.radius = 0.5;
-            this.filters = [twistFilter];
 
-            var img = 'assets/js/engine/displacement_map.png';
-            PIXI.loader.add(img, function(){
-                var displacementSprite = new PIXI.Sprite.fromImage(img);
-                this.addChild(displacementSprite);
-                var displacementFilter = new PIXI.filters.DisplacementFilter(displacementSprite, 100);
-                this.filters = [displacementFilter, twistFilter];
-                this.cacheAsBitmap = true;
-            }.bind(this)).load();
+            var displaceMapCanvas = document.createElement('canvas'), side = 512;
+            displaceMapCanvas.width =  side;
+            displaceMapCanvas.height = side;
+            ctx = displaceMapCanvas.getContext('2d');
+            ctx.fillStyle = '#888';
+            ctx.rect(0, 0, side, side);
+            ctx.fill();
+            var count = 100;
+            for (var i = 0; i < count; i++) {
+                ctx.beginPath();
+                var s = 150 * Math.random() + 150;
+                var x = (side - s) * Math.random(), y = (side - s) * Math.random();
+                var grd = ctx.createRadialGradient(x + s / 2, y + s / 2, s / 2, x + s / 2, y + s / 2, 0);
+                grd.addColorStop(0, 'transparent');
+                grd.addColorStop(1, i < count / 2 ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)');
+                ctx.fillStyle = grd;
+                ctx.rect(x, y, s, s);
+                ctx.fill();
+            }
+            var displacementSprite = new PIXI.Sprite(PIXI.Texture.fromCanvas(displaceMapCanvas));
+            this.addChild(displacementSprite);
+            var displacementFilter = new PIXI.filters.DisplacementFilter(displacementSprite, 100);
+
+            this.filters = [displacementFilter, twistFilter];
 
             this._c = null;
         }

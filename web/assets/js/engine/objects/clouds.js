@@ -59,6 +59,21 @@ define(
                 var y = Math.random() * Math.sin(angle) * (radius - circleRadius) + radius;
                 ctx.drawImage(circleC, x - circleRadius, y - circleRadius);
             }
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.translate(radius, radius);
+            ctx.rotate(Math.random() * Math.PI);
+            var t = 3/4;
+            ctx.moveTo(radius * (t - 1), -radius);
+            function r() { return radius * (2 - t) * Math.random(); }
+            var x1 = radius * (t - 1) + r(), y1 = -radius + r();
+            var x2 = radius - r(), y2 = radius * (1 - t) - r();
+            ctx.bezierCurveTo(x1, y1, x2, y2, radius, radius * (1 - t));
+            ctx.lineTo(radius, -radius);
+            ctx.lineTo(radius * (t - 1), -radius);
+            ctx.fill();
+
             return c;
         };
 

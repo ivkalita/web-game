@@ -10,10 +10,10 @@ define(
             this._cloudsColors = function (a){
                 return a[Math.floor(Math.random() * a.length)];
             }([
-                [ '#4A1730', '#582143', '#550101', '#11091E' ],
-                [ '#221587', '#372589', '#0C3C93', '#4646B4', '#11091E' ],
-                [ '#4F8585', '#1E4C4C', '#006183', '#1D7D6D', '#11091E' ],
-                [ '#742779', '#7C5578', '#18022B', '#11091E' ]
+                [[74, 23, 48], [88, 33, 67], [85, 1, 1], [17, 9, 30]],
+                [[34, 21, 135], [55, 37, 137], [12, 60, 147], [70, 70, 180], [17, 9, 30]],
+                [[79, 133, 133], [30, 76, 76], [0, 97, 131], [29, 125, 109], [17, 9, 30]],
+                [[116, 39, 121], [124, 85, 120], [24, 2, 43], [17, 9, 30]]
             ]);
             while (!this._isEnoughClouds()) {
                 var r = Math.random() * 400 + 200;
@@ -62,15 +62,6 @@ define(
             return c;
         };
 
-        function hexToRgb(hex) {
-            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
-        }
-
         Clouds.prototype._genCircleCanvas = function(radius, color) {
             var c = document.createElement('canvas');
             var ctx = c.getContext('2d');
@@ -78,8 +69,7 @@ define(
             c.height = radius * 2;
             var grd = ctx.createRadialGradient(radius, radius, radius, radius, radius, 0);
             grd.addColorStop(0, 'transparent');
-            var r = hexToRgb(color);
-            grd.addColorStop(1, 'rgba(' + r.r + ', ' + r.g + ', ' + r.b + ', 0.15)');
+            grd.addColorStop(1, 'rgba(' + color[0] + ', ' + color[1] + ', ' + color[2] + ', 0.15)');
             ctx.fillStyle = grd;
             ctx.arc(radius, radius, radius, 0, Math.PI * 2);
             ctx.fill();

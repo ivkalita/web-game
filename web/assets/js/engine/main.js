@@ -1,6 +1,6 @@
 define(
-    ['pixi', './objects/planet', './objects/ship', './selection', './tools', 'pixi/pixiTouchOverOutPatch'],
-    function(PIXI, Planet, Ship, Selection, Tools) {
+    ['pixi', './objects/planet', './objects/ship', './selection', './tools', './background', 'pixi/pixiTouchOverOutPatch'],
+    function(PIXI, Planet, Ship, Selection, Tools, Background) {
         function Engine(width, height, sendShipsHandler, noWebGL) {
             this._renderer = PIXI.autoDetectRenderer(width, height, { antialias: true }, noWebGL);
             this.view = this._renderer.view;
@@ -12,6 +12,8 @@ define(
             this._ships = [];
 
             this._stage = new PIXI.Container();
+            this._background = new Background(width, height);
+            this._stage.addChild(this._background);
 
             this._selectEventLayer = new PIXI.Graphics();
             this._selectEventLayer.beginFill(0x000000, 0);
@@ -95,6 +97,7 @@ define(
         }
 
         Engine.prototype._animate = function(){
+            this._background.update();
             this._renderer.render(this._stage);
             requestAnimationFrame(this._animate.bind(this));
         };

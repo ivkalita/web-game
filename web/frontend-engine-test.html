@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="assets/js/require.js"></script>
+    <script type="text/javascript" src="assets/js/require-config.js"></script>
+    <title>Tests for engine.js</title>
+    <style>
+        .success { color: green; }
+        .danger { color: red; }
+        .warning { color: darkorange; }
+    </style>
+</head>
+<body>
+    <button id="run-all-tests">Run all tests</button>
+    <div id="info"></div>
+    <script>
+        require(
+                ['engine', 'jquery', 'pixi'],
+                function(Engine, $, PIXI) {
+                    const player_id = 65280;
+                    const opponent_ids = [16711680];
+                    const noWebGL = true;
+
+                    var status = {
+                        ok: { name: 'OK', class: 'success' },
+                        wait: { name: 'WAIT', class: 'warning' },
+                        fail: { name: 'FAIL', class: 'danger', bad: true },
+                        exception: { name: 'EXCEPTION', class: 'danger', bad: true }
+                    };
+
+                    function updateResults(){
+                        var resultStr = '';
+                        tests.forEach(function(test, id){
+                            if (test[1])
+                                resultStr += 'Test ' + test[3] + ' - <span class="' + test[2].class +  '">'
+                                        + test[2].name + '</span> - ' + test[0] + '<br>';
+                            else
+                                resultStr += '<i>' + test[0] + '</i><br>';
+                        });
+                        $('#info').html(resultStr);
+                    }
+
+                    function getTestCallback(testId) {
+                        return function(result) {
+                            if (tests[testId][2].bad) return;
+                            tests[testId][2] = result ? status.ok : status.fail;
+                            updateResults();
+                        }
+                    }
+
+                    $('#run-all-tests').click(function() {
+                        var testId = 0;
+                        tests.forEach(function(test, id){
+                            if (!test[1]) return;
+                            test.push(status.wait);
+                            testId += 1;
+                            test.push(testId);
+                        });
+                        tests.forEach(function(test, id){
+                            if (!test[1]) return;
+                            try {
+                                if (!test[1](getTestCallback(id)))
+                                    test[2] = status.fail;
+                            } catch (e) {
+                                test[2] = status.exception;
+                            }
+                        });
+                        updateResults();
+                    });
+
+                    function getEngineHandler(sourcePlanetsIds, targetPlanetId, testCallback) {
+                        var hash = {};
+                        var fail = false;
+                        var count = 0;
+                        return function(from, to, c) {
+                            count++;
+                            fail = fail || !(c > 0 && to == targetPlanetId);
+                            if (fail || count > sourcePlanetsIds.length)
+                                testCallback(false);
+                            hash[from] = true;
+                            var f = true;
+                            sourcePlanetsIds.forEach(function(id){
+                                f = f && hash[id];
+                            });
+                            if (f) testCallback(true);
+                        }
+                    }
+
+                    var tests = [];
+
+                    (function(){
+                        tests.push(['One own planet, one opponent']);
+
+                        var message = {
+                            "planets": [
+                                {"id": 0, "owner": player_id, "radius": 30, "ships_sum": 10, "x": 100, "y": 100},
+                                {"id": 1, "owner": opponent_ids[0], "radius": 30, "ships_sum": 10, "x": 400, "y": 400}
+                            ], "ships": []
+                        };
+
+                        tests.push([
+                            'send by clicking',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'send by dragging',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'send by select rectangle',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._selectEventLayer.emit('mousedown', {data: {global: new PIXI.Point(50, 50)}});
+                                engine._selectEventLayer.emit('mouseup', {data: {global: new PIXI.Point(150, 150)}});
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+                    })();
+
+                    (function(){
+                        tests.push(['Two own planets']);
+
+                        var message = {
+                            "planets": [
+                                {"id":0,"owner":player_id,"radius":30,"ships_sum":10,"x":100,"y":100},
+                                {"id":1,"owner":player_id,"radius":30,"ships_sum":10,"x":400,"y":400}
+                            ],"ships":[]};
+
+                        tests.push([
+                            'send by clicking',
+                            function(callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'send by dragging',
+                            function(callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'send by select rectangle',
+                            function(callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._selectEventLayer.emit('mousedown', {data: {global: new PIXI.Point(50, 50)}});
+                                engine._selectEventLayer.emit('mouseup', {data: {global: new PIXI.Point(150, 150)}});
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select two planets by dragging, send to own planet',
+                            function (callback){
+                                var engine = new Engine(500, 500, getEngineHandler([1], 0, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseout');
+
+                                engine._planets[1].emit('mouseover');
+                                engine._planets[1].emit('mouseout');
+
+                                engine._planets[0].emit('mouseover');
+                                engine._planets[0].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select two planets by selection rectangle, send to own planet',
+                            function (callback){
+                                var engine = new Engine(500, 500, getEngineHandler([0], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._selectEventLayer.emit('mousedown', {data: {global: new PIXI.Point(50, 50)}});
+                                engine._selectEventLayer.emit('mouseup', {data: {global: new PIXI.Point(450, 450)}});
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select planet by click, drag from second planet to first',
+                            function (callback){
+                                var engine = new Engine(500, 500, getEngineHandler([1], 0, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseout');
+                                engine._planets[0].emit('mouseover');
+                                engine._planets[0].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+                    })();
+
+                    (function(){
+                        tests.push(['Two own planets, one opponent']);
+
+                        var message = {
+                            "planets": [
+                                {"id": 0, "owner": player_id, "radius": 30, "ships_sum": 10, "x": 100, "y": 100},
+                                {"id": 1, "owner": opponent_ids[0], "radius": 30, "ships_sum": 10, "x": 250, "y": 250},
+                                {"id": 2, "owner": player_id, "radius": 30, "ships_sum": 10, "x": 100, "y": 250}
+                            ], "ships": []
+                        };
+
+                        tests.push([
+                            'select two own planets by dragging, send ships to opponent planet by clicking',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 2], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseout');
+                                engine._planets[2].emit('mouseover');
+
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select two own planets by dragging, send ships to opponent planet by dragging',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 2], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[2].emit('mouseover');
+                                engine._planets[1].emit('mouseover');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select two own planets by select rectangle, send ships to opponent planet',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 2], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._selectEventLayer.emit('mousedown', {data: {global: new PIXI.Point(50, 50)}});
+                                engine._selectEventLayer.emit('mouseup', {data: {global: new PIXI.Point(150, 300)}});
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+                    })();
+
+                    (function() {
+                        tests.push(['Double click']);
+
+                        var message = {
+                            "planets": [
+                                {"id": 0, "owner": player_id, "radius": 30, "ships_sum": 10, "x": 100, "y": 100},
+                                {"id": 1, "owner": opponent_ids[0], "radius": 30, "ships_sum": 10, "x": 250, "y": 250},
+                                {"id": 2, "owner": player_id, "radius": 30, "ships_sum": 10, "x": 100, "y": 250},
+                                {"id": 3, "owner": player_id, "radius": 30, "ships_sum": 10, "x": 100, "y": 400}
+                            ], "ships": []
+                        };
+
+                        tests.push([
+                            'select all planets, send to planet used for selecting by click',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([2, 3], 0, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select all planets, send to opponent planet by click',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 2, 3], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+
+                                engine._planets[1].emit('mousedown');
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select all planets, send to own planet by click',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 3], 2, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+
+                                engine._planets[2].emit('mousedown');
+                                engine._planets[2].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select all planets, send to opponent planet by drag',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 2, 3], 1, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[0].emit('mousedown');
+
+                                engine._planets[1].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+
+                        tests.push([
+                            'select all planets, send to own planet by drag',
+                            function (callback) {
+                                var engine = new Engine(500, 500, getEngineHandler([0, 3], 2, callback), noWebGL);
+                                engine.update(message, player_id);
+                                engine._planets[0].emit('mousedown');
+                                engine._planets[0].emit('mouseup');
+                                engine._planets[0].emit('mousedown');
+
+                                engine._planets[2].emit('mouseup');
+                                return engine._planetsSelected.size == 0;
+                            }
+                        ]);
+                    })();
+                }
+        );
+    </script>
+</body>
+</html>

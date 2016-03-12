@@ -66,6 +66,7 @@ add_executable(runner
     include/Router.hpp
     include/WebgameServer.hpp
     include/User.hpp
+    include/MathVector.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 

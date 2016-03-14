@@ -36,11 +36,11 @@ namespace GameEngine {
         return a;
     }
 
-    bool Planet::IsNear(Vector v) {
+    bool Planet::IsNear(Vector v) const {
         return IsHypotLessThen(pos, v, radius + CLOSE_RANGE);
     }
 
-    bool Planet::IsInside(Vector v) {
+    bool Planet::IsInside(Vector v) const {
         return IsHypotLessThen(pos, v, radius);
     }
 
@@ -58,7 +58,7 @@ namespace GameEngine {
         return ships_num;
     }
 
-    std::string Planet::GetInfo() {
+    std::string Planet::GetInfo() const {
         std::stringstream s;
         s << "X: " << pos.x << " Y: " << pos.y << " radius: " << radius
             << " ships_num: " << ships_num << " owner: " << owner << " id: " << id;
@@ -103,7 +103,7 @@ namespace GameEngine {
         pos += speed;
     }
 
-    std::string Ship::GetInfo() {
+    std::string Ship::GetInfo() const {
         std::stringstream s;
         s << " X: " << pos.x << " Y: " << pos.y << " VX: " << speed.x << " VY: " << speed.y
             << " Sender: " << sender_planet.GetInfo() << " Dest: " << dest_planet.GetInfo()

@@ -195,12 +195,12 @@ namespace {
                         if (sender_id == dest_id)
                             throw Poco::Exception("sender_id = dest_id");
 
-                        GameEngine::Planet* sender = engine.GetPlanetsMap()[sender_id];
-                        GameEngine::Planet* dest = engine.GetPlanetsMap()[dest_id];
+                        GameEngine::Planet* sender = engine.GetPlanetsMap().find(sender_id)->second;
+                        GameEngine::Planet* dest = engine.GetPlanetsMap().find(dest_id)->second;
                         if (sender == nullptr || dest == nullptr)
                             throw Poco::Exception("There isn't planet with id: " + (sender == nullptr ? sender_id.toString() : dest_id.toString()));
 
-                        if (engine.GetPlanetsMap()[sender_id]->GetOwner() != player.first)
+                        if (engine.GetPlanetsMap().find(sender_id)->second->GetOwner() != player.first)
                             throw Poco::Exception("Planet id: " + sender_id.toString() + " doesn't belong to player id: " + std::to_string(player.first));
 
                         engine.Launch(num, *sender, *dest);

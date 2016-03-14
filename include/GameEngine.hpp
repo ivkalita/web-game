@@ -24,20 +24,20 @@ namespace GameEngine {
         Planet(const Planet& a);
         const Planet& operator = (const Planet& a);
 
-        bool operator == (const Planet& a) { return id == a.id; }
+        bool operator == (const Planet& a) const { return id == a.id; }
         int ReceiveShips(int count, int ships_owner);
         int RemoveShips(int count) { return ships_num -= count; }
 
-        bool IsNear(Vector v);
-        bool IsInside(Vector v);
-        tfloat GetX() { return pos.x; }
-        tfloat GetY() { return pos.y; }
-        Vector GetPos() { return pos; }
-        int GetOwner() { return owner; }
-        int ShipCount() { return ships_num; }
-        tfloat GetRadius() { return radius; }
-        int GetID() { return id; }
-        std::string GetInfo();
+        bool IsNear(Vector v) const;
+        bool IsInside(Vector v) const;
+        tfloat GetX() const { return pos.x; }
+        tfloat GetY() const { return pos.y; }
+        Vector GetPos() const { return pos; }
+        int GetOwner() const { return owner; }
+        int ShipCount() const { return ships_num; }
+        tfloat GetRadius() const { return radius; }
+        int GetID() const { return id; }
+        std::string GetInfo() const;
     };
 
     class Ship {
@@ -51,12 +51,12 @@ namespace GameEngine {
         static const tfloat speed_length;
         Ship(Planet& _sender_planet, Planet& _dest_planet);
         void Step(std::list<Planet>& planets);
-        int GetOwner() { return owner; }
-        tfloat GetX() { return pos.x; }
-        tfloat GetY() { return pos.y; }
-        Vector GetPos() { return pos; }
+        int GetOwner() const { return owner; }
+        tfloat GetX() const { return pos.x; }
+        tfloat GetY() const { return pos.y; }
+        Vector GetPos() const { return pos; }
         bool Finished() const { return finished; }
-        std::string GetInfo();
+        std::string GetInfo() const;
     };
 
     class Engine {
@@ -70,10 +70,10 @@ namespace GameEngine {
         void Step();
         Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
         void Launch(int count, Planet& sender_planet, Planet& dest_planet);
-        std::list<Ship>& GetShips() { return ships; }
-        std::list<Planet>& GetPlanets() { return planets; }
-        std::map<int, Planet*>& GetPlanetsMap() { return planets_map; }
-        int ActiveShipsCount() { return (int)ships.size(); }
+        const std::list<Ship>& GetShips() const { return ships; }
+        const std::list<Planet>& GetPlanets() const { return planets; }
+        const std::map<int, Planet*>& GetPlanetsMap() const { return planets_map; }
+        int ActiveShipsCount() const { return (int)ships.size(); }
     };
 
 };

@@ -10,6 +10,12 @@ namespace GameEngine {
     typedef double tfloat;
     typedef Vector2<tfloat> Vector;
 
+    class Planet;
+    class Ship;
+
+    typedef std::list<Planet> PlanetList;
+    typedef std::list<Ship> ShipList;
+
     class Planet {
     private:
         Vector pos;
@@ -61,8 +67,8 @@ namespace GameEngine {
 
     class Engine {
     private:
-        std::list<Ship> ships;
-        std::list<Planet> planets;
+        ShipList ships;
+        PlanetList planets;
         std::map<int, Planet*> planets_map;
         void RemoveFinishedFromFront();
     public:
@@ -70,8 +76,8 @@ namespace GameEngine {
         void Step();
         Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
         void Launch(int count, Planet& sender_planet, Planet& dest_planet);
-        const std::list<Ship>& GetShips() const { return ships; }
-        const std::list<Planet>& GetPlanets() const { return planets; }
+        const ShipList& GetShips() const { return ships; }
+        const PlanetList& GetPlanets() const { return planets; }
         const std::map<int, Planet*>& GetPlanetsMap() const { return planets_map; }
         int ActiveShipsCount() const { return (int)ships.size(); }
     };

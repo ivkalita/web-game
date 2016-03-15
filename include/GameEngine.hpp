@@ -55,6 +55,9 @@ namespace GameEngine {
         Planet &sender_planet, &dest_planet;
         int owner;
         bool finished;
+        Vector sum_pos;
+        Vector sum_speed;
+        void StepPrepare();
     public:
         ShipGroup(PlanetList &planet_list, Planet &sender, Planet &dest, int ship_count);
         void Step();
@@ -62,6 +65,8 @@ namespace GameEngine {
         const PlanetList& GetPlanets() const { return planets; }
         int GetOwner() const { return owner; }
         int Size() const { return ships.size(); }
+        Vector GetSumOfPos() const { return sum_pos; }
+        Vector GetSumOfSpeed() const { return sum_speed; }
         bool IsFinished() const { return finished; }
         const Planet& GetSenderPlanet() const { return sender_planet; }
         const Planet& GetDestPlanet() const { return dest_planet; }
@@ -72,7 +77,13 @@ namespace GameEngine {
         Vector pos, speed;
         ShipGroup &group;
         bool finished;
-        void aim();
+
+        Vector BoidsRule1();
+        Vector BoidsRule2();
+        Vector BoidsRule3();
+        Vector BoidsRule4();
+        Vector BoidsRule5();
+        void Aim();
     public:
         static const tfloat speed_length;
         Ship(ShipGroup &group_, tfloat X, tfloat Y);
@@ -82,6 +93,7 @@ namespace GameEngine {
         tfloat GetX() const { return pos.x; }
         tfloat GetY() const { return pos.y; }
         Vector GetPos() const { return pos; }
+        Vector GetSpeed() const { return speed; }
         bool Finished() const { return finished; }
         std::string GetInfo() const;
     };

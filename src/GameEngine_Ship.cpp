@@ -6,9 +6,88 @@
 namespace GameEngine {
 
     const tfloat Ship::speed_length = 3;
-    
-    void Ship::aim() {
-        speed = group.GetDestPlanet().GetPos() - GetPos();
+
+    static bool IsHypotLessThen(tfloat dx, tfloat dy, tfloat val) {
+        return dx*dx + dy*dy < val*val;
+    }
+
+    static bool IsHypotLessThen(Vector v1, Vector v2, tfloat val) {
+        return IsHypotLessThen(v1.x - v2.x, v1.y - v2.y, val);
+    }
+
+    static const tfloat l1 = 0.85;
+    static const tfloat w2 = 1.0 / 160;
+    static const tfloat w3 = 1.0 / 18;
+    static const tfloat w4 = 1.0 / 8;
+    static const tfloat w5 = 1.0 / 15;
+    static const tfloat ship_close_enought = 10;
+
+    // Using Boids algorithm to calculate speed of ship
+    // Move to DestPlanet
+    Vector Ship::BoidsRule1() {
+        Vector v = group.GetDestPlanet().GetPos() - GetPos();
+        v.SetLength(l1);
+        return v;
+    }
+
+    // Move to MassCenter of group
+    Vector Ship::BoidsRule2() {
+        if (group.Size() <= 1)
+            return Vector();
+        Vector v = group.GetSumOfPos() - pos;
+        v /= group.Size() - 1;
+        v -= pos;
+        return v * w2;
+    }
+
+    // Average speed of all other ships from group
+    Vector Ship::BoidsRule3() {
+        if (group.Size() <= 1)
+            return Vector();
+        Vector v = group.GetSumOfSpeed() - speed;
+        v /= group.Size() - 1;
+        v -= speed;
+        return v * w3;
+    }
+
+    // Avoid collision with other planets
+    Vector Ship::BoidsRule4() {
+        const tfloat A = 1.5;
+        const tfloat B = 0;
+        for (auto& p : group.GetPlanets()) {
+            if (p == group.GetDestPlanet() || !p.IsNear(pos))
+                continue;
+            Vector v = pos - p.GetPos();
+            v.SetLength(p.GetRadius() + Planet::CLOSE_RANGE*A + B - v.GetLength());
+            return v * w4;
+        }
+        return Vector();
+    }
+
+    // Avoid collision with other ships form group
+    Vector Ship::BoidsRule5() {
+        const tfloat A = 2;
+        const tfloat B = 4;
+        Vector v;
+        for (auto& s : group.GetShips()) {
+            if (!IsHypotLessThen(pos, s.pos, ship_close_enought))
+                continue;
+            Vector t = pos - s.pos;
+            t.SetLength(ship_close_enought*A + B - t.GetLength());
+            v += t;
+        }
+        return v*w5;
+    }
+
+    void Ship::Aim() {
+        Vector v;
+        v += BoidsRule1();
+        v += BoidsRule2();
+        v += BoidsRule3();
+        v += BoidsRule4();
+        v += BoidsRule5();
+        speed.SetLength(1);
+        speed += v;
         speed.SetLength(speed_length);
     }
 
@@ -16,36 +95,18 @@ namespace GameEngine {
         group(group_), finished(false), pos(Vector(X, Y)) {}
 
     void Ship::Step() {
-        aim();
-        for (auto& p : group.GetPlanets()) {
-            if (p.IsNear(pos)) {
-                if (p.IsInside(pos + speed)) {
-                    if (p == group.GetDestPlanet()) {
-                        finished = true;
-                    }
-                    Vector c = p.GetPos() - pos;
-                    if (c.x * speed.y - speed.x * c.y >= 0) {
-                        c = Vector(-c.y, c.x);
-                    }
-                    else {
-                        c = Vector(c.y, -c.x);
-                    }
-                    speed = c;
-                    speed.SetLength(speed_length);
-                    break;
-                }
-            }
-        }
+        Aim();
         pos += speed;
+        finished = group.GetDestPlanet().IsInside(pos);
     }
 
     std::string Ship::GetInfo() const {
         std::stringstream s;
-        s << " X: " << pos.x << " Y: " << pos.y 
+        s << " X: " << pos.x << " Y: " << pos.y
             << " VX: " << speed.x << " VY: " << speed.y
-            << " Sender: " << group.GetSenderPlanet().GetInfo() 
+            << " Sender: " << group.GetSenderPlanet().GetInfo()
             << " Dest: " << group.GetDestPlanet().GetInfo()
-            << " owner: " << group.GetOwner() 
+            << " owner: " << group.GetOwner()
             << " finished: " << finished;
         return s.str();
     }

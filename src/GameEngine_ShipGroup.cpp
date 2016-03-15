@@ -3,8 +3,8 @@
 #include "GameEngine.hpp"
 
 #include <sstream>
-#include "Poco/Exception.h"
 #include <algorithm>
+#include "Poco/Exception.h"
 
 namespace GameEngine {
 
@@ -23,7 +23,17 @@ namespace GameEngine {
         }
     }
 
+    void ShipGroup::StepPrepare() {
+        sum_pos = sum_speed = Vector(0, 0);
+        for (auto& ship : ships) {
+            sum_pos += ship.GetPos();
+            sum_speed += ship.GetSpeed();
+        }
+    }
+
     void ShipGroup::Step() {
+        StepPrepare();
+
         auto it = ships.begin();
         while (it != ships.end()) {
             it->Step();

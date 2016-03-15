@@ -1,7 +1,10 @@
+#define _USE_MATH_DEFINES 
+
 #include "GameEngine.hpp"
 
 #include <sstream>
 #include "Poco/Exception.h"
+#include <algorithm>
 
 namespace GameEngine {
 
@@ -11,8 +14,12 @@ namespace GameEngine {
         owner = sender.GetOwner();
         tfloat r = sender.GetRadius();
         Vector C = sender.GetPos();
+        Vector goal = dest.GetPos() - C;
+        tfloat delta = std::min<tfloat>(M_PI / ship_count, 0.4);
+        tfloat alpha = atan2(goal.y, goal.x) - delta*(ship_count / 2);
         for (int i = 0; i < ship_count; i++) {
-            ships.emplace_back(*this, C.x + r, C.y);
+            tfloat a = alpha + delta*i;
+            ships.emplace_back(*this, C.x + r*cos(a), C.y + r*sin(a));
         }
     }
 

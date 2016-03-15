@@ -4,12 +4,35 @@
 
 #include <sstream>
 #include <algorithm>
-#include "Poco/Exception.h"
 
 namespace GameEngine {
 
-    ShipGroup::ShipGroup(PlanetList &planet_list, Planet &sender, Planet &dest, int ship_count) :
-        sender_planet(sender), dest_planet(dest), planets(planet_list)
+    bool ShipGroup::IsOverlapping(const ShipGroup& g) {
+        tfloat l = g.left - Ship::CLOSE_RANGE;
+        tfloat r = g.right + Ship::CLOSE_RANGE;
+        tfloat t = g.top - Ship::CLOSE_RANGE;
+        tfloat b = g.bot + Ship::CLOSE_RANGE;
+
+        tfloat L = std::min(l, left);
+        tfloat R = std::max(r, right);
+        tfloat T = std::min(t, top);
+        tfloat B = std::max(b, bot);
+
+        bool X = (R - L <= r - l + right - left);
+        bool Y = (B - T <= b - t + bot - top);
+        return X && Y;
+    }
+
+    void ShipGroup::FindOverlappingGroups() {
+        groups_overlapping.clear();
+        for (auto it = engine.GetGroups().begin(); it != engine.GetGroups().end(); it++) {
+            if (IsOverlapping(*it))
+                groups_overlapping.push_back(it);
+        }
+    }
+
+    ShipGroup::ShipGroup(Engine &engine_, Planet &sender, Planet &dest, int ship_count) :
+        sender_planet(sender), dest_planet(dest), engine(engine_)
     {
         owner = sender.GetOwner();
         tfloat r = sender.GetRadius();
@@ -25,15 +48,21 @@ namespace GameEngine {
 
     void ShipGroup::StepPrepare() {
         sum_pos = sum_speed = Vector(0, 0);
+        top = bot = ships.begin()->GetY();
+        left = right = ships.begin()->GetX();
         for (auto& ship : ships) {
             sum_pos += ship.GetPos();
             sum_speed += ship.GetSpeed();
+            top = std::min(top, ship.GetY());
+            bot = std::max(bot, ship.GetY());
+            left  = std::min(left, ship.GetX());
+            right = std::max(right, ship.GetX());
         }
     }
 
+    
     void ShipGroup::Step() {
-        StepPrepare();
-
+        FindOverlappingGroups();
         auto it = ships.begin();
         while (it != ships.end()) {
             it->Step();

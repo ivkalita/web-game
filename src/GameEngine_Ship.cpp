@@ -6,6 +6,7 @@
 namespace GameEngine {
 
     const tfloat Ship::speed_length = 3;
+    const tfloat Ship::CLOSE_RANGE = 10;
 
     static bool IsHypotLessThen(tfloat dx, tfloat dy, tfloat val) {
         return dx*dx + dy*dy < val*val;
@@ -16,11 +17,10 @@ namespace GameEngine {
     }
 
     static const tfloat l1 = 0.85;
-    static const tfloat w2 = 1.0 / 160;
+    static const tfloat w2 = 1.0 / 60;
     static const tfloat w3 = 1.0 / 18;
     static const tfloat w4 = 1.0 / 8;
     static const tfloat w5 = 1.0 / 15;
-    static const tfloat ship_close_enought = 10;
 
     // Using Boids algorithm to calculate speed of ship
     // Move to DestPlanet
@@ -69,12 +69,14 @@ namespace GameEngine {
         const tfloat A = 2;
         const tfloat B = 4;
         Vector v;
-        for (auto& s : group.GetShips()) {
-            if (!IsHypotLessThen(pos, s.pos, ship_close_enought))
-                continue;
-            Vector t = pos - s.pos;
-            t.SetLength(ship_close_enought*A + B - t.GetLength());
-            v += t;
+        for (auto& it : group.GetOverlappingGroups()) {
+            for (auto& s : it->GetShips()) {
+                if (!IsHypotLessThen(pos, s.pos, CLOSE_RANGE))
+                    continue;
+                Vector t = pos - s.pos;
+                t.SetLength(CLOSE_RANGE*A + B - t.GetLength());
+                v += t;
+            }
         }
         return v*w5;
     }

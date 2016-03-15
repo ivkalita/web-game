@@ -6,6 +6,10 @@
 namespace GameEngine {
 
     void Engine::Step() {
+        for (auto& g : groups) {
+            g.StepPrepare();
+        }
+
         auto it = groups.begin();
         while (it != groups.end()) {
             it->Step();
@@ -46,7 +50,7 @@ namespace GameEngine {
                 + " on a planet:\n" + sender_planet.GetInfo());
 
         sender_planet.RemoveShips(count);
-        groups.emplace_back(planets, sender_planet, dest_planet, count);
+        groups.emplace_back(*this, sender_planet, dest_planet, count);
     }
 
     int Engine::ActiveShipsCount() const {

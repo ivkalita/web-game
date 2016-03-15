@@ -14,6 +14,8 @@
 namespace {
     using namespace Poco::Net;
 
+    const long game_refresh_interval = 500;
+
     class EventHandler {
     private:
         std::string send_buffer, recv_buffer;
@@ -175,7 +177,7 @@ namespace {
             using namespace Poco::Dynamic;
 
             Parser parser;
-            Poco::Thread::current()->sleep(500);
+            Poco::Thread::current()->sleep(game_refresh_interval);
             {
                 Poco::Mutex::ScopedLock lock(recv_mutex);
                 Poco::LogStream logger(WebgameServer::instance().logger());

@@ -12,9 +12,11 @@ namespace GameEngine {
 
     class Planet;
     class Ship;
+    class ShipGroup;
 
     typedef std::list<Planet> PlanetList;
     typedef std::list<Ship> ShipList;
+    typedef std::list<ShipGroup> ShipGroupList;
 
     class Planet {
     private:
@@ -46,18 +48,37 @@ namespace GameEngine {
         std::string GetInfo() const;
     };
 
+    class ShipGroup {
+    private:
+        ShipList ships;
+        PlanetList &planets;
+        Planet &sender_planet, &dest_planet;
+        int owner;
+        bool finished;
+    public:
+        ShipGroup(PlanetList &planet_list, Planet &sender, Planet &dest, int ship_count);
+        void Step();
+        const ShipList& GetShips() const { return ships; }
+        const PlanetList& GetPlanets() const { return planets; }
+        int GetOwner() const { return owner; }
+        int Size() const { return ships.size(); }
+        bool IsFinished() const { return finished; }
+        const Planet& GetSenderPlanet() const { return sender_planet; }
+        const Planet& GetDestPlanet() const { return dest_planet; }
+    };
+
     class Ship {
     private:
         Vector pos, speed;
-        Planet &sender_planet, &dest_planet;
-        int owner;
+        ShipGroup &group;
         bool finished;
         void aim();
     public:
         static const tfloat speed_length;
-        Ship(Planet& _sender_planet, Planet& _dest_planet);
-        void Step(std::list<Planet>& planets);
-        int GetOwner() const { return owner; }
+        Ship(ShipGroup &group_, tfloat X, tfloat Y);
+
+        void Step();
+        int GetOwner() const { return group.GetOwner(); }
         tfloat GetX() const { return pos.x; }
         tfloat GetY() const { return pos.y; }
         Vector GetPos() const { return pos; }
@@ -67,19 +88,18 @@ namespace GameEngine {
 
     class Engine {
     private:
-        ShipList ships;
+        ShipGroupList groups;
         PlanetList planets;
         std::map<int, Planet*> planets_map;
-        void RemoveFinishedFromFront();
     public:
         Engine() {}
         void Step();
         Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
         void Launch(int count, Planet& sender_planet, Planet& dest_planet);
-        const ShipList& GetShips() const { return ships; }
+        const ShipGroupList& GetGroups() const { return groups; }
         const PlanetList& GetPlanets() const { return planets; }
         const std::map<int, Planet*>& GetPlanetsMap() const { return planets_map; }
-        int ActiveShipsCount() const { return (int)ships.size(); }
+        int ActiveShipsCount() const;
     };
 
 };

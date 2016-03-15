@@ -60,6 +60,7 @@ add_executable(runner
     src/Pages.cpp
     src/GameEngine.cpp
     src/GameEngine_Ship.cpp
+    src/GameEngine_ShipGroup.cpp
     src/GameEngine_Planet.cpp
     src/Users.cpp
     src/GameHandler.cpp
@@ -76,6 +77,7 @@ add_executable(tester
     src/AbstractRouter.cpp
     src/GameEngine.cpp
     src/GameEngine_Ship.cpp
+    src/GameEngine_ShipGroup.cpp
     src/GameEngine_Planet.cpp
     tests/Engine/EngineTest1.cpp
     tests/test_1.cpp

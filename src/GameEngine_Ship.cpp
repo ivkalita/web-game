@@ -6,27 +6,21 @@
 namespace GameEngine {
 
     const tfloat Ship::speed_length = 3;
-
+    
     void Ship::aim() {
-        speed = dest_planet.GetPos() - GetPos();
+        speed = group.GetDestPlanet().GetPos() - GetPos();
         speed.SetLength(speed_length);
     }
 
-    Ship::Ship(Planet& _sender_planet, Planet& _dest_planet) :
-        sender_planet(_sender_planet), dest_planet(_dest_planet), finished(false) {
-        pos.x = sender_planet.GetX() + sender_planet.GetRadius();
-        pos.y = sender_planet.GetY();
-        owner = sender_planet.GetOwner();
-        aim();
-    }
+    Ship::Ship(ShipGroup &group_, tfloat X, tfloat Y) :
+        group(group_), finished(false), pos(Vector(X, Y)) {}
 
-    void Ship::Step(std::list<Planet>& planets) {
+    void Ship::Step() {
         aim();
-        for (auto& p : planets) {
+        for (auto& p : group.GetPlanets()) {
             if (p.IsNear(pos)) {
                 if (p.IsInside(pos + speed)) {
-                    if (p == dest_planet) {
-                        p.ReceiveShips(1, owner);
+                    if (p == group.GetDestPlanet()) {
                         finished = true;
                     }
                     Vector c = p.GetPos() - pos;
@@ -47,9 +41,12 @@ namespace GameEngine {
 
     std::string Ship::GetInfo() const {
         std::stringstream s;
-        s << " X: " << pos.x << " Y: " << pos.y << " VX: " << speed.x << " VY: " << speed.y
-            << " Sender: " << sender_planet.GetInfo() << " Dest: " << dest_planet.GetInfo()
-            << " owner: " << owner << " finished: " << finished;
+        s << " X: " << pos.x << " Y: " << pos.y 
+            << " VX: " << speed.x << " VY: " << speed.y
+            << " Sender: " << group.GetSenderPlanet().GetInfo() 
+            << " Dest: " << group.GetDestPlanet().GetInfo()
+            << " owner: " << group.GetOwner() 
+            << " finished: " << finished;
         return s.str();
     }
 

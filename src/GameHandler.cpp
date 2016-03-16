@@ -154,7 +154,7 @@ namespace {
         do {
             x = randomGen.nextDouble() * 250;
             y = randomGen.nextDouble() * 250;
-            bool valid = true;
+            valid = true;
             for (auto& p : engine.GetPlanets()) {
                 if (std::hypot(p.GetX() - x, p.GetY() - y) <= 2 * (radius + GameEngine::Planet::CLOSE_RANGE)) {
                     valid = false;

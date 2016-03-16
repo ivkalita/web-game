@@ -14,7 +14,7 @@
 namespace {
     using namespace Poco::Net;
 
-    const long game_refresh_interval = 500;
+    const long game_refresh_interval = 50;
 
     class EventHandler {
     private:

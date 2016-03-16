@@ -5,7 +5,7 @@
 
 namespace GameEngine {
 
-    const tfloat Ship::speed_length = 3;
+    const tfloat Ship::speed_length = 0.4;
     const tfloat Ship::CLOSE_RANGE = 10;
 
     static bool IsHypotLessThen(tfloat dx, tfloat dy, tfloat val) {

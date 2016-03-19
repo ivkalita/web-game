@@ -1,7 +1,6 @@
 #include "GameEngine.hpp"
 
 #include <sstream>
-#include "Poco/Exception.h"
 
 namespace GameEngine {
 

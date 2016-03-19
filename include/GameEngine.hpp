@@ -117,6 +117,7 @@ namespace GameEngine {
         tfloat GetY() const { return pos.y; }
         Vector GetPos() const { return pos; }
         Vector GetSpeed() const { return speed; }
+        tfloat GetAngle() const { return atan2(speed.y, speed.x); }
         bool Finished() const { return finished; }
         std::string GetInfo() const;
     };

@@ -234,6 +234,7 @@ namespace {
                         s.set("x", ship.GetX());
                         s.set("y", ship.GetY());
                         s.set("owner", ship.GetOwner());
+                        s.set("angle", ship.GetAngle());
                         ships_array.add(s);
                     }
                 }

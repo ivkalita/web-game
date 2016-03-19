@@ -1,7 +1,7 @@
 define(
     ['pixi'],
     function(PIXI) {
-        function Ship(x, y, color){
+        function Ship(x, y, angle, color){
             PIXI.Graphics.call(this);
             this.update(x, y, color);
         }

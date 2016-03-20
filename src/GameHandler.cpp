@@ -51,6 +51,7 @@ namespace {
         Poco::Thread reactor_thread, own_thread;
         std::map<int, EventHandler*> players;
         int id;
+        void ProcessRecv(std::string buf, int player_id);
     public:
         Game(int _id) : id(_id) { }
         void RemovePlayer(int id) { players.erase(id); }
@@ -168,54 +169,57 @@ namespace {
         return new_id;
     }
 
+    void Game::ProcessRecv(std::string buf, int player_id) {
+        using namespace Poco::JSON;
+        using namespace Poco::Dynamic;
+        Parser parser;
+        Poco::LogStream logger(WebgameServer::instance().logger());
+        try {
+            auto json = parser.parse(buf);
+            Object::Ptr obj = json.extract<Object::Ptr>();
+            Var sender_id = obj->get("sender_id");
+            Var dest_id = obj->get("dest_id");
+            Var num = obj->get("num");
+
+            if (sender_id == dest_id)
+                throw Poco::Exception("sender_id = dest_id");
+
+            GameEngine::Planet* sender = engine.GetPlanetsMap().find(sender_id)->second;
+            GameEngine::Planet* dest = engine.GetPlanetsMap().find(dest_id)->second;
+            if (sender == nullptr || dest == nullptr)
+                throw Poco::Exception("There isn't planet with id: " + (sender == nullptr ? sender_id.toString() : dest_id.toString()));
+
+            if (engine.GetPlanetsMap().find(sender_id)->second->GetOwner() != player_id)
+                throw Poco::Exception("Planet id: " + sender_id.toString() + " doesn't belong to player id: " + std::to_string(player_id));
+
+            engine.Launch(num, *sender, *dest);
+        }
+        catch (JSONException& e) {
+            logger << "Poco json exception: " << e.what() << std::endl << "buf=" << buf << std::endl;
+        }
+        catch (Poco::Exception& e) {
+            logger << e.what() << std::endl;
+        }
+        catch (std::exception& e) {
+            logger << "std exc: " << e.what() << std::endl;
+        }
+    }
+
     void Game::run() {
         reactor_thread.setName("Game thread - socket reactor");
         reactor_thread.start(reactor);
 
         while (1) {
-            using namespace Poco::JSON;
-            using namespace Poco::Dynamic;
-
-            Parser parser;
             Poco::Thread::current()->sleep(game_refresh_interval);
             {
                 Poco::Mutex::ScopedLock lock(recv_mutex);
-                Poco::LogStream logger(WebgameServer::instance().logger());
 
                 for (auto& player : players) {
                     std::string& buf = player.second->GetRecvBuf();
                     if (buf.size() == 0 || player.second->IsDisconnected())
                         continue;
 
-                    try {
-                        auto json = parser.parse(buf);
-                        Object::Ptr obj = json.extract<Object::Ptr>();
-                        Var sender_id = obj->get("sender_id");
-                        Var dest_id = obj->get("dest_id");
-                        Var num = obj->get("num");
-
-                        if (sender_id == dest_id)
-                            throw Poco::Exception("sender_id = dest_id");
-
-                        GameEngine::Planet* sender = engine.GetPlanetsMap().find(sender_id)->second;
-                        GameEngine::Planet* dest = engine.GetPlanetsMap().find(dest_id)->second;
-                        if (sender == nullptr || dest == nullptr)
-                            throw Poco::Exception("There isn't planet with id: " + (sender == nullptr ? sender_id.toString() : dest_id.toString()));
-
-                        if (engine.GetPlanetsMap().find(sender_id)->second->GetOwner() != player.first)
-                            throw Poco::Exception("Planet id: " + sender_id.toString() + " doesn't belong to player id: " + std::to_string(player.first));
-
-                        engine.Launch(num, *sender, *dest);
-                    }
-                    catch (JSONException& e) {
-                        logger << "Poco json exception: " << e.what() << std::endl << "buf=" << buf << std::endl;
-                    }
-                    catch (Poco::Exception& e) {
-                        logger << e.what() << std::endl;
-                    }
-                    catch (std::exception& e) {
-                        logger << "std exc: " << e.what() << std::endl;
-                    }
+                    ProcessRecv(buf, player.first);
 
                     player.second->ClearRecvBuf();
                 }
@@ -225,6 +229,7 @@ namespace {
 
             {
                 Poco::Mutex::ScopedLock lock(send_mutex);
+                using namespace Poco::JSON;
 
                 Object json;
                 Poco::JSON::Array ships_array;

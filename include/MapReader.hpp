@@ -13,13 +13,16 @@ private:
         int radius;
         int owner;
         int ships_count;
+        std::string GetInfo();
     };
     struct MapInfo {
         int players_count;
+        int width, heigth;
         std::vector<PlanetInfo> planets;
     };
     MapInfo map;
     void ReadPlanet(Poco::JSON::Object::Ptr &_planet);
+    void Check();
 public:
     void ReadMap(std::string &filename);
     void InitEngine(GameEngine::Engine &engine);

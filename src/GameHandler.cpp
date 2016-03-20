@@ -18,7 +18,8 @@ namespace {
 
     class EventHandler {
     private:
-        std::string send_buffer, recv_buffer;
+        std::list<std::string> recv_buffer;
+        std::string send_buffer;
         Poco::Mutex* send_mutex, *recv_mutex;
         WebSocket* socket;
         SocketReactor* reactor;
@@ -34,7 +35,7 @@ namespace {
         void HandleError(const Poco::AutoPtr<ErrorNotification>& n);
         void HandleIdle(const Poco::AutoPtr<IdleNotification>& n);
 
-        std::string& GetRecvBuf() { return recv_buffer; }
+        std::list<std::string>& GetRecvBuf() { return recv_buffer; }
         void ClearRecvBuf() { recv_buffer.clear(); }
         void SetSendBuffer(std::string& s) { send_buffer = s; }
         bool IsDisconnected() { return disconnected; }
@@ -115,7 +116,7 @@ namespace {
             Unregister();
         } else {
             Poco::Mutex::ScopedLock lock(*recv_mutex);
-            recv_buffer = std::string(buf, received);
+            recv_buffer.push_back(std::string(buf, received));
         }
     }
 
@@ -215,11 +216,12 @@ namespace {
                 Poco::Mutex::ScopedLock lock(recv_mutex);
 
                 for (auto& player : players) {
-                    std::string& buf = player.second->GetRecvBuf();
+                    auto& buf = player.second->GetRecvBuf();
                     if (buf.size() == 0 || player.second->IsDisconnected())
                         continue;
 
-                    ProcessRecv(buf, player.first);
+                    for (auto s : buf)
+                        ProcessRecv(s, player.first);
 
                     player.second->ClearRecvBuf();
                 }

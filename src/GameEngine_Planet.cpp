@@ -4,7 +4,7 @@
 
 namespace GameEngine {
 
-    const tfloat Planet::CLOSE_RANGE = 12;
+    const tfloat Planet::CLOSE_RANGE = 20;
     int Planet::id_generator = 0;
 
     static bool IsHypotLessThen(tfloat dx, tfloat dy, tfloat val) {

@@ -132,7 +132,7 @@ define(
         };
 
         Engine.prototype.update = function(msg, playerId) {
-            function ownerColor(owner) { return owner & 0xFFFFFF; }
+            function ownerColor(owner) { return owner ? owner & 0xFFFFFF : 0x7f7f7f; }
             this._planetsOwned.clear();
             msg.planets.forEach(function(pl){
                 if (!this._planets[pl.id]) {

@@ -154,9 +154,9 @@ define(
 
             msg.ships.forEach(function(sh, i){
                 if (i < this._ships.length)
-                    this._ships[i].update(sh.x, sh.y, ownerColor(sh.owner));
+                    this._ships[i].update(sh.x, sh.y, sh.angle, ownerColor(sh.owner));
                 else {
-                    this._ships.push(new Ship(sh.x, sh.y, ownerColor(sh.owner)));
+                    this._ships.push(new Ship(sh.x, sh.y, sh.angle, ownerColor(sh.owner)));
                     this._objectsLayer.addChild(this._ships[this._ships.length - 1]);
                 }
             }, this);

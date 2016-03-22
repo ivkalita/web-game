@@ -38,7 +38,7 @@ namespace GameEngine {
         tfloat r = sender.GetRadius();
         Vector C = sender.GetPos();
         Vector goal = dest.GetPos() - C;
-        tfloat delta = std::min<tfloat>(M_PI / ship_count, 0.4);
+        tfloat delta = std::min<tfloat>(M_PI / ship_count, 0.3);
         tfloat alpha = atan2(goal.y, goal.x) - delta*(ship_count / 2);
         for (int i = 0; i < ship_count; i++) {
             tfloat a = alpha + delta*i;

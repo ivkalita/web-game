@@ -64,12 +64,14 @@ add_executable(runner
     src/GameEngine_Planet.cpp
     src/Users.cpp
     src/GameHandler.cpp
+	src/MapReader.cpp
     include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp
     include/WebgameServer.hpp
     include/User.hpp
     include/MathVector.hpp
+	include/MapReader.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 

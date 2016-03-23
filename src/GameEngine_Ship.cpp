@@ -53,10 +53,15 @@ namespace GameEngine {
     Vector Ship::BoidsRule4() {
         const tfloat A = 1.5;
         const tfloat B = 0;
+        const tfloat D = 2;
         for (auto& p : group.GetPlanets()) {
             if (p == group.GetDestPlanet() || !p.IsNear(pos))
                 continue;
             Vector v = pos - p.GetPos();
+            Vector t = v;
+            t.SetLength(speed_length + D);
+            if (p.IsInside(pos - t))
+                return v * 10000;
             v.SetLength(p.GetRadius() + Planet::CLOSE_RANGE*A + B - v.GetLength());
             return v * w4;
         }

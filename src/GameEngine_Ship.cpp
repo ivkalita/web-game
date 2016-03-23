@@ -4,8 +4,8 @@
 
 namespace GameEngine {
 
-    const tfloat Ship::speed_length = 0.4;
-    const tfloat Ship::CLOSE_RANGE = 10;
+    const tfloat Ship::speed_length = 1.0;
+    const tfloat Ship::CLOSE_RANGE = 20;
 
     static bool IsHypotLessThen(tfloat dx, tfloat dy, tfloat val) {
         return dx*dx + dy*dy < val*val;
@@ -18,7 +18,7 @@ namespace GameEngine {
     static const tfloat l1 = 0.85;
     static const tfloat w2 = 1.0 / 60;
     static const tfloat w3 = 1.0 / 18;
-    static const tfloat w4 = 1.0 / 8;
+    static const tfloat w4 = 1.0 / 12;
     static const tfloat w5 = 1.0 / 15;
 
     // Using Boids algorithm to calculate speed of ship
@@ -70,7 +70,7 @@ namespace GameEngine {
 
     // Avoid collision with other ships form group
     Vector Ship::BoidsRule5() {
-        const tfloat A = 2;
+        const tfloat A = 1.2;
         const tfloat B = 4;
         Vector v;
         for (auto& it : group.GetOverlappingGroups()) {

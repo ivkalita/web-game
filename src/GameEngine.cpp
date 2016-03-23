@@ -6,10 +6,12 @@
 namespace GameEngine {
 
     void Engine::Step() {
+        for (auto &p : planets)
+            p.Step();
+
         for (auto& g : groups) {
             g.StepPrepare();
         }
-
         auto it = groups.begin();
         while (it != groups.end()) {
             it->Step();

@@ -1,0 +1,42 @@
+{
+  "playersCount": 2,
+  "width": 250,
+  "heigth": 250,
+  "planets": [
+    {
+      "x": 118,
+      "y": 125,
+      "radius": 28,
+      "shipsCount": 15,
+      "owner": 0
+    },
+    {
+      "x": 125,
+      "y": 30,
+      "radius": 20,
+      "shipsCount": 15,
+      "owner": 1
+    },
+    {
+      "x": 125,
+      "y": 220,
+      "radius": 20,
+      "shipsCount": 15,
+      "owner": 2
+    },
+    {
+      "x": 30,
+      "y": 125,
+      "radius": 20,
+      "shipsCount": 15,
+      "owner": 1
+    },
+    {
+      "x": 220,
+      "y": 125,
+      "radius": 20,
+      "shipsCount": 15,
+      "owner": 2
+    }
+  ]
+}

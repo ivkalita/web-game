@@ -1,6 +1,7 @@
 #include "GameEngine.hpp"
 #include "Router.hpp"
 #include "WebgameServer.hpp"
+#include "MapReader.hpp"
 
 #include "Poco/LogStream.h"
 #include "Poco/Net/WebSocket.h"
@@ -139,38 +140,20 @@ namespace {
     }
 
     int Game::AddPlayer(WebSocket* _socket) {
-        int new_id;
-        do {
-            new_id = randomGen.next();
-        } while (players[new_id] != nullptr);
-
+        int new_id = players.size()+1;
         EventHandler* h = new EventHandler(&send_mutex, &recv_mutex, _socket, &reactor, new_id);
-
         players[new_id] = h;
-
-        const double radius = 10;
-        bool valid = true;
-        double x, y;
-        do {
-            x = randomGen.nextDouble() * 250;
-            y = randomGen.nextDouble() * 250;
-            valid = true;
-            for (auto& p : engine.GetPlanets()) {
-                if (std::hypot(p.GetX() - x, p.GetY() - y) <= 2 * (radius + GameEngine::Planet::CLOSE_RANGE)) {
-                    valid = false;
-                    break;
-                }
-            }
-        } while (!valid);
-
-        engine.AddPlanet(x, y, radius, 10, new_id);
-
         return new_id;
     }
 
     void Game::run() {
         reactor_thread.setName("Game thread - socket reactor");
         reactor_thread.start(reactor);
+
+        using Poco::Util::Application;
+        MapReader map_reader;
+        std::string path = Application::instance().config().getString("application.rootpath");
+        map_reader.ReadAndInit(path + "maps/test_map.json", engine);
 
         while (1) {
             using namespace Poco::JSON;

@@ -11,6 +11,8 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 
+#include <fstream>
+
 namespace {
     using namespace Poco::Net;
 
@@ -44,6 +46,16 @@ namespace {
 
     class Game : public Poco::Runnable {
     private:
+        struct PlanetInfo {
+            int x, y, radius, owner, ships_count;
+        };
+
+        struct MapInfo {
+            int players_count;
+            int width, heigth;
+            std::vector<PlanetInfo> planets;
+        };
+
         GameEngine::Engine engine;
         Poco::Random randomGen;
         Poco::Net::SocketReactor reactor;
@@ -51,12 +63,16 @@ namespace {
         Poco::Thread reactor_thread, own_thread;
         std::map<int, EventHandler*> players;
         int id;
+        MapInfo map;
+        bool is_running;
     public:
-        Game(int _id) : id(_id) { }
+        Game(int _id, const std::string & map_name);
         void RemovePlayer(int id) { players.erase(id); }
         int AddPlayer(WebSocket* _socket);
         Poco::Thread& GetOwnThread() { return own_thread; }
         int GetID() { return id; }
+        int GetMaxPlayersCount() { return map.players_count; }
+        bool IsRunning() { return is_running; }
         std::map<int, EventHandler*>& GetPlayers() { return players; }
         void run() override;
     };
@@ -138,39 +154,58 @@ namespace {
         std::cout << "socket idle notofication" << std::endl;
     }
 
+    Game::Game(int _id, const std::string & map_name) : id(_id), is_running(false) {
+        std::string filename = Poco::Util::Application::instance().config().getString("application.rootpath")
+            + "assets/maps/" + map_name + ".json";
+        Poco::JSON::Object::Ptr _map, _planet;
+        Poco::JSON::Array::Ptr _planets;
+        Poco::JSON::Parser parser;
+        Poco::Dynamic::Var _file;
+
+        std::ifstream in(filename);
+        _file = parser.parse(in);
+        _map = _file.extract<Poco::JSON::Object::Ptr>();
+
+        map.players_count = _map->get("playersCount").extract<int>();
+        map.width = _map->get("width").extract<int>();
+        map.heigth = _map->get("heigth").extract<int>();
+
+        _planets = _map->get("planets").extract<Poco::JSON::Array::Ptr>();
+        for (int i = 0; i < _planets->size(); i++) {
+            _planet = _planets->getObject(i);
+            PlanetInfo p;
+            p.x = _planet->get("x").convert<int>();
+            p.y = _planet->get("y").convert<int>();
+            p.radius = _planet->get("radius").convert<int>();
+            p.owner = _planet->get("owner").convert<int>();
+            p.ships_count = _planet->get("shipsCount").convert<int>();
+            map.planets.push_back(p);
+        }
+    }
+
     int Game::AddPlayer(WebSocket* _socket) {
         int new_id;
         do {
             new_id = randomGen.next();
-        } while (players[new_id] != nullptr);
+        } while (new_id != 0 && players[new_id] != nullptr);
 
         EventHandler* h = new EventHandler(&send_mutex, &recv_mutex, _socket, &reactor, new_id);
-
         players[new_id] = h;
-
-        const double radius = 10;
-        bool valid = true;
-        double x, y;
-        do {
-            x = randomGen.nextDouble() * 250;
-            y = randomGen.nextDouble() * 250;
-            valid = true;
-            for (auto& p : engine.GetPlanets()) {
-                if (std::hypot(p.GetX() - x, p.GetY() - y) <= 2 * (radius + GameEngine::Planet::CLOSE_RANGE)) {
-                    valid = false;
-                    break;
-                }
-            }
-        } while (!valid);
-
-        engine.AddPlanet(x, y, radius, 10, new_id);
-
         return new_id;
     }
 
     void Game::run() {
         reactor_thread.setName("Game thread - socket reactor");
         reactor_thread.start(reactor);
+
+        int i = 0;
+        std::vector<int> map_players(map.players_count);
+        for (auto player : players)
+            map_players[i++] = player.first;
+        for (auto pl : map.planets)
+            engine.AddPlanet(pl.x, pl.y, pl.radius, pl.ships_count, pl.owner ? map_players[pl.owner - 1] : 0);
+
+        is_running = true;
 
         while (1) {
             using namespace Poco::JSON;
@@ -269,8 +304,10 @@ namespace {
     std::map<int, Game*> games;
 
     void create(const RouteMatch& m) {
+        const std::string & map_name = m.captures().at(std::string("map_name"));
+
         int new_id = id_generator++;
-        Game* g = new Game(new_id);
+        Game* g = new Game(new_id, map_name);
         games[new_id] = g;
         m.response().send() << SimpleJSON({ "action", "new_game_id", "game_id", std::to_string(new_id) });
     }
@@ -281,20 +318,22 @@ namespace {
 
         WebSocket* s = new WebSocket(m.request(), m.response());
 
-        std::string msg;
-
         Game* game = games[std::stoi(game_id)];
-        if (game == nullptr) {
-            msg = SimpleJSON({ "action", "error", "message", "No game with id=" + game_id });
-            s->sendFrame(msg.c_str(), (int)msg.size());
-            s->close();
-            return;
-        }
 
-        int new_id = game->AddPlayer(s);
+        std::string msg;
+        bool f = false;
+        if (f = game == nullptr)
+            msg = "No game with id=" + game_id;
+        else if (f = game->GetPlayers().size() >= game->GetMaxPlayersCount())
+            msg = "No empty roles in game with id=" + game_id;
+        else if (f = game->IsRunning())
+            msg = "Can't join to running game with id=" + game_id;
+        else
+            msg = std::to_string(game->AddPlayer(s));
 
-        msg = SimpleJSON({ "action", "player_id", "player_id", std::to_string(new_id) });
-        s->sendFrame(msg.c_str(), (int)msg.size());
+        std::string r(SimpleJSON({ "action", f ? "error" : "player_id", f ? "message" : "player_id", msg }));
+        s->sendFrame(r.c_str(), (int)r.size());
+        if (f) s->close();
     }
 
     void run(const RouteMatch& m) {
@@ -325,7 +364,7 @@ namespace {
             auto & router = Router::instance();
             router.registerRoute("/api/join/{game_id}/{access_token}", join);
             router.registerRoute("/api/run/{game_id}/{access_token}", run);
-            router.registerRoute("/api/create/{access_token}", create);
+            router.registerRoute("/api/create/{map_name}/{access_token}", create);
         }
     };
 

@@ -24,11 +24,11 @@ namespace GameEngine {
         ShipGroupList groups;
         PlanetList planets;
         std::map<int, Planet*> planets_map;
+        Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
     public:
         Engine() {}
         void InitMap(Map map_);
         void Step();
-        Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
         void Launch(int count, Planet& sender_planet, Planet& dest_planet);
         const ShipGroupList& GetGroups() const { return groups; }
         const PlanetList& GetPlanets() const { return planets; }

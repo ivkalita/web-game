@@ -4,6 +4,7 @@
 #include <map>
 #include <list>
 #include "MathVector.hpp"
+#include "Map.hpp"
 
 namespace GameEngine {
 
@@ -25,6 +26,7 @@ namespace GameEngine {
         std::map<int, Planet*> planets_map;
     public:
         Engine() {}
+        void InitMap(Map map_);
         void Step();
         Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
         void Launch(int count, Planet& sender_planet, Planet& dest_planet);

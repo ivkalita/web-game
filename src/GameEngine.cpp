@@ -5,6 +5,12 @@
 
 namespace GameEngine {
 
+    void Engine::InitMap(Map map_) {
+        for (auto &p : map_.GetPlanets()) {
+            AddPlanet(p.x, p.y, p.radius, p.ships_count, p.owner);
+        }
+    }
+
     void Engine::Step() {
         for (auto& g : groups) {
             g.StepPrepare();

@@ -1,10 +1,12 @@
 #include "GameEngine.hpp"
 
 #include <sstream>
+#include <algorithm>
 
 namespace GameEngine {
 
     const tfloat Planet::CLOSE_RANGE = 12;
+    const tfloat Planet::SHIPS_INCREASE = 0.1;
     int Planet::id_generator = 0;
 
     static bool IsHypotLessThen(tfloat dx, tfloat dy, tfloat val) {
@@ -16,22 +18,37 @@ namespace GameEngine {
     }
 
     Planet::Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner) :
-        radius(_radius), ships_num(_ships_num), owner(_owner)
+        radius(_radius), ships_num(_ships_num), owner(_owner), new_ships(0)
     {
         id = gen_id();
         pos = Vector(_x, _y);
     }
 
     Planet::Planet(const Planet& a) :
-        pos(a.pos), radius(a.radius), ships_num(a.ships_num), owner(a.owner), id(a.id) { }
+        pos(a.pos), radius(a.radius), ships_num(a.ships_num), owner(a.owner), id(a.id), new_ships(a.new_ships) { }
 
     const Planet& Planet::operator = (const Planet& a) {
         pos = a.pos;
         radius = a.radius;
         ships_num = a.ships_num;
+        new_ships = a.new_ships;
         owner = a.owner;
         id = a.id;
         return a;
+    }
+
+    void Planet::Step() {
+        if (owner == NEUTRAL_PLAYER_ID)
+            return;
+
+        if (ships_num >= ShipsMaxCount()) {
+            new_ships = 0;
+            return;
+        }
+        new_ships += ShipsIncrease();
+        int t = floor(new_ships);
+        new_ships -= t;
+        ships_num = std::min(ships_num + t, ShipsMaxCount());
     }
 
     bool Planet::IsNear(Vector v) const {
@@ -51,6 +68,7 @@ namespace GameEngine {
             if (ships_num < 0) {
                 owner = ships_owner;
                 ships_num = -ships_num;
+                new_ships = 0;
             }
         }
         return ships_num;

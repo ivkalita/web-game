@@ -18,6 +18,8 @@ namespace GameEngine {
     typedef std::list<Ship> ShipList;
     typedef std::list<ShipGroup> ShipGroupList;
 
+    const int NEUTRAL_PLAYER_ID = 0;
+
     class Engine {
     private:
         ShipGroupList groups;
@@ -38,11 +40,13 @@ namespace GameEngine {
     private:
         Vector pos;
         tfloat radius;
+        tfloat new_ships;
         int ships_num, owner, id;
         static int id_generator;
         static int gen_id() { return Planet::id_generator++; }
     public:
         static const tfloat CLOSE_RANGE;
+        static const tfloat SHIPS_INCREASE;
         Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner);
         // явные конструкторы для отслеживания копирования при работе со сслыками
         Planet(const Planet& a);
@@ -51,6 +55,9 @@ namespace GameEngine {
         bool operator == (const Planet& a) const { return id == a.id; }
         int ReceiveShips(int count, int ships_owner);
         int RemoveShips(int count) { return ships_num -= count; }
+        int ShipsMaxCount() const { return floor(radius*1.5); }
+        tfloat ShipsIncrease() const { return SHIPS_INCREASE; }
+        void Step();
 
         bool IsNear(Vector v) const;
         bool IsInside(Vector v) const;

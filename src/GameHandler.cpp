@@ -10,6 +10,7 @@
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
+#include "Map.hpp"
 
 namespace {
     using namespace Poco::Net;
@@ -52,6 +53,7 @@ namespace {
         Poco::Thread reactor_thread, own_thread;
         std::map<int, EventHandler*> players;
         int id;
+        Map map_;
         void ProcessRecv(std::string buf, int player_id);
     public:
         Game(int _id) : id(_id) { }
@@ -141,32 +143,9 @@ namespace {
     }
 
     int Game::AddPlayer(WebSocket* _socket) {
-        int new_id;
-        do {
-            new_id = randomGen.next();
-        } while (players[new_id] != nullptr);
-
+        int new_id = players.size()+1;
         EventHandler* h = new EventHandler(&send_mutex, &recv_mutex, _socket, &reactor, new_id);
-
         players[new_id] = h;
-
-        const double radius = 10;
-        bool valid = true;
-        double x, y;
-        do {
-            x = randomGen.nextDouble() * 250;
-            y = randomGen.nextDouble() * 250;
-            valid = true;
-            for (auto& p : engine.GetPlanets()) {
-                if (std::hypot(p.GetX() - x, p.GetY() - y) <= 2 * (radius + GameEngine::Planet::CLOSE_RANGE)) {
-                    valid = false;
-                    break;
-                }
-            }
-        } while (!valid);
-
-        engine.AddPlanet(x, y, radius, 10, new_id);
-
         return new_id;
     }
 
@@ -209,6 +188,11 @@ namespace {
     void Game::run() {
         reactor_thread.setName("Game thread - socket reactor");
         reactor_thread.start(reactor);
+
+        using Poco::Util::Application;
+        std::string path = Application::instance().config().getString("application.rootpath");
+        map_.ReadFromFile(path + "maps/test_map.json");
+        engine.InitMap(map_);
 
         while (1) {
             Poco::Thread::current()->sleep(game_refresh_interval);

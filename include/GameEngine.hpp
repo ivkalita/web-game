@@ -19,12 +19,14 @@ namespace GameEngine {
     typedef std::list<Ship> ShipList;
     typedef std::list<ShipGroup> ShipGroupList;
 
+    const int NEUTRAL_PLAYER_ID = 0;
+
     class Engine {
     private:
         ShipGroupList groups;
         PlanetList planets;
         std::map<int, Planet*> planets_map;
-        Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner);
+        Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner, int limit, tfloat production);
     public:
         Engine() {}
         void InitMap(Map map_);
@@ -41,11 +43,14 @@ namespace GameEngine {
         Vector pos;
         tfloat radius;
         int ships_num, owner, id;
+        int limit;
+        tfloat production;
+        tfloat new_ships;
         static int id_generator;
         static int gen_id() { return Planet::id_generator++; }
     public:
         static const tfloat CLOSE_RANGE;
-        Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner);
+        Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner, int _limit, tfloat _production);
         // явные конструкторы для отслеживания копирования при работе со сслыками
         Planet(const Planet& a);
         const Planet& operator = (const Planet& a);
@@ -53,6 +58,7 @@ namespace GameEngine {
         bool operator == (const Planet& a) const { return id == a.id; }
         int ReceiveShips(int count, int ships_owner);
         int RemoveShips(int count) { return ships_num -= count; }
+        void Step();
 
         bool IsNear(Vector v) const;
         bool IsInside(Vector v) const;
@@ -61,6 +67,8 @@ namespace GameEngine {
         Vector GetPos() const { return pos; }
         int GetOwner() const { return owner; }
         int ShipCount() const { return ships_num; }
+        int GetLimit() const { return limit; }
+        tfloat GetProduction() const { return production; }
         tfloat GetRadius() const { return radius; }
         int GetID() const { return id; }
         std::string GetInfo() const;

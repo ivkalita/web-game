@@ -15,21 +15,25 @@ namespace GameEngine {
         return IsHypotLessThen(v1.x - v2.x, v1.y - v2.y, val);
     }
 
-    Planet::Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner) :
-        radius(_radius), ships_num(_ships_num), owner(_owner)
+    Planet::Planet(tfloat _x, tfloat _y, tfloat _radius, int _ships_num, int _owner, int _limit, tfloat _production) :
+        radius(_radius), ships_num(_ships_num), owner(_owner), limit(_limit), production(_production), new_ships(0)
     {
         id = gen_id();
         pos = Vector(_x, _y);
     }
 
     Planet::Planet(const Planet& a) :
-        pos(a.pos), radius(a.radius), ships_num(a.ships_num), owner(a.owner), id(a.id) { }
+        pos(a.pos), radius(a.radius), ships_num(a.ships_num), owner(a.owner), 
+        limit(a.limit), production(a.production), new_ships(0), id(a.id) { }
 
     const Planet& Planet::operator = (const Planet& a) {
         pos = a.pos;
         radius = a.radius;
         ships_num = a.ships_num;
         owner = a.owner;
+        limit = a.limit;
+        production = a.production;
+        new_ships = a.new_ships;
         id = a.id;
         return a;
     }
@@ -51,9 +55,26 @@ namespace GameEngine {
             if (ships_num < 0) {
                 owner = ships_owner;
                 ships_num = -ships_num;
+                new_ships = 0;
             }
         }
         return ships_num;
+    }
+
+    void Planet::Step() {
+        if (owner == NEUTRAL_PLAYER_ID)
+            return;
+
+        if (ships_num >= limit) {
+            new_ships = 0;
+            return;
+        }
+        else {
+            new_ships += production;
+            int t = floor(new_ships);
+            new_ships -= t;
+            ships_num = std::min(ships_num + t, limit);
+        }
     }
 
     std::string Planet::GetInfo() const {

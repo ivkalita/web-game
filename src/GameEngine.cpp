@@ -7,15 +7,20 @@ namespace GameEngine {
 
     void Engine::InitMap(Map map_) {
         for (auto &p : map_.GetPlanets()) {
-            AddPlanet(p.x, p.y, p.radius, p.ships_count, p.owner);
+            int lim = p.limit < 0 ? p.radius * 3 / 2 : p.limit;
+            tfloat prod = p.production < 0 ? 0 : p.production;
+            AddPlanet(p.x, p.y, p.radius, p.ships_count, p.owner, lim, prod);
         }
     }
 
     void Engine::Step() {
+        for (auto &p : planets) {
+            p.Step();
+        }
+
         for (auto& g : groups) {
             g.StepPrepare();
         }
-
         auto it = groups.begin();
         while (it != groups.end()) {
             it->Step();
@@ -41,8 +46,8 @@ namespace GameEngine {
 #endif _DEBUG
     }
 
-    Planet& Engine::AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner) {
-        planets.emplace_back(x, y, radius, ships_num, owner);
+    Planet& Engine::AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner, int limit, tfloat increase) {
+        planets.emplace_back(x, y, radius, ships_num, owner, limit, increase);
         Planet& p = planets.back();
         planets_map[p.GetID()] = &p;
         return p;

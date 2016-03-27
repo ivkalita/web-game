@@ -65,7 +65,10 @@ add_executable(runner
     src/Users.cpp
     src/GameHandler.cpp
     src/Map.cpp
+    src/CommonObjects.cpp
+    src/Matchmaking.cpp
     src/MatchmakingHandler.cpp
+    src/WSConnection.cpp
     include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp
@@ -73,6 +76,9 @@ add_executable(runner
     include/User.hpp
     include/MathVector.hpp
     include/Map.hpp
+    include/CommonObjects.hpp
+    include/Matchmaking.hpp
+    include/WSConnection.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 
@@ -82,9 +88,15 @@ add_executable(tester
     src/GameEngine_Ship.cpp
     src/GameEngine_ShipGroup.cpp
     src/GameEngine_Planet.cpp
+    src/CommonObjects.cpp
+    src/Matchmaking.cpp
+    src/WSConnection.cpp
+    src/Users.cpp
+    src/Router.cpp
     tests/Engine/EngineTest1.cpp
     tests/test_1.cpp
     tests/DBConnector/test_1.cpp
     tests/Router/test_1.cpp
+    tests/Matchmaking/MatchmakingTest1.cpp
 )
 target_link_libraries(tester ${POCO_LIBS} ${GTEST_LIBS} ${PostgreSQL_LIBRARIES})

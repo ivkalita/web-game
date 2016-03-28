@@ -4,24 +4,24 @@
 <button class="btn btn-default" data-toggle="modal" data-target="#myModal">Create Game</button>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 <div class="modal-dialog">
-  <div class="modal-content">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <h4 class="modal-title" id="myModalLabel">Create Game</h4>
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">Create Game</h4>
+        </div>
+        <div class="modal-body">
+        <div>
+            <input type="text" class="form-control" id="gameNameInput" placeholder="game name"/>
+            <input type="text" class="form-control" id="gameMapInput" placeholder="map name"/>
+            <input type="text" class="form-control" id="gameModeInput" placeholder="game mode"/>
+            <input type="number" class="form-control" id="gameMaxNumPlayers" placeholder="game players number"/>
+        </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" id="CreateGameBtn" class="btn btn-primary">Create</button>
+        </div>
     </div>
-    <div class="modal-body">
-    <div>
-      <input type="text" class="form-control" id="gameNameInput" placeholder="game name"/>
-      <input type="text" class="form-control" id="gameMapInput" placeholder="map name"/>
-      <input type="text" class="form-control" id="gameModeInput" placeholder="game mode"/>
-      <input type="number" class="form-control" id="gameMaxNumPlayers" placeholder="game players number"/>
-    </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      <button type="button" id="CreateGameBtn" class="btn btn-primary">Create</button>
-    </div>
-  </div>
 </div>
 </div>
 <input type="button" id="leave_btn" value="LeaveGame" class="btn btn-default">
@@ -32,190 +32,190 @@
 <button type="button" id="badAction-btn" class="btn btn-primary">Bad Action</button>
 
 <script>
-  var access;
-  var currentAction = null;
-  var ws;
+    var access;
+    var currentAction = null;
+    var ws;
 
-  connect = function(){
-    if ("WebSocket" in window){
-      accessT = user.getToken();
-      ws = new WebSocket("ws://localhost:1337/lobby/" + accessT);
-      ws.onopen = function(){
-        alert("Connected");
-      };
+    connect = function(){
+        if ("WebSocket" in window){
+            accessT = user.getToken();
+            ws = new WebSocket("ws://localhost:1337/lobby/" + accessT);
+            ws.onopen = function(){
+                alert("Connected");
+            };
 
-      ws.onmessage = function(evt)
-      { 
-        console.log(evt.data);
-        jsobj = JSON.parse(evt.data);
-        $("#BodyConetent").children().remove();
-        if( !(jsobj["result"] === "Ok"))
+            ws.onmessage = function(evt)
+            { 
+                console.log(evt.data);
+                jsobj = JSON.parse(evt.data);
+                $("#BodyConetent").children().remove();
+                if( !(jsobj["result"] === "Ok"))
+                {
+                    alert(jsobj["result"]);
+                }else
+                    switch(jsobj["action"])
+                    {
+                        case "GetGames":
+                            showGames(jsobj["data"]["game"]);
+                            break;
+                        case "CreateGame":
+                            ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
+                            break;
+                        case "LeaveGame":
+                            alert("Вы покинули игру");
+                                    break;
+                        case "GetLobbyInfo":
+                            LobbyInfo(jsobj["data"]);
+                            break;
+                        case "JoinToGame":
+                            if (currentAction === "JoinToGame")
+                                ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
+                            break;
+                        default:
+                            break;
+                    }
+                currentAction = null;
+            };
+
+            ws.onclose = function() { 
+                alert("WebSocket closed.");
+            };
+            
+        }else {
+            alert("This browser does not support WebSockets.");
+        }
+
+        function GetGames(){ 
+            return {
+                "action": "GetGames" 
+            }
+        }
+
+        function CreateGame(accessT, game)
         {
-          alert(jsobj["result"]);
-        }else
-          switch(jsobj["action"])
-          {
-            case "GetGames":
-              showGames(jsobj["data"]["game"]);
-              break;
-            case "CreateGame":
-              ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
-              break;
-            case "LeaveGame":
-              alert("Вы покинули игру");
-                  break;
-            case "GetLobbyInfo":
-              LobbyInfo(jsobj["data"]);
-              break;
-            case "JoinToGame":
-              if (currentAction === "JoinToGame")
-                ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
-              break;
-            default:
-              break;
-          }
-        currentAction = null;
-      };
+            return {
+                    "action": "CreateGame",
+                    "params": [ game, accessT ]
+            }
+        }
 
-      ws.onclose = function() { 
-        alert("WebSocket closed.");
-      };
-      
-    }else {
-      alert("This browser does not support WebSockets.");
-    }
+        function LeaveGame(accessT)
+        {
+            return { 
+                "action": "LeaveGame",
+                "params": [accessT]
+            }
+        }
 
-    function GetGames(){ 
-      return {
-        "action": "GetGames" 
-      }
-    }
+        function JoinGame(accessT, gameId)
+        {
+                return { 
+                "action": "JoinToGame",
+                "params": [gameId, accessT]
+            }
+        }
 
-    function CreateGame(accessT, game)
-    {
-      return {
-          "action": "CreateGame",
-          "params": [ game, accessT ]
-      }
-    }
+        function GetLobby(accessT)
+        {
+            return { 
+                "action": "GetLobbyInfo",
+                "params": [accessT]
+            }
+        }
 
-    function LeaveGame(accessT)
-    {
-      return { 
-        "action": "LeaveGame",
-        "params": [accessT]
-      }
-    }
+        function Game(name, maxNumPlayers, mode, map){
+            return {
+                "name": name,
+                "maxNumPlayers": maxNumPlayers,
+                "mode": mode,
+                "map": map
+            }
+        }
+         $("#badAction-btn").click(function(){
+            currentAction = "WTF";
+            ws.send(JSON.stringify({"action": "WTF"}) + '\0');
+        });
 
-    function JoinGame(accessT, gameId)
-    {
-        return { 
-        "action": "JoinToGame",
-        "params": [gameId, accessT]
-      }
-    }
+        $("#echo_btn").click(function(){
+            currentAction = "GetGames";
+            ws.send(JSON.stringify(GetGames()) + '\0');
+        });
 
-    function GetLobby(accessT)
-    {
-      return { 
-        "action": "GetLobbyInfo",
-        "params": [accessT]
-      }
-    }
+        $("#leave_btn").click(function(){
+            currentAction = "LeaveGame";
+            ws.send(JSON.stringify(LeaveGame(accessT)) + '\0');
+        });
 
-    function Game(name, maxNumPlayers, mode, map){
-      return {
-        "name": name,
-        "maxNumPlayers": maxNumPlayers,
-        "mode": mode,
-        "map": map
-      }
-    }
-     $("#badAction-btn").click(function(){
-      currentAction = "WTF";
-      ws.send(JSON.stringify({"action": "WTF"}) + '\0');
-    });
+        $("#lobby_btn").click(function(){
+            currentAction = "GetLobby";
+            ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
+        });
 
-    $("#echo_btn").click(function(){
-      currentAction = "GetGames";
-      ws.send(JSON.stringify(GetGames()) + '\0');
-    });
+        $("#close_btn").click(function(){
+            $("#BodyConetent").children().remove();
+            ws.close();
+        });
 
-    $("#leave_btn").click(function(){
-      currentAction = "LeaveGame";
-      ws.send(JSON.stringify(LeaveGame(accessT)) + '\0');
-    });
+        $("#CreateGameBtn").click(function(){
 
-    $("#lobby_btn").click(function(){
-      currentAction = "GetLobby";
-      ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
-    });
-
-    $("#close_btn").click(function(){
-      $("#BodyConetent").children().remove();
-      ws.close();
-    });
-
-    $("#CreateGameBtn").click(function(){
-
-      $("#myModal").modal('hide');
-      currentAction = "CreateGame";
-      data = CreateGame( 
-      accessT,
-      Game(
-        $("#gameNameInput").val(),
-        $("#gameMaxNumPlayers").val(),
-        $("#gameModeInput").val(),
-        $("#gameMapInput").val()
-        )
-      );
-      txt = JSON.stringify(data);
-      ws.send(txt + '\0');
-    });
-
-    function LobbyInfo(data)
-    {
-      $lobby = $("#BodyConetent");
-      $lobby.append( $("<span>").text("Players: " + data["curNumPlayers"] + '/' + data["maxNumPlayers"]));
-      $lobby.append($("<br>"));
-      $lobby.append( $("<span>").text("GameName: " + data["name"]));
-     
-      $table = $("<table>").addClass("table-striped").addClass("playerList");
-      for (player in data["players"])
-      {
-        $table.append($("<tr>").append($("<td>").append($("<div>").text(data["players"][player]))));
-      }
-      $lobby.append($table);
-    }
-     
-    function showGames(data)
-    {
-      $gamelist = $("#BodyConetent");
-      $gamelist.children().remove();
-      $table = $("<table>").addClass("table-striped").addClass("playerList");
-      for (elem in data)
-      {
-        gamename = data[elem]["name"]
-        curplayers = data[elem]["curNumPlayers"]
-        maxNumPlayers = data[elem]["maxNumPlayers"]
-        gameId = data[elem]["id"]
-        $table.append($("<tr>").append($("<td>").append($("<span>").text(gamename + " - "), $("<span>").text(curplayers + '/' + maxNumPlayers),
-          $("<button>").text("Connect").click(function()
-          {
-            currentAction = "JoinToGame";
-            txt = JSON.stringify(JoinGame(gameId, accessT));
+            $("#myModal").modal('hide');
+            currentAction = "CreateGame";
+            data = CreateGame( 
+            accessT,
+            Game(
+                $("#gameNameInput").val(),
+                $("#gameMaxNumPlayers").val(),
+                $("#gameModeInput").val(),
+                $("#gameMapInput").val()
+                )
+            );
+            txt = JSON.stringify(data);
             ws.send(txt + '\0');
-          }))));
-      }
-      $gamelist.append($table);
-    } 
-  };
-  $("#connect").click(connect);
+        });
+
+        function LobbyInfo(data)
+        {
+            $lobby = $("#BodyConetent");
+            $lobby.append( $("<span>").text("Players: " + data["curNumPlayers"] + '/' + data["maxNumPlayers"]));
+            $lobby.append($("<br>"));
+            $lobby.append( $("<span>").text("GameName: " + data["name"]));
+         
+            $table = $("<table>").addClass("table-striped").addClass("playerList");
+            for (player in data["players"])
+            {
+                $table.append($("<tr>").append($("<td>").append($("<div>").text(data["players"][player]))));
+            }
+            $lobby.append($table);
+        }
+         
+        function showGames(data)
+        {
+            $gamelist = $("#BodyConetent");
+            $gamelist.children().remove();
+            $table = $("<table>").addClass("table-striped").addClass("playerList");
+            for (elem in data)
+            {
+                gamename = data[elem]["name"]
+                curplayers = data[elem]["curNumPlayers"]
+                maxNumPlayers = data[elem]["maxNumPlayers"]
+                gameId = data[elem]["id"]
+                $table.append($("<tr>").append($("<td>").append($("<span>").text(gamename + " - "), $("<span>").text(curplayers + '/' + maxNumPlayers),
+                    $("<button>").text("Connect").click(function()
+                    {
+                        currentAction = "JoinToGame";
+                        txt = JSON.stringify(JoinGame(gameId, accessT));
+                        ws.send(txt + '\0');
+                    }))));
+            }
+            $gamelist.append($table);
+        } 
+    };
+    $("#connect").click(connect);
 
 
-  window.onbeforeunload = function(){
-    ws.close();
-  };
+    window.onbeforeunload = function(){
+        ws.close();
+    };
 
 </script>
 

@@ -25,8 +25,7 @@ typedef void(*onCloseConnectionHandler)(int id);
 
 class GameConnection;
 
-class ConnectionsPoll
-{
+class ConnectionsPoll {
 private:
     std::map<int, std::vector<GameConnection*>> connections;
 public:
@@ -41,8 +40,7 @@ public:
     }
 };
 
-class WebSocketHandler
-{
+class WebSocketHandler {
 public:
     ActionHandler mHandler;
     GameConnection* mConnection;
@@ -67,8 +65,7 @@ private:
     int mId;
 };
 
-class GameConnection
-{
+class GameConnection {
 private:
     Poco::Net::SocketReactor reactor;
     Poco::Thread* thread;
@@ -82,12 +79,3 @@ public:
     ~GameConnection();
     void onCloseConnection();
 };
-
-
-
-
-
-
-
-
-

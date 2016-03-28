@@ -181,6 +181,7 @@ Response Matchmaking::HandleAction(string text) {
         switch (Actions::getActionByName(action)) {
         case Actions::GET_GAMES:
             return getGames();
+            break;
         case Actions::CREATE_GAME:
             return onCreateGame(params);
             break;

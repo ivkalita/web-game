@@ -44,17 +44,14 @@
                 alert("Connected");
             };
 
-            ws.onmessage = function(evt)
-            { 
+            ws.onmessage = function(evt){
                 console.log(evt.data);
                 jsobj = JSON.parse(evt.data);
-                $("#BodyConetent").children().remove();
+                $("#BodyContent").children().remove();
                 if( !(jsobj["result"] === "Ok"))
-                {
                     alert(jsobj["result"]);
-                }else
-                    switch(jsobj["action"])
-                    {
+                else
+                    switch(jsobj["action"]) {
                         case "GetGames":
                             showGames(jsobj["data"]["game"]);
                             break;
@@ -63,7 +60,7 @@
                             break;
                         case "LeaveGame":
                             alert("Вы покинули игру");
-                                    break;
+                            break;
                         case "GetLobbyInfo":
                             LobbyInfo(jsobj["data"]);
                             break;
@@ -81,7 +78,7 @@
                 alert("WebSocket closed.");
             };
             
-        }else {
+        } else {
             alert("This browser does not support WebSockets.");
         }
 
@@ -91,32 +88,28 @@
             }
         }
 
-        function CreateGame(accessT, game)
-        {
+        function CreateGame(accessT, game){
             return {
-                    "action": "CreateGame",
-                    "params": [ game, accessT ]
+                "action": "CreateGame",
+                "params": [ game, accessT ]
             }
         }
 
-        function LeaveGame(accessT)
-        {
+        function LeaveGame(accessT){
             return { 
                 "action": "LeaveGame",
                 "params": [accessT]
             }
         }
 
-        function JoinGame(accessT, gameId)
-        {
-                return { 
+        function JoinGame(accessT, gameId){
+            return {
                 "action": "JoinToGame",
                 "params": [gameId, accessT]
             }
         }
 
-        function GetLobby(accessT)
-        {
+        function GetLobby(accessT){
             return { 
                 "action": "GetLobbyInfo",
                 "params": [accessT]
@@ -153,63 +146,57 @@
         });
 
         $("#close_btn").click(function(){
-            $("#BodyConetent").children().remove();
+            $("#BodyContent").children().remove();
             ws.close();
         });
 
         $("#CreateGameBtn").click(function(){
-
             $("#myModal").modal('hide');
             currentAction = "CreateGame";
-            data = CreateGame( 
-            accessT,
-            Game(
-                $("#gameNameInput").val(),
-                $("#gameMaxNumPlayers").val(),
-                $("#gameModeInput").val(),
-                $("#gameMapInput").val()
-                )
+            var data = CreateGame(
+                    accessT,
+                    Game($("#gameNameInput").val(), $("#gameMaxNumPlayers").val(),
+                            $("#gameModeInput").val(), $("#gameMapInput").val()
+                    )
             );
-            txt = JSON.stringify(data);
+            var txt = JSON.stringify(data);
             ws.send(txt + '\0');
         });
 
-        function LobbyInfo(data)
-        {
-            $lobby = $("#BodyConetent");
+        function LobbyInfo(data){
+            var $lobby = $("#BodyContent");
             $lobby.append( $("<span>").text("Players: " + data["curNumPlayers"] + '/' + data["maxNumPlayers"]));
             $lobby.append($("<br>"));
             $lobby.append( $("<span>").text("GameName: " + data["name"]));
          
-            $table = $("<table>").addClass("table-striped").addClass("playerList");
-            for (player in data["players"])
-            {
-                $table.append($("<tr>").append($("<td>").append($("<div>").text(data["players"][player]))));
-            }
+            var $table = $("<table>").addClass("table-striped").addClass("playerList");
+            data["players"].forEach(function(player){
+                $table.append($("<tr>").append($("<td>").append($("<div>").text(player))));
+            });
             $lobby.append($table);
         }
          
-        function showGames(data)
-        {
-            $gamelist = $("#BodyConetent");
+        function showGames(data){
+            var $gamelist = $("#BodyContent");
             $gamelist.children().remove();
-            $table = $("<table>").addClass("table-striped").addClass("playerList");
-            for (elem in data)
-            {
-                gamename = data[elem]["name"]
-                curplayers = data[elem]["curNumPlayers"]
-                maxNumPlayers = data[elem]["maxNumPlayers"]
-                gameId = data[elem]["id"]
-                $table.append($("<tr>").append($("<td>").append($("<span>").text(gamename + " - "), $("<span>").text(curplayers + '/' + maxNumPlayers),
-                    $("<button>").text("Connect").click(function()
-                    {
-                        currentAction = "JoinToGame";
-                        txt = JSON.stringify(JoinGame(gameId, accessT));
-                        ws.send(txt + '\0');
-                    }))));
-            }
+            var $table = $("<table>").addClass("table-striped").addClass("playerList");
+            data.forEach(function(elem){
+                $table.append(
+                        $("<tr>").append(
+                                $("<td>").append(
+                                        $("<span>").text(elem.name + " - "),
+                                        $("<span>").text(elem.curNumPlayers + '/' + elem.maxNumPlayers),
+                                        $("<button>").text("Join").click(function() {
+                                            currentAction = "JoinToGame";
+                                            var txt = JSON.stringify(JoinGame(elem.id, accessT));
+                                            ws.send(txt + '\0');
+                                        })
+                                )
+                        )
+                );
+            });
             $gamelist.append($table);
-        } 
+        }
     };
     $("#connect").click(connect);
 

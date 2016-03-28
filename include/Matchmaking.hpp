@@ -13,29 +13,6 @@
 #include "CommonObjects.hpp"
 
 
-class Matchmaking {
-public:
-    static Response getGames();
-    static Response joinToGame(int gameId, int playerId);
-    static Response createGame(Game game, int playerId);
-    static Response startGame(int playerId);
-    static Response leaveGame(int playerId, std::string* gameId = NULL, std::string* ownerId = NULL);
-    static Response getLobbyInfo(int playerId);
-    static Response HandleAction(std::string text);
-    static Response onJoinGame(Poco::JSON::Array::Ptr params);
-    static Response onCreateGame(Poco::JSON::Array::Ptr params);
-    static Response onLeaveGame(Poco::JSON::Array::Ptr params);
-    static Response onGetLobbyInfo(Poco::JSON::Array::Ptr params);
-
-    static std::vector<std::string> getPlayersList(int game_id);
-
-    static void clearDB();
-    static void DeleteGame(int gameId);
-    static void onCloseConnection(int playerId);
-    static bool isInGame(int player_id);
-    static void CreateConnection(User user, Poco::Net::WebSocket& ws);
-};
-
 static class Actions {
 public:
     static enum ACTIONS {
@@ -67,12 +44,6 @@ public:
 private:
     static const std::map<std::string, ACTIONS> actions;
 };
-
-
-static void MatchmakingActionHandler(std::string& action, std::ostringstream& stream) {
-    Response r = Matchmaking::HandleAction(action);
-    r.toJson().stringify(stream);
-}
 
 class MatchmakingException : std::exception {
 private:

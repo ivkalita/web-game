@@ -1,12 +1,7 @@
-#define MATCHMAKING_DEBUG
-
 #include <iostream>
 #include "WebgameServer.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"
-#ifdef MATCHMAKING_DEBUG
-    #include "Matchmaking.hpp"
-#endif
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
@@ -122,9 +117,6 @@ int WebgameServer::main(const std::vector<std::string>& args) {
             return EXIT_SOFTWARE;
         }
 
-#ifdef MATCHMAKING_DEBUG
-        Matchmaking::clearDB();
-#endif
         Poco::Net::SocketAddress addr(
             config().getString("application.hostaddr", "127.0.0.1"),
             config().getUInt("application.port", 1337)

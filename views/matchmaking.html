@@ -1,7 +1,5 @@
 <? include "header.html" ?>
-<? echo title ?>
-<div id="contentWrapper"/>
-<? echo number ?>
+
 <input type="button" id="echo_btn" value="GetGames" class="btn btn-default">
 <button class="btn btn-default" data-toggle="modal" data-target="#myModal">Create Game</button>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -16,7 +14,7 @@
       <input type="text" class="form-control" id="gameNameInput" placeholder="game name"/>
       <input type="text" class="form-control" id="gameMapInput" placeholder="map name"/>
       <input type="text" class="form-control" id="gameModeInput" placeholder="game mode"/>
-      <input type="number"class="form-control" id="gameMaxNumPlayers" placeholder="game players number"/>
+      <input type="number" class="form-control" id="gameMaxNumPlayers" placeholder="game players number"/>
     </div>
     </div>
     <div class="modal-footer">
@@ -27,16 +25,15 @@
 </div>
 </div>
 <input type="button" id="leave_btn" value="LeaveGame" class="btn btn-default">
-<input type="button" id="lobby_btn" value="GetLobyInfo" class="btn btn-default">
+<input type="button" id="lobby_btn" value="GetLobbyInfo" class="btn btn-default">
 <input type="button" id="close_btn" value="Disconnect" class="btn btn-default">
 <button id="connect" class="btn btn-default">Connect</button>
-<div id="BodyConetent"></div>
+<div id="BodyContent"></div>
 <button type="button" id="badAction-btn" class="btn btn-primary">Bad Action</button>
-<? include "footer.html" ?>
 
 <script>
   var access;
-  var curentAction = null;
+  var currentAction = null;
   var ws;
 
   connect = function(){
@@ -71,13 +68,13 @@
               LobbyInfo(jsobj["data"]);
               break;
             case "JoinToGame":
-              if (curentAction === "JoinToGame")
+              if (currentAction === "JoinToGame")
                 ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
               break;
             default:
               break;
           }
-        curentAction = null;
+        currentAction = null;
       };
 
       ws.onclose = function() { 
@@ -135,22 +132,22 @@
       }
     }
      $("#badAction-btn").click(function(){
-      curentAction = "WTF";
+      currentAction = "WTF";
       ws.send(JSON.stringify({"action": "WTF"}) + '\0');
     });
 
     $("#echo_btn").click(function(){
-      curentAction = "GetGames";
+      currentAction = "GetGames";
       ws.send(JSON.stringify(GetGames()) + '\0');
     });
 
     $("#leave_btn").click(function(){
-      curentAction = "LeaveGame";
+      currentAction = "LeaveGame";
       ws.send(JSON.stringify(LeaveGame(accessT)) + '\0');
     });
 
     $("#lobby_btn").click(function(){
-      curentAction = "GetLobby";
+      currentAction = "GetLobby";
       ws.send(JSON.stringify(GetLobby(accessT)) + '\0');
     });
 
@@ -162,7 +159,7 @@
     $("#CreateGameBtn").click(function(){
 
       $("#myModal").modal('hide');
-      curentAction = "CreateGame";
+      currentAction = "CreateGame";
       data = CreateGame( 
       accessT,
       Game(
@@ -172,20 +169,19 @@
         $("#gameMapInput").val()
         )
       );
-      txt = JSON.stringify(data)
+      txt = JSON.stringify(data);
       ws.send(txt + '\0');
     });
 
     function LobbyInfo(data)
     {
-
       $lobby = $("#BodyConetent");
       $lobby.append( $("<span>").text("Players: " + data["curNumPlayers"] + '/' + data["maxNumPlayers"]));
       $lobby.append($("<br>"));
       $lobby.append( $("<span>").text("GameName: " + data["name"]));
      
       $table = $("<table>").addClass("table-striped").addClass("playerList");
-      for (player in  data["players"])
+      for (player in data["players"])
       {
         $table.append($("<tr>").append($("<td>").append($("<div>").text(data["players"][player]))));
       }
@@ -206,14 +202,14 @@
         $table.append($("<tr>").append($("<td>").append($("<span>").text(gamename + " - "), $("<span>").text(curplayers + '/' + maxNumPlayers),
           $("<button>").text("Connect").click(function()
           {
-            curentAction = "JoinToGame";
+            currentAction = "JoinToGame";
             txt = JSON.stringify(JoinGame(gameId, accessT));
             ws.send(txt + '\0');
           }))));
       }
       $gamelist.append($table);
     } 
-  }
+  };
   $("#connect").click(connect);
 
 
@@ -222,3 +218,5 @@
   };
 
 </script>
+
+<? include "footer.html" ?>

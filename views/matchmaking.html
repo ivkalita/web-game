@@ -131,7 +131,8 @@
                 "map": map
             }
         }
-         $("#badAction-btn").click(function(){
+
+        $("#badAction-btn").click(function(){
             currentAction = "WTF";
             ws.send(JSON.stringify({"action": "WTF"}) + '\0');
         });

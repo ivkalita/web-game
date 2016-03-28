@@ -1,8 +1,8 @@
 #pragma once
-#include<iostream>
-#include<String>
-#include<vector>
-#include<Map>
+#include <iostream>
+#include <String>
+#include <vector>
+#include <Map>
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/ParseHandler.h"
 #include "Poco/JSON/Stringifier.h"
@@ -11,30 +11,26 @@
 
 #define MATCHMAKING_DEBUG
 
-class BaseObject
-{
+class BaseObject {
 public:
-    virtual  Poco::JSON::Object toJson() = 0;
-    virtual std::string  toJsonString(){
+    virtual Poco::JSON::Object toJson() = 0;
+    virtual std::string toJsonString() {
         std::ostringstream ostr;
         this->toJson().stringify(ostr);
         return ostr.str();
     }
 };
 
-class Data :BaseObject
-{
+class Data :BaseObject {
 public:
-    virtual  Poco::JSON::Object toJson()
-    {
+    virtual Poco::JSON::Object toJson() {
         return this->toJson();
     };
     Data() {};
     virtual ~Data() {};
 };
 
-class Response :BaseObject
-{
+class Response :BaseObject {
 public:
     enum RESULT{
         OK,
@@ -74,8 +70,7 @@ private:
     std::string mAction;
 };
 
-class UserInfo :BaseObject
-{
+class UserInfo :BaseObject {
 public:
     static const std::string P_ID;
     static const std::string P_LOGIN;
@@ -92,8 +87,7 @@ private:
 class Mode {}; //TBD
 class Map {}; //TBD
 
-class Game :BaseObject
-{
+class Game :BaseObject {
 public:
     static const std::string P_NAME;
     static const std::string P_MAXNUMPLAYERS;
@@ -127,8 +121,7 @@ protected:
 };
 
 
-class AccessToken :BaseObject
-{
+class AccessToken :BaseObject {
 public:
     static const std::string P_THIS;
     AccessToken(Poco::JSON::Object token) {};
@@ -140,8 +133,7 @@ private:
 };
 
 
-class GameInfo : Game
-{
+class GameInfo : Game {
 public:
     GameInfo(
         std::string name,
@@ -152,7 +144,7 @@ public:
         UserInfo& owner, 
         int curNumPlayers 
     );
-    virtual  Poco::JSON::Object toJson();
+    virtual Poco::JSON::Object toJson();
 
 private:
     static const std::string P_ID;
@@ -165,8 +157,7 @@ private:
     int mCurNumPlayers;
 };
 
-class LobbyInfo : public GameInfo, public Data
-{
+class LobbyInfo : public GameInfo, public Data {
 public:
     static const std::string P_PLAYERS;
 
@@ -185,15 +176,14 @@ public:
     mPlayerNames(players)
     {};
     virtual ~LobbyInfo() {};
-    virtual  Poco::JSON::Object toJson();
+    virtual Poco::JSON::Object toJson();
 
 private:
     std::vector<std::string> mPlayerNames;
 };
 
 
-class GameInfoData : public Data
-{
+class GameInfoData : public Data {
 public:
     static const std::string P_GAME;
     void addGame(GameInfo& info);
@@ -204,8 +194,7 @@ private:
     std::vector<GameInfo> games;
 };
 
-class UserInfoData : public Data
-{
+class UserInfoData : public Data {
 public:
     UserInfo user;
     virtual ~UserInfoData() {};

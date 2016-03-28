@@ -228,15 +228,6 @@ namespace {
         }
     }
 
-    void clearDB() {
-        try {
-            auto result = DBConnection::instance().ExecParams("DELETE FROM Games", {});
-        }
-        catch (exception &e) {
-            cout << "Error: " << e.what() << endl;
-        }
-    }
-
     Response onCreateGame(Poco::JSON::Array::Ptr params) {
         try {
             Poco::JSON::Object gameObj = *params->getObject(0);

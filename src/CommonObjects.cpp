@@ -29,8 +29,7 @@ const string GameInfo::P_OWNER ="owner";
 const string LobbyInfo::P_PLAYERS = "players";
 
 
-const map<Response::RESULT, string> Response::mResultText =
-{
+const map<Response::RESULT, string> Response::mResultText = {
     { OK,                "Ok"                },
     { BADREQUEST,        "Bad request"       },
     { INTERNALLERROR,    "Internal error"    },
@@ -48,15 +47,13 @@ const map<Response::RESULT, string> Response::mResultText =
 
 Response::Response() : mData(NULL), mAction("") {}
 
-Response::Response(Response * r)
-{
+Response::Response(Response * r) {
     this->mAction = r->mAction;
     this->mResult = r->mResult;
     this->mData = r->mData;
 }
 
-Object AccessToken::toJson()
-{ 
+Object AccessToken::toJson() { 
     return Object();  //TBD
 };
 
@@ -76,20 +73,17 @@ GameInfo::GameInfo(
     mCurNumPlayers(curNumPlayers)
 {};
 
-UserInfo::UserInfo(int id, string login)
-{
+UserInfo::UserInfo(int id, string login) {
     mId = id;
     mLogin = login;
 };
 
-void GameInfoData::addGame(GameInfo & info)
-{
+void GameInfoData::addGame(GameInfo & info) {
     games.push_back(info);
 }
 
 
-Object GameInfoData::toJson()
-{
+Object GameInfoData::toJson() {
     Object obj = Object();
     Array array = Array();
     for (auto game : games)
@@ -102,42 +96,35 @@ Object GameInfoData::toJson()
 
 Game::Game() {}
 
-Game::Game(Object game)
-{
+Game::Game(Object game) {
     mName = game.get(P_NAME).toString();
     mMaxNumPlayers = abs(atoi(game.get(P_MAXNUMPLAYERS).toString().c_str()));
     // mode and map are undefined 
 }
 
-Object Game::toJson()
-{
+Object Game::toJson() {
     return Object();
 }
 
-string Game::getName()
-{
+string Game::getName() {
     return mName;
 }
 
-int Game::getMaxNumPlayers()
-{
+int Game::getMaxNumPlayers() {
     return mMaxNumPlayers;
 }
 
-int AccessToken::getPlayerId()
-{
+int AccessToken::getPlayerId() {
     return mPlayerId;
 }
 
-Response::Response(Data *data, RESULT result, string action)
-{
+Response::Response(Data *data, RESULT result, string action) {
     mData =  std::auto_ptr<Data>(data);
     mResult = result;
     mAction = action;
 }
 
-Object Response::toJson()
-{
+Object Response::toJson() {
     Object obj = Object();
     auto buf = (mData.get()) ? mData.get()->toJson() : NULL;
     obj.set(P_DATA, buf);
@@ -146,36 +133,30 @@ Object Response::toJson()
     return obj;
 }
 
-void Response::setData(Data *data)
-{
+void Response::setData(Data *data) {
     mData = std::auto_ptr<Data>(data);
 }
 
-void Response::setResult(RESULT result)
-{
+void Response::setResult(RESULT result) {
     mResult = result;
 }
 
-void Response::setAction(string action)
-{
+void Response::setAction(string action) {
     mAction = action;
 }
 
-Response::RESULT Response::getResult()
-{ 
+Response::RESULT Response::getResult() { 
     return mResult; 
 };
 
-Object UserInfo::toJson()
-{
+Object UserInfo::toJson() {
     Object obj = Object();
     obj.set(P_ID, mId);
     obj.set(P_LOGIN, mLogin);
     return obj;
 }
 
-Object GameInfo::toJson()
-{
+Object GameInfo::toJson() {
     Object obj = Object();
     obj.set(P_ID, mId);
     obj.set(P_OWNER, mOwner.toJson());
@@ -184,8 +165,8 @@ Object GameInfo::toJson()
     obj.set(P_NAME, mName);
     return obj;
 }
-Object LobbyInfo::toJson()
-{
+
+Object LobbyInfo::toJson() {
     Object obj = GameInfo::toJson();
     Array array = Array();
     for (auto name : mPlayerNames)
@@ -196,9 +177,7 @@ Object LobbyInfo::toJson()
     return obj;
 }
 
-
-const std::string Response::getResponseText(RESULT id)
-{
+const std::string Response::getResponseText(RESULT id) {
     for (auto it = mResultText.begin(); it != mResultText.end(); ++it)
     {
         if (it->first == id)

@@ -39,7 +39,7 @@
     connect = function(){
         if ("WebSocket" in window){
             accessT = user.getToken();
-            ws = new WebSocket("ws://localhost:1337/lobby/" + accessT);
+            ws = new WebSocket("ws://localhost:1337/api/lobby/" + accessT);
             ws.onopen = function(){
                 alert("Connected");
             };

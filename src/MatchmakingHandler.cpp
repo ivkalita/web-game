@@ -26,7 +26,7 @@ namespace {
         Pages() {
             auto & router = Router::instance();
             router.registerRoute("/getLobby", getLobby);
-            router.registerRoute("/lobby/{accessToken}", lobby);
+            router.registerRoute("/api/lobby/{accessToken}", lobby);
         }
     };
 

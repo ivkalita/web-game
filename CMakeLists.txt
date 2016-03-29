@@ -65,6 +65,7 @@ add_executable(runner
     src/Users.cpp
     src/GameHandler.cpp
     src/Map.cpp
+    src/WebsocketRouter.cpp
     include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp

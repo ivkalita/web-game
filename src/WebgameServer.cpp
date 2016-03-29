@@ -3,6 +3,7 @@
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
+#include "WebsocketRouter.hpp"
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
@@ -58,7 +59,10 @@ Poco::Net::HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const
     }
 #endif
 
-    return new RequestHandler;
+    if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
+        return new WebSocketRequestHandler;
+    else
+        return new RequestHandler;
 }
 
 WebgameServer::WebgameServer() : _helpRequested(false) {}

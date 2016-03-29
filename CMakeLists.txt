@@ -69,6 +69,7 @@ add_executable(runner
     src/Matchmaking.cpp
     src/MatchmakingHandler.cpp
     src/WSConnection.cpp
+    src/WebsocketRouter.cpp
     include/GameEngine.hpp
     include/DBConnector.hpp
     include/Router.hpp
@@ -79,6 +80,7 @@ add_executable(runner
     include/CommonObjects.hpp
     include/Matchmaking.hpp
     include/WSConnection.hpp
+	include/WebsocketRouter.hpp
 )
 target_link_libraries(runner ${POCO_LIBS} ${PostgreSQL_LIBRARIES})
 

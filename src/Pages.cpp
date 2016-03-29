@@ -66,19 +66,6 @@ namespace {
         }
     }
 
-    void games(const RouteMatch& m) {
-        Poco::JSON::Template tpl(Application::instance().config().getString("application.rootpath") + "views/games.html");
-        tpl.parse();
-        std::ostream& st = m.response().send();
-
-        Poco::JSON::Object params = Poco::JSON::Object();
-        params.set("title", "All games");
-        params.set("isAuthorized", true);
-
-        tpl.render(params, st);
-        st.flush();
-    }
-
     class Pages {
     public:
         Pages() {
@@ -86,7 +73,6 @@ namespace {
             router.registerRoute("/", root);
             router.registerRoute("/hw", http_example);
             router.registerRoute("/ws", websocket_example);
-            router.registerRoute("/games", games);
         }
     };
 

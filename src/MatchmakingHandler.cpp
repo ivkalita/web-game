@@ -271,7 +271,7 @@ namespace {
                 return Response(NULL, Response::BADREQUEST, action);
             }
         }
-        catch (Poco::JSON::JSONException &e) {
+        catch (Poco::JSON::JSONException &) {
             return Response(NULL, Response::BADREQUEST, "");
         }
         catch (...) {

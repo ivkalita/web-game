@@ -2,10 +2,12 @@
 #include "WebgameServer.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"
+#include "WebsocketRouter.hpp"
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/NetException.h"
+#include "Poco/URI.h"
 
 #include <iostream>
 
@@ -16,7 +18,7 @@ void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
     try {
         response.setChunkedTransferEncoding(true);
         if (!Router::instance().handle(request, response)) {
-            string URI = request.getURI();
+            string URI(Poco::URI(request.getURI()).getPath());
             string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
             try {
                 response.sendFile(Application::instance().config().getString("application.rootpath") + "web" + URI, "text/" + extension);
@@ -56,7 +58,10 @@ Poco::Net::HTTPRequestHandler* RequestHandlerFactory::createRequestHandler(const
     }
 #endif
 
-    return new RequestHandler;
+    if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
+        return new WebSocketRequestHandler;
+    else
+        return new RequestHandler;
 }
 
 WebgameServer::WebgameServer() : _helpRequested(false) {}

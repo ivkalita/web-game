@@ -1,14 +1,6 @@
-#include "WebgameServer.hpp"
-#include "Router.hpp"
+#include "WebsocketRouter.hpp"
 #include "DBConnector.hpp"
 #include "User.hpp"
-
-#include "Poco/JSON/Object.h"
-#include "Poco/JSON/Query.h"
-#include "Poco/JSON/Parser.h"
-#include "Poco/JSON/Stringifier.h"
-
-#include "Poco/Net/HTMLForm.h"
 
 #include "Poco/Random.h"
 #include "Poco/PBKDF2Engine.h"
@@ -34,55 +26,6 @@ namespace {
         return res.str().substr(0, len);
     }
 
-    class JsonException : public std::runtime_error
-    {
-    public:
-        JsonException(std::string message) : runtime_error(message) {}
-    };
-
-    class JsonRequest {
-        Poco::Dynamic::Var v;
-        const RouteMatch& _m;
-    public:
-        JsonRequest(const RouteMatch& m) : _m(m) {
-            Poco::Net::HTMLForm form(m.request(), m.request().stream());
-            Poco::JSON::Parser p;
-            v = p.parse(form.get("jsonObj"));
-        }
-
-        template <typename T>
-        void get(const std::string & name, T & value) const {
-            Poco::JSON::Query q(v);
-            try {
-                q.find(name).convert(value);
-            }
-            catch (...) {
-                throw JsonException("BadRequest");
-            }
-        }
-    };
-
-    class JsonResponse {
-        const RouteMatch & _m;
-        Poco::JSON::Object data;
-    public:
-        JsonResponse(const RouteMatch& m) : _m(m) {}
-
-        template <typename T>
-        void set(const std::string & name, T & value) {
-            data.set(name, value);
-        }
-
-        void send(const std::string result) {
-            Poco::JSON::Object response;
-            response.set("result", result);
-            response.set("data", (data.size() != 0) ? data : "null");
-            std::ostream& st = _m.response().send();
-            Poco::JSON::Stringifier::condense(response, st);
-            st.flush();
-        }
-    };
-
 #define SALT_LENGTH 64
 
     std::string getPasswordHash(std::string password, std::string salt = genRandomString(SALT_LENGTH)) {
@@ -91,78 +34,141 @@ namespace {
         return salt + ":" + hs.digestToHex(hs.digest());
     }
 
-    void Login(JsonRequest & rq, JsonResponse & rs) {
+    Poco::JSON::Object Login(Poco::JSON::Object & params, int & userId) {
         std::string login, password;
-        rq.get("login", login);
-        rq.get("password", password);
+        login = params.get("login").convert<std::string>();
+        password = params.get("password").convert<std::string>();
 
-        auto user = DBConnection::instance().ExecParams("SELECT password, name FROM users WHERE login=$1", { login });
-        if (user.row_count() != 1) return rs.send("BadCredentials");
+        Poco::JSON::Object r;
+
+        auto user = DBConnection::instance().ExecParams("SELECT id, password, name FROM users WHERE login=$1", { login });
+        if (user.row_count() != 1) {
+            r.set("result", "badCredentials");
+            return r;
+            //return jsonDataResult("badCredentials");
+        }
         std::string passhash = (*user.begin()).field_by_name("password");
-        if (getPasswordHash(password, passhash.substr(0, SALT_LENGTH)).compare(passhash))
-            return rs.send("BadCredentials");
+        if (getPasswordHash(password, passhash.substr(0, SALT_LENGTH)).compare(passhash)) {
+            r.set("result", "badCredentials");
+            return r;
+            //return jsonDataResult("badCredentials");
+        }
+
         std::string token = genRandomString();
-        DBConnection::instance().ExecParams("UPDATE users SET token = $1 WHERE login = $2", { token, login });
-        std::string name = (*user.begin()).field_by_name("name");
-        rs.set("name", name);
-        rs.set("accessToken", token);
-        rs.send("Ok");
+        userId = std::stoi((*user.begin()).field_by_name("id"));
+        DBConnection::instance().ExecParams("UPDATE users SET online = true, token = $1 WHERE id = $2", { token, std::to_string(userId) });
+
+        r.set("token", token);
+        r.set("name", (*user.begin()).field_by_name("name"));
+        return r;
     }
 
-    void Logout(JsonRequest & rq, JsonResponse & rs) {
-        std::string token;
-        rq.get("accessToken", token);
+#define VALUE_MAX_LENGTH 256
 
-        auto res = DBConnection::instance().ExecParams("SELECT token FROM users WHERE token=$1", { token });
-        if (!res.row_count()) return rs.send("NotLoggedIn");
-        DBConnection::instance().ExecParams("UPDATE users SET token = '' WHERE token = $1", { token });
-        rs.send("Ok");
-    }
-
-    void Register(JsonRequest & rq, JsonResponse & rs) {
+    Poco::JSON::Object Register(Poco::JSON::Object & params, int & user) {
         std::string login, password, name;
-        rq.get("login", login);
-        rq.get("password", password);
-        rq.get("name", name);
+        login = params.get("login").convert<std::string>();
+        password = params.get("password").convert<std::string>();
+        name = params.get("name").convert<std::string>();
 
-        if (login.length() < 2 || login.length() > 36) return rs.send("BadLogin");
-        if (DBConnection::instance().ExecParams("SELECT login FROM users WHERE login=$1", { login }).row_count() != 0) return rs.send("LoginExists");
-        if (password.length() < 2 || password.length() > 36) return rs.send("BadPassword");
-        if (name.length() < 2 || name.length() > 36) return rs.send("BadName");
+        Poco::JSON::Object r;
+        Poco::JSON::Array errors;
+        if (login.length() == 0) errors.add("loginRequired");
+        if (login.length() > VALUE_MAX_LENGTH) errors.add("loginTooLong");
+        if (DBConnection::instance().ExecParams("SELECT id FROM users WHERE login=$1", { login }).row_count() != 0) errors.add("loginExists");
+        if (password.length() == 0) errors.add("passwordRequired");
+        if (password.length() > VALUE_MAX_LENGTH) errors.add("passwordTooLong");
+        if (name.length() == 0) errors.add("nameRequired");
+        if (name.length() > VALUE_MAX_LENGTH) errors.add("nameTooLong");
+        if (errors.size()) {
+            r.set("errors", errors);
+            return r;
+        }
 
         std::string token = genRandomString();
-        DBConnection::instance().ExecParams("INSERT INTO users (login, name, password, token) values ($1, $2, $3, $4)", {
+        DBConnection::instance().ExecParams("INSERT INTO users (login, name, password, token, online) values ($1, $2, $3, $4, true)", {
             login, name, getPasswordHash(password), token
         });
+        auto userR = DBConnection::instance().ExecParams("SELECT id FROM users WHERE login=$1", { login });
+        user = std::stoi((*userR.begin()).field_by_name("id"));
 
-        rs.set("accessToken", token);
-        rs.send("Ok");
+        r.set("token", token);
+        return r;
     }
 
-    template <void(*T)(JsonRequest &, JsonResponse &)>
-    void CatchException(const RouteMatch& m) {
-        JsonRequest rq(m);
-        JsonResponse rs(m);
-        try {
-            T(rq, rs);
+    Poco::JSON::Object Logout(Poco::JSON::Object & params, int & user) {
+        DBConnection::instance().ExecParams("UPDATE users SET online = false WHERE id = $1", { std::to_string(user) });
+        user = -1;
+        return Poco::JSON::Object();
+    }
+
+    Poco::JSON::Object Token(Poco::JSON::Object & params, int & userId) {
+        std::string token;
+        token = params.get("token").convert<std::string>();
+
+        Poco::JSON::Object r;
+
+        auto user = DBConnection::instance().ExecParams("SELECT id, name FROM users WHERE token=$1", { token });
+        if (user.row_count() != 1) {
+            r.set("result", "badToken");
+            return r;
         }
-        catch (const JsonException & e) {
-            rs.send(e.what());
+
+        userId = std::stoi((*user.begin()).field_by_name("id"));
+        DBConnection::instance().ExecParams("UPDATE users SET online = true WHERE id = $1", { std::to_string(userId) });
+
+        r.set("name", (*user.begin()).field_by_name("name"));
+        return r;
+    }
+
+    Poco::JSON::Object Settings(Poco::JSON::Object & params, int & user) {
+        std::string name;
+        name = params.get("name").convert<std::string>();
+
+        Poco::JSON::Object r;
+        Poco::JSON::Array errors;
+        if (name.length() == 0) errors.add("nameRequired");
+        if (name.length() > VALUE_MAX_LENGTH) errors.add("nameTooLong");
+        if (errors.size()) {
+            r.set("errors", errors);
+            return r;
         }
-        catch (const std::exception & e) {
-            if (m.response().sent()) throw e;
-            else rs.send("InternalError");
+
+        DBConnection::instance().ExecParams("UPDATE users SET name = $1 WHERE id = $2", { name, std::to_string(user) });
+
+        return r;
+    }
+
+    Poco::JSON::Object Password(Poco::JSON::Object & params, int & user) {
+        std::string passwordOld, password;
+        passwordOld = params.get("passwordOld").convert<std::string>();
+        password = params.get("password").convert<std::string>();
+
+        Poco::JSON::Object r;
+
+        auto userR = DBConnection::instance().ExecParams("SELECT password FROM users WHERE id=$1", { std::to_string(user) });
+        std::string passhash = (*userR.begin()).field_by_name("password");
+        if (getPasswordHash(passwordOld, passhash.substr(0, SALT_LENGTH)).compare(passhash)) {
+            r.set("result", "invalidPassword");
+            return r;
         }
+
+        DBConnection::instance().ExecParams("UPDATE users SET password = $1 WHERE id = $2", { getPasswordHash(password), std::to_string(user) });
+
+        return r;
     }
 
     class Pages {
     public:
         Pages() {
             rnd.seed();
-            auto & router = Router::instance();
-            router.registerRoute("POST", "/api/login", CatchException<Login>);
-            router.registerRoute("POST", "/api/register", CatchException<Register>);
-            router.registerRoute("POST", "/api/logout", CatchException<Logout>);
+            auto & router = WebsocketRouter::instance();
+            router.registerRoute("user/login", Login, false);
+            router.registerRoute("user/token", Token, false);
+            router.registerRoute("user/register", Register, false);
+            router.registerRoute("user/logout", Logout);
+            router.registerRoute("user/settings", Settings);
+            router.registerRoute("user/password", Password);
         }
     };
 

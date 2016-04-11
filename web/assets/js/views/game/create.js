@@ -1,29 +1,14 @@
-define(['backbone', 'models/game', 'events/event'], function(Backbone, Game, event) {
-
-    var FormView = Backbone.View.extend({
-        el: $('#cont-new-game'),
-
-        template: _.template($('#tpl-new-game').html()),
-
-        initialize: function() {
-            event.on('invalidGame', this.invalid, this);
-        },
+define(['backbone', 'underscore', '../../models/game'], function(Backbone, _, Game) {
+    return Backbone.View.extend({
+        template: _.template($('#tpl-matchmaking-create').html()),
 
         events: {
-            'click #new-game-submit': 'submit'
+            'click button': 'submit'
         },
 
         render: function() {
             this.$el.html(this.template());
             return this;
-        },
-
-        invalid: function(field, msg) {
-            this.removeErrors();
-
-            $('#new-game-' + field, this.el).parent().addClass('has-error');
-
-            $('.error p, this.el').text(msg);
         },
 
         submit: function() {
@@ -35,20 +20,20 @@ define(['backbone', 'models/game', 'events/event'], function(Backbone, Game, eve
             var newGame = new Game();
 
             var result = newGame.set({
-                name: name, 
-                owner: 'Пользователь', 
-                curNumPlayers: 0, 
-                maxNumPlayers: 
-                maxPlayers, 
-                mod: mod, 
-                map: map,
+                name: name,
+                owner: 'Пользователь',
+                curNumPlayers: 0,
+                maxNumPlayers:
+                maxPlayers,
+                mod: mod,
+                map: map
             }, {validate: true});
 
             if (result) {
                 this.collection.add(newGame);
                 this.collection.trigger('change');
                 this.clearForm();
-                
+
                 event.trigger('newGameAdded');
             }
         },
@@ -63,7 +48,4 @@ define(['backbone', 'models/game', 'events/event'], function(Backbone, Game, eve
             $('#new-game-name').val('');
         }
     });
-
-
-    return FormView;
 });

@@ -3,6 +3,7 @@
 
 #include "Poco/SingletonHolder.h"
 #include "Poco/JSON/Object.h"
+#include "Poco/Net/HTTPRequestHandler.h"
 #include <functional>
 
 typedef std::function<Poco::JSON::Object(Poco::JSON::Object &, int & user)> WebsocketRouteHandler;
@@ -21,8 +22,8 @@ private:
 
 class WebsocketRouter : public AbstractRouter {
 public:
-    void registerRoute(const std::string& path, const WebsocketRouteHandler& handler) {
-        AbstractRouter::registerRoute("", new WebsocketRoute(path, handler));
+    void registerRoute(const std::string& path, const WebsocketRouteHandler& handler, bool need_auth = true) {
+        AbstractRouter::registerRoute("", new WebsocketRoute(path, handler, need_auth));
     }
 
     Poco::JSON::Object handle(Poco::JSON::Object message, int & user) const;
@@ -32,3 +33,10 @@ public:
         return *sh.get();
     }
 };
+
+class WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
+public:
+    void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
+};
+
+Poco::JSON::Object jsonDataResult(std::string result);

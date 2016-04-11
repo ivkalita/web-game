@@ -1,5 +1,6 @@
 requirejs.config({
     baseUrl: "assets/js",
+    urlArgs: "bust=" + (new Date()).getTime(),
     paths: {
         bootstrap: 'bootstrap.min',
         backbone: 'backbone-min',

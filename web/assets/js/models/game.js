@@ -1,32 +1,9 @@
-define(['backbone', 'events/event'], function(Backbone, event) {
-
-    var Game = Backbone.Model.extend({
-        initialize: function() {
-            this.on('invalid', this.onInvalid);
-        },
-
+define(['backbone', 'collections/user'], function(Backbone, userCollection) {
+    return Backbone.Model.extend({
+        players: new userCollection(),
         validate: function(attrs) {
-            try {
-                errorIf(!attrs.name, 'name', 'Не указано имя игры');
-                errorIf(attrs.name.length < 4, 'name', 'Имя игры не может быть короче, чем 4 символа');
-
-            } catch (exc) {
-                return exc;
-            }
-        },
-
-        onInvalid: function(model, error) {},
-    });
-
-
-    function errorIf(condition, field, errorMsg) {
-        if (condition) {
-            event.trigger('invalidGame', field, errorMsg);
-
-            throw new Error(errorMsg);
+            if (attrs.name == 'плохое название')
+                return 'название игры нам не нравится';
         }
-    }
-
-
-    return Game;
+    });
 });

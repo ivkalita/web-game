@@ -5,6 +5,7 @@
 #include "Poco/URI.h"
 #include <sstream>
 
+#include "WebgameServer.hpp"
 #include "Router.hpp"
 #include "DBConnector.hpp"
 
@@ -47,8 +48,9 @@ static Poco::JSON::Object process(std::string & buffer, int & user) {
         res.set("action", req.get("action").extract<std::string>());
         res.set("data", WebsocketRouter::instance().handle(req, user));
     }
-    catch (...) {
+    catch (std::exception & e) {
         res.set("result", "internalError");
+        WebgameServer::instance().logger().error("Processing websocket request: " + std::string(e.what()));
     }
     return res;
 }

@@ -1,6 +1,6 @@
 define([
-    'app-state', 'jquery', 'backbone', 'underscore', 'websocket', 'views/form', 'models/message'
-], function(appState, $, Backbone, _, websocket, FormView, MessageModel) {
+    'app-state', 'jquery', 'backbone', 'underscore', 'websocket', 'views/form'
+], function(appState, $, Backbone, _, websocket, FormView) {
     var SettingsModel = Backbone.Model.extend({
         validate: function(attributes) {
             var r = {};
@@ -21,7 +21,8 @@ define([
                         options.error('Неизвестная ошибка');
                     return;
                 }
-                options.success();
+                if (options.success) options.success();
+                appState.set('user', model.get('name'));
             }, options.error);
         }
     });
@@ -54,37 +55,32 @@ define([
                         options.error('Неизвестная ошибка');
                     return;
                 }
-                options.success();
+                if (options.success) options.success();
             }, options.error);
         }
     });
 
     var SettingsView = Backbone.View.extend({
         initialize: function() {
-            //this.message
             this.settingsForm = new FormView({
                 submitCaption: 'Сохранить',
+                successMessage: 'Параметры изменены',
                 fields: [
                     {name: 'name', caption: 'Имя', type: 'text'}
                 ],
                 model: new SettingsModel({
                     name: appState.get('user')
-                }),
-                success: function() {
-                    alert('Победа');
-                }
+                })
             });
             this.passwordForm = new FormView({
                 submitCaption: 'Сохранить',
+                successMessage: 'Пароль успешно изменён',
                 fields: [
                     {name: 'passwordOld', caption: 'Текущий пароль', type: 'password'},
                     {name: 'password', caption: 'Новый пароль', type: 'password'},
                     {name: 'password2', caption: 'Повторите пароль', type: 'password'}
                 ],
-                model: new UserPasswordModel,
-                success: function() {
-                    alert('Победа');
-                }
+                model: new UserPasswordModel
             });
         },
         render: function () {
@@ -99,8 +95,7 @@ define([
         route: 'settings',
         name: 'settings',
         handler: function () {
-            var view = new SettingsView;
-            appState.applyView(view);
+            appState.applyView(new SettingsView);
         },
         caption: 'Параметры',
         showAnonymous: false,

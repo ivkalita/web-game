@@ -13,10 +13,10 @@ define([
             this.listenTo(this.model, 'change', this.render);
 
             this.listenTo(this.model, 'invalid', this.render);
-            this.listenTo(this.model, 'sync', options.success);
+            if (options.success) this.listenTo(this.model, 'sync', options.success);
             this.listenTo(this.model, 'sync', function(){
                 this.message.set({
-                    content: 'Получен ответ от сервера',
+                    content: options.successMessage || 'Получен ответ от сервера',
                     type: MessageModel.Types.SUCCESS
                 });
             });

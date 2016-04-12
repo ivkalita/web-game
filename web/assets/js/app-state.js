@@ -38,16 +38,14 @@ define(['backbone'], function(Backbone){
                 this.get('menu').setActive(state);
             });
 
-            console.log('all is ok');
             if (localStorage['token'])
                 this.set('token', localStorage['token']);
-            console.log('all is ok 2');
             this.bind('change:token', function(){
-                console.log('token want update');
-                localStorage['token'] = this.get('token');
-                console.log('token updated');
+                if (this.get('token'))
+                    localStorage.setItem('token', this.get('token'));
+                else
+                    localStorage.removeItem('token');
             });
-            console.log('all is ok 3');
         },
 
         defaults: {

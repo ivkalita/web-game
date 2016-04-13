@@ -25,3 +25,4 @@ runner.dir/*
 tester.dir/*
 x64/*
 Win32/*
+web/assets/js/vendor

@@ -82,7 +82,7 @@ struct B: A {
 ```
 
 # Serialization
-Object serialization is performed in the JSON format. You can learn about data conversion to JSON format by following this link - https://en.wikipedia.org/wiki/JSON#Data_types.2C_syntax_and_example 
+Object serialization is performed in the JSON format. You can learn about data conversion to JSON format by following this link - https://en.wikipedia.org/wiki/JSON#Data_types.2C_syntax_and_example
 
 Table of correspondences of the types used in the protocol in the JSON types:
 <table>
@@ -147,7 +147,7 @@ struct UserInfoData: Data {
 ### GameInfoData
 ```c++
 struct GameInfoData: Data {
-   GameInfo [] game; 
+   GameInfo [] game;
 }
 ```
 
@@ -189,7 +189,7 @@ struct Credentials {
     string password;
 }
 ```
-#### Restrictions 
+#### Restrictions
 for **Credentials::login**:
 ```
 [0-9a-zA-Z]{6, 36}
@@ -345,3 +345,12 @@ Response LeaveGame(AccessToken accessToken)
 **[Response](#Response)::result** may be one of follows or one of default [response results](#Response.result):
  * "Ok" - Quit the game there was a successfully.
  * "OutOfGame" - Player out of any games.
+
+##### Send ships
+After StartGame and client joined, client may send to server an order to send number ships to destanation planet from sender planet.
+
+Client can send this order as a structure of 3 digits:
+with 3 input fields: `sender_id`, `dest_id`, `num`.
+* `sender_id` is id of sender planet,
+* `dest_id` is destination planet,
+* `num` is a number of ships.

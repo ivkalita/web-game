@@ -7,6 +7,7 @@
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/NetException.h"
+#include "Poco/URI.h"
 
 #include <iostream>
 
@@ -17,7 +18,7 @@ void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
     try {
         response.setChunkedTransferEncoding(true);
         if (!Router::instance().handle(request, response)) {
-            string URI = request.getURI();
+            string URI(Poco::URI(request.getURI()).getPath());
             string extension = URI.substr(URI.find_last_of(".") + 1, URI.length());
             try {
                 response.sendFile(Application::instance().config().getString("application.rootpath") + "web" + URI, "text/" + extension);

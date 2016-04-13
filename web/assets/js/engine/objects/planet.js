@@ -2,6 +2,21 @@ define(
     ['pixi'],
     function(PIXI) {
         var i, j;
+        var displacecons = 0.214285714;
+        var shadowTexture = new PIXI.Texture.fromCanvas(function() {
+            var planetRadius = 256;
+            var c = document.createElement('canvas');
+            c.width = planetRadius * 2;
+            c.height = planetRadius * 2;
+            var ctx = c.getContext('2d');
+            ctx.strokeStyle = 'black';
+            ctx.moveTo(500, 50);
+            ctx.lineTo(500, 250);
+            ctx.arc(500, 250, 200, 1.5 * Math.PI, Math.PI, true);
+            ctx.lineTo(500,250);
+            ctx.stroke();
+            return c;
+        }())
 
         var planetTexture = new PIXI.Texture.fromCanvas(function() {
             var planetRadius = 256;
@@ -15,21 +30,22 @@ define(
             return c;
         }());
 
-        var glowTexture = new PIXI.Texture.fromCanvas(function() {
-            var glowRadius = 40;
+       /* var glowTexture = new PIXI.Texture.fromCanvas(function() {
+            var glowRadius = 256;
             var c = document.createElement('canvas');
             c.width = glowRadius * 2;
             c.height = glowRadius * 2;
             var ctx = c.getContext('2d');
             var grd = ctx.createRadialGradient(glowRadius, glowRadius, glowRadius, glowRadius, glowRadius, glowRadius - 10);
             grd.addColorStop(0, 'transparent');
-            grd.addColorStop(0.8, 'rgba(255, 255, 255, 0.5');
+            grd.addColorStop(0.5, 'rgba(255, 0, 0, 0.5');
+            grd.addColorStop(0.9, 'rgba(255, 0, 0, 0.5');
             grd.addColorStop(1, 'transparent');
             ctx.fillStyle = grd;
             ctx.rect(0, 0, glowRadius * 2, glowRadius * 2);
             ctx.fill();
             return c;
-        }());
+        }());*/
 
         var lavaTexture = new PIXI.Texture.fromCanvas(function() {
             var c = document.createElement('canvas');
@@ -58,7 +74,7 @@ define(
 
         var linesTexture = new PIXI.Texture.fromCanvas(function() {
             var t = 30, c = document.createElement('canvas');
-            c.height = c.width = 512;
+            c.height = c.width = 1024;
             var ctx = c.getContext('2d');
             ctx.beginPath();
             ctx.strokeStyle = 'green';
@@ -148,23 +164,59 @@ define(
 
             sp = new PIXI.Sprite(planetTexture);
             sp.anchor.set(0.5);
-            sp.width = sp.height = 256;
+            sp.width = sp.height = radius;
+        
             content.addChild(sp);
             this.mask = sp;
 
-            sp = new PIXI.Sprite(linesTexture);
+
+            sp = new PIXI.Sprite.fromImage('Planet_2_d.png');
+            //sp = new PIXI.Sprite(linesTexture)
             sp.anchor.set(0.5);
+            sp.width = sp.height = radius * 2;
+            //sp.scale.set(radius/400);
             //sp.width = sp.height = radius * 2;
             content.addChild(sp);
 
+
+            /*sp = new PIXI.Sprite(shadowTexture);
+            sp.anchor.set(0.5);
+
+            content.addChild(sp);*/
             //sp = new PIXI.Sprite(displaceTexture);
             sp = new PIXI.Sprite.fromImage('displace_article.png');
             sp.anchor.set(0.5);
-            sp.width = sp.height = 256;
+            sp.width = sp.height = radius;
             content.addChild(sp);
-            var displaceFilter = new PIXI.filters.DisplacementFilter(sp, 150);
+
+            
+            var t1 = color & 0xff;
+            var t2 = color >> 8 & 0xff;
+            var t3 = color >> 16 &0xff;
+
+            var displaceFilter = new PIXI.filters.DisplacementFilter(sp, radius * displacecons);
             content.filters = [displaceFilter];
 
+            var glowTexture = new PIXI.Texture.fromCanvas(function() {
+                var glowRadius = 256;
+                var c = document.createElement('canvas');
+                c.width = glowRadius * 2;
+                c.height = glowRadius * 2;
+                var ctx = c.getContext('2d');
+                var grd = ctx.createRadialGradient(glowRadius, glowRadius, glowRadius, glowRadius, glowRadius, glowRadius - 10);
+                grd.addColorStop(0, 'transparent');
+                grd.addColorStop(0.5, 'rgba(' + t1 + ', ' + t2 + ', '+ t3 + ', '+ '0.5)');
+                grd.addColorStop(0.9, 'rgba(' + t1 + ', ' + t2 + ', '+ t3 + ', '+ '0.5)');
+                grd.addColorStop(1, 'transparent');
+                ctx.fillStyle = grd;
+                ctx.rect(0, 0, glowRadius * 2, glowRadius * 2);
+                ctx.fill();
+                return c;
+            }());
+            sp = new PIXI.Sprite(glowTexture);
+            sp.anchor.set(0.5);
+            sp.width = sp.height = radius + 92;
+            content.addChild(sp);
             //setInterval(function() {sp.x += 0.1}, 50);
 
             //if (Math.random() < 0.4) {
@@ -176,10 +228,6 @@ define(
 
             this.addChild(content);
 
-            /*sp = new PIXI.Sprite(glowTexture);
-            sp.anchor.set(0.5);
-            sp.width = sp.height = radius * 2;
-            this.addChild(sp);*/
 
             this._caption = new PIXI.Text('', {
                 font: 'normal 18px Arial', fill: '#fff', stroke: '#000', strokeThickness: 2

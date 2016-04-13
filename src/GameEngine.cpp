@@ -6,6 +6,8 @@
 namespace GameEngine {
 
     void Engine::InitMap(Map map_) {
+        mapHeight = map_.GetHeight();
+        mapWidth = map_.GetWidth();
         for (auto &p : map_.GetPlanets()) {
             int lim = p.limit < 0 ? p.radius * 3 / 2 : p.limit;
             tfloat prod = p.production < 0 ? 0 : p.production;

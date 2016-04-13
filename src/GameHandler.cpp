@@ -244,6 +244,8 @@ namespace {
                 }
                 json.set("planets", planets_array);
 
+                json.set("width", engine.getMapWidth());
+                json.set("height", engine.getMapHeight());
                 std::stringstream str;
                 json.stringify(str);
                 std::string s = str.str();

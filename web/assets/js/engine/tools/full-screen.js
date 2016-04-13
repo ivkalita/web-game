@@ -41,6 +41,7 @@ define(
             else
                 (document.cancelFullScreen || document.webkitCancelFullScreen || document.mozCancelFullScreen ||
                 function(){}).call(document);
+            window.onresize();
         };
 
         FullScreen.prototype._onMouseOver = function() {

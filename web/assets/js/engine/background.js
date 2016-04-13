@@ -29,6 +29,12 @@ define(
         Background.prototype = Object.create(PIXI.Container.prototype);
         Background.prototype.constructor = Background;
 
+        Background.prototype.resize = function(w, h)
+        {
+            this.width = w;
+            this.height = h;
+        }
+
         Background.prototype.update = function() {
             this._update.forEach(function(el){ el.update(); });
         };

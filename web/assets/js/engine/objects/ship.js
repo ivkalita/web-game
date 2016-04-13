@@ -1,21 +1,24 @@
 define(
     ['pixi'],
     function(PIXI) {
-        var side = 10;
-        var brd = 1;
+        var side;
+        var brd;
 
-        function Ship(x, y, angle, color){
+        function Ship(x, y, angle, color, scale){
             PIXI.Sprite.call(this);
             this.anchor.set(0.5, 0.5);
-            this.update(x, y, angle, color);
+            this.update(x, y, angle, color, scale);
+
         }
 
         Ship.prototype = Object.create(PIXI.Sprite.prototype);
         Ship.prototype.constructor = Ship;
 
-        Ship.prototype.update = function(x, y, angle, color){
+        Ship.prototype.update = function(x, y, angle, color, scale){
             this.x = x;
             this.y = y;
+            side = scale;
+            brd = scale / 4;
             this.rotation = angle;
             this.visible = true;
             if (this.texture.color != color)
@@ -29,7 +32,7 @@ define(
             var c = document.createElement('canvas');
             c.width = c.height = side;
             var ctx = c.getContext('2d');
-            ctx.strokeStyle = '#' + ('00000' + color.toString(16)).substr(-6);
+            ctx.strokeStyle = '#' + (color.toString(16)).substr(-6);
             ctx.lineWidth = brd;
             ctx.moveTo(brd, brd);
             ctx.lineTo(side - brd, side / 2);

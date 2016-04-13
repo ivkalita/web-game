@@ -1,14 +1,17 @@
 define(
     ['pixi'],
     function(PIXI) {
-        function Planet(id, x, y, radius, color, count, handlers) {
+        function Planet(id, x, y, radius, color, count, handlers, ox, oy, or) {
             PIXI.Container.call(this);
             Object.defineProperties(this, {
                 id: { value: id, writable: false, configurable: false },
-                radius: { value: radius, writable: false, configurable: false }
+                radius: { value: radius, writable: true, configurable: false }
             });
             this.x = x;
             this.y = y;
+            this.origX = ox;
+            this.origY = oy;
+            this.origRad = or;
             this.addChild(this._gr = new PIXI.Graphics());
             this._caption = new PIXI.Text('', {
                 font: 'normal 18px Arial', fill: '#fff', stroke: '#000', strokeThickness: 2
@@ -46,6 +49,13 @@ define(
                 this._color = color;
                 this._draw();
             }
+        };
+
+        Planet.prototype.move = function(x, y, r){
+            this.x = x;
+            this.y = y;
+            this.radius = r;
+            this._draw();
         };
 
         function brighter(color, c) {

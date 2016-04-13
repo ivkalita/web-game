@@ -17,5 +17,8 @@
 		"pixi": "pixijs#^1.3.0",
 		"pixi.js": "pixi#^3.0.11",
 		"requirejs": "^2.2.0",
+		"underscore": "^1.8.3",
+		"backbone": "^1.3.3",
+		"bootstrap": "^3.3.6",
   }
 }

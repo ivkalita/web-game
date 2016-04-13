@@ -4,27 +4,27 @@
     <meta charset="UTF-8">
     <script type="text/javascript" src="assets/js/require.js"></script>
     <script type="text/javascript" src="assets/js/require-config.js"></script>
-    
+
     <title>Websocket test page</title>
 </head>
 <body>
 
 <div>
     <div>Client</div>
-    
+
     <form>
     <div>
         Game id: <input id="game_id" value="0">
         <input id="join" type="button" value="Join">
     </div>
-    
+
     <div id="player-info"></div>
-    
+
     <div>
         Sender planet <input id="src">Dest planet <input id="dst"> num <input id="num">
         <input type="button" id="launch" value="Launch">
     </div>
-    
+
     </form>
 </div>
 
@@ -44,8 +44,12 @@
             function(Engine, $) {
                 var host_game_id, player_id, ws;
 
-                var engine = new Engine(250, 250, sendShips);
+                var engine = new Engine(sendShips);
                 $('#render').replaceWith(engine.view);
+
+                window.onresize = function(event) {
+                    engine.onresize(window.innerWidth, window.innerHeight)
+                }
 
                 function sendShips(from, to, count) {
                     ws.send(JSON.stringify({
@@ -96,8 +100,10 @@
                         alert("This browser does not support WebSockets.");
                     }
                 });
+                window.onresize();
             }
     );
+
 </script>
 </body>
 </html>

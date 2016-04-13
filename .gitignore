@@ -26,3 +26,4 @@ tester.dir/*
 x64/*
 Win32/*
 web_game.VC.opendb
+web/assets/js/vendor

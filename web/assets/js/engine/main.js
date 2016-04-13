@@ -1,5 +1,5 @@
 define(
-    ['pixi', './objects/planet', './objects/ship', './selection', './tools', './background', 'pixi/pixiTouchOverOutPatch'],
+    ['pixi', './objects/planet', './objects/ship', './selection', './tools', './background', 'pixiTouchOverOutPatch'],
     function(PIXI, Planet, Ship, Selection, Tools, Background) {
         function Engine(width, height, sendShipsHandler, noWebGL) {
             this._renderer = PIXI.autoDetectRenderer(width, height, { antialias: true }, noWebGL);

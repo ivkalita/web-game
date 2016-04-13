@@ -69,6 +69,16 @@ If you install for Visual Studio you should:
 - add libpq.lib to Linker->Input->Additional dependencies
 - add <pgsql install path>\include and \lib to VC++ Directories->Include and ->Library, correspondingly
 
+### Bower installation
+We are using bower package manager so you should download it.
+You should install Node.js first. After installation open command line and use next command:
+
+```sh
+$ npm install -g bower
+```
+This will automatically install and set PATH variables for Bower. After this, open `/web-game` folder with a command line and init next command
+`bower install`. This will download all libs we are using in `/web-game/web/assets/js/vendor`.
+
 ## Running
 
 ```sh

@@ -1,7 +1,7 @@
 requirejs.config({
     baseUrl: "assets/js",
     paths: {
-        jquery: 'jquery-2.1.4.min'
+        jquery: 'vendor/jquery/dist/jquery.min'
     },
     packages: [
         {

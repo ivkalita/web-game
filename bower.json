@@ -1,0 +1,18 @@
+{
+  "name": "web-game-project-package",
+  "description": "This package is required for web-game project. Include some useful libs we are using.",
+  "main": "",
+  "license": "GPL",
+  "homepage": "https://github.com/kaduev13/web-game",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  
+  }
+}

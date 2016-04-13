@@ -25,12 +25,16 @@ namespace GameEngine {
     private:
         ShipGroupList groups;
         PlanetList planets;
+        int mapWidth;
+        int mapHeight;
         std::map<int, Planet*> planets_map;
         Planet& AddPlanet(tfloat x, tfloat y, tfloat radius, int ships_num, int owner, int limit, tfloat production);
     public:
         Engine() {}
         void InitMap(Map map_);
         void Step();
+        int getMapWidth() { return mapWidth; };
+        int getMapHeight() { return mapHeight; };
         void Launch(int count, Planet& sender_planet, Planet& dest_planet);
         const ShipGroupList& GetGroups() const { return groups; }
         const PlanetList& GetPlanets() const { return planets; }

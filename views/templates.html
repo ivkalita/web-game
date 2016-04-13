@@ -1,0 +1,99 @@
+<script type="text/template" id="tpl-menu">
+    <ul class="nav navbar-nav">
+        <% menu.forEach(function(item) {
+            if (item.position != 'left') return;
+            if (user && item.showRegistered || !user && item.showAnonymous) { %>
+                <li<% if (item.active) { %> class="active"<% } %>>
+                    <a href="#<%= item.link %>"><%= item.caption %></a></li>
+            <% }
+        }) %>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+        <p class="navbar-text"><%= user %></p>
+        <% menu.forEach(function(item) {
+            if (item.position != 'right') return;
+            if (user && item.showRegistered || !user && item.showAnonymous) { %>
+                <li<% if (item.active) { %> class="active"<% } %>>
+                    <a href="#<%= item.link %>"><%= item.caption %></a></li>
+            <% }
+        }) %>
+    </ul>
+</script>
+
+<script type="text/template" id="tpl-form">
+    <% if (message.content) { %>
+        <div class="alert alert-<%= message.type %>"><%= message.content %></div>
+    <% } %>
+    <% if (errors && errors.common) { %>
+        <div class="alert alert-danger"><%= errors.common %></div>
+    <% } %>
+    <form class="form-horizontal">
+        <% fields.forEach(function(field){ %>
+        <div class="form-group<% if (errors && errors[field.name]) { %> has-error<% } %>">
+            <label for="tpl-form-<%= field.name %>" class="col-sm-3 control-label"><%= field.caption %></label>
+            <div class="col-sm-9">
+                <input id="tpl-form-<%= field.name %>" type="<%= field.type %>" name="<%= field.name %>"
+                       class="form-control" placeholder="<%= field.caption %>" value="<%= object[field.name] %>">
+                <% if (errors && errors[field.name]) { %>
+                    <span class="help-block"><%= errors[field.name] %></span>
+                <% } %>
+            </div>
+        </div>
+        <% }) %>
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <button class="btn btn-primary"><%= submitCaption %></button>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/template" id="tpl-game-list">
+    <h3>Список игр:</h3>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>id</td>
+                <td>Имя игры</td>
+                <td>Режим</td>
+                <td>Карта</td>
+                <td>Игроков</td>
+                <td>Создатель</td>
+                <td></td>
+            </tr>
+            </thead>
+            <tbody>
+            <%= gameList %>
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script type="text/template" id="tpl-matchmaking-item">
+    <td><%= id %></td>
+    <td><%= name %></td>
+    <td><%= owner %></td>
+    <td><a class="btn btn-small btn-success" href="#" role="button">Играть</a></td>
+</script>
+
+<script type="text/template" id="tpl-matchmaking-create">
+    <div class="error">
+        <p class="text-danger"></p>
+    </div>
+
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="tpl-game-create-name" class="col-sm-3 control-label">Название</label>
+            <div class="col-sm-9">
+                <input id="tpl-game-create-name" type="text" name="name" class="form-control" placeholder="Название" required autofocus>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <button type="submit" class="btn btn-primary">Создать игру</button>
+            </div>
+        </div>
+    </form>
+</script>

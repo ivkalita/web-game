@@ -131,8 +131,18 @@ define(
             }, this);
         };
 
+        var colors = {};
         Engine.prototype.update = function(msg, playerId) {
-            function ownerColor(owner) { return owner & 0xFFFFFF; }
+            function ownerColor(owner) {
+                if (colors[owner]) return colors[owner];
+                var letters = '0123456789ABCDEF'.split('');
+                var color = '0x';
+                for (var i = 0; i < 6; i++ ) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }   
+                return colors[owner] = color;
+            }
+
             this._planetsOwned.clear();
             msg.planets.forEach(function(pl){
                 if (!this._planets[pl.id]) {
